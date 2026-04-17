@@ -61,6 +61,16 @@ def step_analyze(project_id: int) -> dict:
 
         asin_detail = fetch_asin_detail(proj.asin)
         category_top = fetch_category_top(proj.category)
+
+        # Persist benchmarks to DB so step_plan() can query them
+        for bm in category_top:
+            bm.project_id = project_id
+            session.add(bm)
+        session.commit()
+        logger.info(
+            "Persisted %d benchmarks for project %d", len(category_top), project_id
+        )
+
         competitor_analysis = analyze_competitor_listing(proj.asin)
     finally:
         session.close()
@@ -84,14 +94,50 @@ def step_plan(project_id: int) -> list:
 
 def step_generate(project_id: int, adapter_name: str = "gpt_image") -> dict[str, str]:
     """Generate prompts and run image adapter. Sets status='generated'."""
+    from pipeline.models.prompt_asset import PromptAsset
+    from pipeline.models.slot_plan import SlotPlan
+
     prompts = generate_slot_prompts(project_id)
     adapter = get_adapter(adapter_name)
 
-    results = {}
-    for slot_label, prompt_text in prompts.items():
-        result = adapter.generate(prompt_text)
-        results[slot_label] = result
-        logger.info("Generated image for %s via %s", slot_label, adapter_name)
+    session = get_session()
+    try:
+        plans = (
+            session.query(SlotPlan)
+            .filter(SlotPlan.project_id == project_id)
+            .order_by(SlotPlan.slot_index)
+            .all()
+        )
+        label_to_slot_index = {}
+        for plan in plans:
+            from pipeline.layers.prompt_engine import _slot_label
+
+            label_to_slot_index[_slot_label(plan.slot_index)] = plan.slot_index
+
+        results = {}
+        for slot_label, prompt_text in prompts.items():
+            result = adapter.generate(prompt_text)
+            results[slot_label] = result
+            logger.info("Generated image for %s via %s", slot_label, adapter_name)
+
+            if result.image_path:
+                slot_index = label_to_slot_index.get(slot_label)
+                if slot_index is not None:
+                    asset = (
+                        session.query(PromptAsset)
+                        .filter(
+                            PromptAsset.project_id == project_id,
+                            PromptAsset.slot_index == slot_index,
+                        )
+                        .order_by(PromptAsset.version.desc())
+                        .first()
+                    )
+                    if asset:
+                        asset.image_path = result.image_path
+
+        session.commit()
+    finally:
+        session.close()
 
     _update_status(project_id, "generated")
     return results
