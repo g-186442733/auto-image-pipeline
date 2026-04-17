@@ -2,6 +2,9 @@
 
 from pipeline.adapters.base import BaseImageAdapter, ImageResult, JobStatus
 from pipeline.adapters.registry import get_adapter, register_adapter
+from pipeline.adapters.gpt_image_adapter import GptImageAdapter
+from pipeline.adapters.gemini_image_adapter import GeminiImageAdapter
+from pipeline.adapters.gemini_vision_adapter import GeminiVisionAdapter
 
 __all__ = [
     "BaseImageAdapter",
@@ -9,4 +12,7 @@ __all__ = [
     "JobStatus",
     "get_adapter",
     "register_adapter",
+    "GptImageAdapter",
+    "GeminiImageAdapter",
+    "GeminiVisionAdapter",
 ]

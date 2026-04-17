@@ -27,8 +27,14 @@ def get_adapter(name: str) -> BaseImageAdapter:
 
 def _bootstrap() -> None:
     from pipeline.adapters.mock_adapter import MockImageAdapter
+    from pipeline.adapters.gpt_image_adapter import GptImageAdapter
+    from pipeline.adapters.gemini_image_adapter import GeminiImageAdapter
+    from pipeline.adapters.gemini_vision_adapter import GeminiVisionAdapter
 
     register_adapter("mock", MockImageAdapter)
+    register_adapter("gpt_image", GptImageAdapter)
+    register_adapter("gemini_image", GeminiImageAdapter)
+    register_adapter("gemini_vision", GeminiVisionAdapter)
 
 
 _bootstrap()

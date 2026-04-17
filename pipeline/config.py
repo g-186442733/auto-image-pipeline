@@ -23,6 +23,22 @@ class Config:
     openai_model: str = field(
         default_factory=lambda: os.getenv("AIP_OPENAI_MODEL", "gpt-4o")
     )
+    # 147AI provider credentials
+    api_key: str = field(default_factory=lambda: os.getenv("AIP_API_KEY", ""))
+    api_base_url: str = field(
+        default_factory=lambda: os.getenv("AIP_API_BASE_URL", "https://147ai.com/v1")
+    )
+    image_model: str = field(
+        default_factory=lambda: os.getenv("AIP_IMAGE_MODEL", "gpt-image-1")
+    )
+    edit_model: str = field(
+        default_factory=lambda: os.getenv(
+            "AIP_EDIT_MODEL", "gemini-2.5-flash-image-preview"
+        )
+    )
+    vision_model: str = field(
+        default_factory=lambda: os.getenv("AIP_VISION_MODEL", "gemini-2.5-flash")
+    )
     templates_dir: str = field(
         default_factory=lambda: os.getenv("AIP_TEMPLATES_DIR", "templates")
     )
