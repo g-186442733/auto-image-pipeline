@@ -1,6 +1,8 @@
 import os
+import secrets
+from datetime import timedelta
 
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_file, session
 
 from pipeline.models.base import get_session, create_all
 from pipeline.models.project import Project
@@ -16,6 +18,13 @@ def create_app():
         template_folder="templates",
         static_folder="static",
     )
+
+    app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=24)
+
+    @app.before_request
+    def _make_session_permanent():
+        session.permanent = True
 
     create_all()
 
