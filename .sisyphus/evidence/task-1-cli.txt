@@ -1,0 +1,10 @@
+Usage: python -m pipeline [OPTIONS] COMMAND [ARGS]...
+
+  Auto Image Pipeline — Amazon product image automation.
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  info  Show pipeline info.
