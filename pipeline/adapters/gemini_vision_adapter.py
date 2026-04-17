@@ -66,6 +66,8 @@ class GeminiVisionAdapter(BaseImageAdapter):
             json=payload,
             **self._client_kwargs,
         )
+        if resp.status_code >= 400:
+            logger.error("API error %s: %s", resp.status_code, resp.text)
         resp.raise_for_status()
         body = resp.json()
 
