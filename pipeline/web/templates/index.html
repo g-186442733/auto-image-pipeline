@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block title %}Projects — Auto Image Pipeline{%
+endblock %} {% block content %}
+<h1>Projects</h1>
+{% if projects %}
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>ASIN</th>
+      <th>Category</th>
+      <th>Status</th>
+      <th>Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in projects %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>
+        <a href="{{ url_for('project_detail', project_id=p.id) }}"
+          >{{ p.name }}</a
+        >
+      </td>
+      <td>{{ p.asin or '—' }}</td>
+      <td>{{ p.category or '—' }}</td>
+      <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+      <td>
+        {{ p.updated_at.strftime('%Y-%m-%d %H:%M') if p.updated_at else '—' }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">
+  No projects yet. <a href="{{ url_for('project_new') }}">Create one</a>.
+</p>
+{% endif %} {% endblock %}

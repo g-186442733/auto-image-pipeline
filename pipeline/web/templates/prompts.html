@@ -1,0 +1,48 @@
+{% extends "base.html" %} {% block title %}Prompts — Auto Image Pipeline{%
+endblock %} {% block content %}
+<h1>All Prompts</h1>
+{% if prompts %}
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Project</th>
+      <th>Slot</th>
+      <th>Version</th>
+      <th>Model</th>
+      <th>Prompt</th>
+      <th>Image</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pa in prompts %}
+    <tr>
+      <td>{{ pa.id }}</td>
+      <td>
+        <a href="{{ url_for('project_detail', project_id=pa.project_id) }}"
+          >{{ pa.project_id }}</a
+        >
+      </td>
+      <td>{{ pa.slot_index }}</td>
+      <td>v{{ pa.version }}</td>
+      <td>{{ pa.model_name or '—' }}</td>
+      <td>
+        {{ pa.prompt_text[:80] }}{% if pa.prompt_text|length > 80 %}…{% endif %}
+      </td>
+      <td>
+        {% if pa.image_path %}<a
+          href="{{ url_for('serve_image', path=pa.image_path) }}"
+          >view</a
+        >{% else %}—{% endif %}
+      </td>
+      <td>
+        {{ pa.created_at.strftime('%Y-%m-%d') if pa.created_at else '—' }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No prompts yet.</p>
+{% endif %} {% endblock %}

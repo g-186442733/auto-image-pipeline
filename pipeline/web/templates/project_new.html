@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}New Project — Auto Image Pipeline{%
+endblock %} {% block content %}
+<h1>New Project</h1>
+<form method="post" action="{{ url_for('project_create') }}">
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" required />
+
+  <label for="asin">ASIN</label>
+  <input type="text" id="asin" name="asin" maxlength="20" />
+
+  <label for="category">Category</label>
+  <input type="text" id="category" name="category" />
+
+  <label for="status">Status</label>
+  <select id="status" name="status">
+    <option value="draft" selected>Draft</option>
+    <option value="in_progress">In Progress</option>
+    <option value="review">Review</option>
+    <option value="done">Done</option>
+  </select>
+
+  <label for="notes">Notes</label>
+  <textarea id="notes" name="notes" rows="4"></textarea>
+
+  <button type="submit">Create Project</button>
+</form>
+{% endblock %}

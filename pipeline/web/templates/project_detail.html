@@ -1,0 +1,96 @@
+{% extends "base.html" %} {% block title %}{{ project.name }} — Auto Image
+Pipeline{% endblock %} {% block content %}
+<h1>{{ project.name }}</h1>
+<div class="meta">
+  <span>ASIN: {{ project.asin or '—' }}</span>
+  <span>Category: {{ project.category or '—' }}</span>
+  <span class="badge badge-{{ project.status }}">{{ project.status }}</span>
+</div>
+{% if project.notes %}
+<p class="notes">{{ project.notes }}</p>
+{% endif %}
+
+<h2>Slot Plans</h2>
+{% if slots %}
+<table>
+  <thead>
+    <tr>
+      <th>Slot</th>
+      <th>Intent</th>
+      <th>Layout</th>
+      <th>Style</th>
+      <th>Color</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in slots %}
+    <tr>
+      <td>{{ s.slot_index }}</td>
+      <td>{{ s.intent_tag or '—' }}</td>
+      <td>{{ s.layout_tag or '—' }}</td>
+      <td>{{ s.style_tag or '—' }}</td>
+      <td>{{ s.color_tag or '—' }}</td>
+      <td>{{ s.description or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No slot plans.</p>
+{% endif %}
+
+<h2>Prompt Assets</h2>
+{% if prompts %}
+<div class="card-grid">
+  {% for pa in prompts %}
+  <div class="card">
+    {% if pa.image_path %}
+    <img
+      src="{{ url_for('serve_image', path=pa.image_path) }}"
+      alt="Slot {{ pa.slot_index }}"
+    />
+    {% endif %}
+    <div class="card-body">
+      <strong>Slot {{ pa.slot_index }} v{{ pa.version }}</strong>
+      <p>
+        {{ pa.prompt_text[:120] }}{% if pa.prompt_text|length > 120 %}…{% endif
+        %}
+      </p>
+      <small>{{ pa.model_name or 'unknown model' }}</small>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="empty">No prompt assets.</p>
+{% endif %}
+
+<h2>Benchmarks</h2>
+{% if benchmarks %}
+<table>
+  <thead>
+    <tr>
+      <th>Competitor ASIN</th>
+      <th>Slot</th>
+      <th>Score</th>
+      <th>Analysis</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in benchmarks %}
+    <tr>
+      <td>{{ b.competitor_asin }}</td>
+      <td>{{ b.slot_index if b.slot_index is not none else '—' }}</td>
+      <td>{{ '%.1f'|format(b.score) if b.score is not none else '—' }}</td>
+      <td>
+        {{ b.analysis[:80] if b.analysis else '—' }}{% if b.analysis and
+        b.analysis|length > 80 %}…{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No benchmarks.</p>
+{% endif %} {% endblock %}

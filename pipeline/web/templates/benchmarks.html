@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block title %}Benchmarks — Auto Image Pipeline{%
+endblock %} {% block content %}
+<h1>All Benchmarks</h1>
+{% if benchmarks %}
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Project</th>
+      <th>Competitor ASIN</th>
+      <th>Slot</th>
+      <th>Score</th>
+      <th>Analysis</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in benchmarks %}
+    <tr>
+      <td>{{ b.id }}</td>
+      <td>
+        <a href="{{ url_for('project_detail', project_id=b.project_id) }}"
+          >{{ b.project_id }}</a
+        >
+      </td>
+      <td>{{ b.competitor_asin }}</td>
+      <td>{{ b.slot_index if b.slot_index is not none else '—' }}</td>
+      <td>{{ '%.1f'|format(b.score) if b.score is not none else '—' }}</td>
+      <td>
+        {{ b.analysis[:100] if b.analysis else '—' }}{% if b.analysis and
+        b.analysis|length > 100 %}…{% endif %}
+      </td>
+      <td>{{ b.created_at.strftime('%Y-%m-%d') if b.created_at else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No benchmarks yet.</p>
+{% endif %} {% endblock %}

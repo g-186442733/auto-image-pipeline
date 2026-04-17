@@ -1,0 +1,12 @@
+T15 Flask Web UI Evidence
+=========================
+Date: 2026-04-18
+
+Smoke test: from pipeline.web.app import create_app; app = create_app()
+Result: OK — Flask app created: pipeline.web.app
+
+Routes: / (index), /project/<id>, /project/new (GET+POST), /prompts, /benchmarks, /image/<path>
+Templates: base.html, index.html, project_detail.html, project_new.html, prompts.html, benchmarks.html
+Static: style.css (3238 bytes, external — no inline <style>)
+
+Files: pipeline/web/app.py (115 lines)

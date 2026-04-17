@@ -1,0 +1,22 @@
+T16 E2E Test Evidence
+=====================
+Date: 2026-04-18
+Runner: .venv/bin/python -m pytest tests/test_e2e_tws.py -v
+
+Result: 8 passed, 0 failed (1.10s)
+
+Tests:
+  TestStepByStep::test_step_init        PASSED
+  TestStepByStep::test_step_analyze     PASSED
+  TestStepByStep::test_step_plan        PASSED
+  TestStepByStep::test_step_generate    PASSED
+  TestStepByStep::test_step_qa          PASSED
+  TestStepByStep::test_step_report      PASSED
+  TestFullPipeline::test_full_pipeline_completes              PASSED
+  TestFullPipeline::test_full_pipeline_db_records_complete    PASSED
+
+Warnings: 38 (all LegacyAPIWarning for Query.get(), cosmetic only)
+
+Fixes applied during QA:
+1. Added httpx.post mock for qa_gate Vision API calls (test_step_qa, test_step_report, TestFullPipeline)
+2. Fixed report assertion: report["project_name"] -> report["project"]["name"]
