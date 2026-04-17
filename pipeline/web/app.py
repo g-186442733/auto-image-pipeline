@@ -66,20 +66,19 @@ def create_app():
 
     @app.route("/project/new", methods=["POST"])
     def project_create():
-        session = get_session()
+        from pipeline.layers.input_layer import create_project
+
+        brief = {
+            "name": request.form["name"],
+            "asin": request.form.get("asin", ""),
+            "category": request.form.get("category", ""),
+            "notes": request.form.get("notes", ""),
+        }
         try:
-            project = Project(
-                name=request.form["name"],
-                asin=request.form.get("asin", ""),
-                category=request.form.get("category", ""),
-                status=request.form.get("status", "draft"),
-                notes=request.form.get("notes", ""),
-            )
-            session.add(project)
-            session.commit()
-            return redirect(url_for("project_detail", project_id=project.id))
-        finally:
-            session.close()
+            project = create_project(brief)
+        except ValueError as exc:
+            return str(exc), 400
+        return redirect(url_for("project_detail", project_id=project.id))
 
     @app.route("/prompts")
     def prompts_list():

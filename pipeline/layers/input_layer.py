@@ -11,7 +11,7 @@ logger = setup_logger("aip.input_layer")
 
 __all__ = ["create_project", "upsert_brand_profile"]
 
-ASIN_PATTERN = re.compile(r"^B0[A-Z0-9]{8}$")
+ASIN_PATTERN = re.compile(r"^B[0-9A-Z]{9}$")
 
 
 def create_project(brief: dict) -> Project:
@@ -20,7 +20,7 @@ def create_project(brief: dict) -> Project:
     brief must contain: name (str), asin (str), category (str). Optional: notes (str).
     Returns Project with status="draft".
     Raises ValueError("E_INPUT_001: ...") if missing required fields.
-    Raises ValueError("E_INPUT_002: ...") if ASIN format invalid (must match r'^B0[A-Z0-9]{8}$').
+    Raises ValueError("E_INPUT_002: ...") if ASIN format invalid (must match r'^B[0-9A-Z]{9}$').
     """
     required_fields = ("name", "asin", "category")
     missing = [f for f in required_fields if f not in brief or brief[f] is None]
