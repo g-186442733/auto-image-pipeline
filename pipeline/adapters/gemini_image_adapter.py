@@ -26,10 +26,11 @@ class GeminiImageAdapter(BaseImageAdapter):
             raise RuntimeError("E_ADAPTER_001: AIP_API_KEY not set")
         self._base_url = config.api_base_url.rstrip("/")
         self._headers = {
-            "Authorization": config.api_key,
+            "Authorization": f"Bearer {config.api_key}",
             "Content-Type": "application/json",
         }
         self._timeout = httpx.Timeout(120.0, connect=10.0)
+        self._client_kwargs = {"timeout": self._timeout, "proxy": None}
 
     def generate(self, prompt: str, params: dict | None = None) -> ImageResult:
         return self.edit_image(image_b64=None, prompt=prompt, params=params)
@@ -72,7 +73,7 @@ class GeminiImageAdapter(BaseImageAdapter):
             f"{self._base_url}/chat/completions",
             headers=self._headers,
             json=payload,
-            timeout=self._timeout,
+            **self._client_kwargs,
         )
         resp.raise_for_status()
         body = resp.json()

@@ -20,7 +20,7 @@ _DEFAULT_PARAMS = {
     "size": "1024x1024",
     "quality": "medium",
     "background": "auto",
-    "output_format": "b64_json",
+    "output_format": "png",
     "n": 1,
 }
 
@@ -31,10 +31,11 @@ class GptImageAdapter(BaseImageAdapter):
             raise RuntimeError("E_ADAPTER_001: AIP_API_KEY not set")
         self._base_url = config.api_base_url.rstrip("/")
         self._headers = {
-            "Authorization": config.api_key,
+            "Authorization": f"Bearer {config.api_key}",
             "Content-Type": "application/json",
         }
         self._timeout = httpx.Timeout(120.0, connect=10.0)
+        self._client_kwargs = {"timeout": self._timeout, "proxy": None}
 
     def generate(self, prompt: str, params: dict | None = None) -> ImageResult:
         if not prompt:
@@ -48,8 +49,10 @@ class GptImageAdapter(BaseImageAdapter):
             f"{self._base_url}/images/generations",
             headers=self._headers,
             json=merged,
-            timeout=self._timeout,
+            **self._client_kwargs,
         )
+        if resp.status_code >= 400:
+            logger.error("API error %s: %s", resp.status_code, resp.text)
         resp.raise_for_status()
         body = resp.json()
 
@@ -58,11 +61,18 @@ class GptImageAdapter(BaseImageAdapter):
         image_url = body["data"][0].get("url")
 
         image_path: str | None = None
+        out_dir = Path(config.image_output_dir) / "gpt_image"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
         if b64_data:
-            out_dir = Path(config.image_output_dir) / "gpt_image"
-            out_dir.mkdir(parents=True, exist_ok=True)
             dest = out_dir / f"{job_id}.png"
             dest.write_bytes(base64.b64decode(b64_data))
+            image_path = str(dest)
+        elif image_url:
+            dest = out_dir / f"{job_id}.png"
+            dl = httpx.get(image_url, timeout=60.0, follow_redirects=True)
+            dl.raise_for_status()
+            dest.write_bytes(dl.content)
             image_path = str(dest)
 
         usage = body.get("usage", {})
@@ -101,13 +111,13 @@ class GptImageAdapter(BaseImageAdapter):
                 "prompt": prompt,
                 **{k: str(v) for k, v in merged.items()},
             }
-            headers = {"Authorization": config.api_key}
+            headers = {"Authorization": f"Bearer {config.api_key}"}
             resp = httpx.post(
                 f"{self._base_url}/images/edits",
                 headers=headers,
                 data=data,
                 files=files,
-                timeout=self._timeout,
+                **self._client_kwargs,
             )
         resp.raise_for_status()
         body = resp.json()
