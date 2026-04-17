@@ -16,6 +16,7 @@ from pipeline.utils.logger import setup_logger
 
 __all__ = [
     "run_qa_checks",
+    "validate_image",
     "check_resolution",
     "check_aspect_ratio",
     "check_background",
@@ -25,6 +26,23 @@ __all__ = [
 logger = setup_logger("aip.qa_gate")
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+_MIN_DIMENSION = 500
+
+
+def validate_image(image_path: str) -> tuple[bool, str]:
+    """Basic sanity: file exists, valid PNG signature, minimum dimensions."""
+    if not os.path.isfile(image_path):
+        return False, f"File does not exist: {image_path}"
+    try:
+        w, h = _read_png_dimensions(image_path)
+    except (ValueError, OSError) as exc:
+        return False, str(exc)
+    if w < _MIN_DIMENSION or h < _MIN_DIMENSION:
+        return (
+            False,
+            f"Image too small: {w}x{h}, minimum {_MIN_DIMENSION}x{_MIN_DIMENSION}",
+        )
+    return True, ""
 
 
 def _read_png_dimensions(image_path: str) -> tuple[int, int]:
