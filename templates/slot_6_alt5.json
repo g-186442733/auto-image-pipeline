@@ -1,0 +1,6 @@
+{
+  "slot_index": 6,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Packaging and unboxing shot for Amazon product listing. {{ subject }} with its packaging, box, and all included accessories neatly arranged. {{ composition }} layout with {{ tone }} style. Show everything the customer receives — a clear 'what's in the box' presentation. Clean background, organized flat-lay or angled arrangement.{% if constraints %} Color tone: {{ constraints }}.{% endif %}{% if environment %} Surface: {{ environment }}.{% endif %}{% if camera %} Angle: {{ camera }}.{% endif %} Professional commercial photography, high detail.",
+  "negative_prompt": "messy arrangement, torn packaging, damaged items, cluttered background, text overlay, watermark, blurry, low quality, missing items, dark shadows"
+}
