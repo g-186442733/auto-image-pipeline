@@ -82,7 +82,7 @@ def step_plan(project_id: int) -> list:
     return slots
 
 
-def step_generate(project_id: int, adapter_name: str = "mock") -> dict[str, str]:
+def step_generate(project_id: int, adapter_name: str = "gpt_image") -> dict[str, str]:
     """Generate prompts and run image adapter. Sets status='generated'."""
     prompts = generate_slot_prompts(project_id)
     adapter = get_adapter(adapter_name)
@@ -131,7 +131,7 @@ def step_report(project_id: int) -> dict:
     return report
 
 
-def run_full_pipeline(brief_path: str, adapter_name: str = "mock") -> dict:
+def run_full_pipeline(brief_path: str, adapter_name: str = "gpt_image") -> dict:
     """Run all pipeline steps end-to-end.
 
     Returns dict with keys: project_id, status, report.
