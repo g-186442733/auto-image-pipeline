@@ -159,7 +159,7 @@ class TestStepByStep:
         assert project.name == "TWS Earphone Launch"
         assert project.asin == "B0TWS00001"
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status == "initialized"
         session.close()
 
@@ -199,7 +199,7 @@ class TestStepByStep:
         assert "asin_detail" in result
         assert result["asin_detail"]["asin"] == "B0TWS00001"
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status == "analyzed"
         session.close()
 
@@ -209,7 +209,7 @@ class TestStepByStep:
         slots = step_plan(project.id)
         assert len(slots) == 8
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status == "planned"
         db_slots = (
             session.query(SlotPlan).filter(SlotPlan.project_id == project.id).all()
@@ -226,7 +226,7 @@ class TestStepByStep:
         results = step_generate(project.id, adapter_name="mock")
         assert len(results) > 0
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status == "generated"
         session.close()
 
@@ -248,7 +248,7 @@ class TestStepByStep:
         assert len(records) > 0
         # Each slot gets 4 checks
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status in ("qa_passed", "qa_failed")
         session.close()
 
@@ -269,7 +269,7 @@ class TestStepByStep:
         report = step_report(project.id)
         assert report["project"]["name"] == "TWS Earphone Launch"
         session = get_session()
-        db_proj = session.query(Project).get(project.id)
+        db_proj = session.get(Project, project.id)
         assert db_proj.status == "completed"
         session.close()
 
@@ -335,7 +335,7 @@ class TestFullPipeline:
         assert result["report"]["project"]["name"] == "TWS Earphone Launch"
 
         session = get_session()
-        proj = session.query(Project).get(result["project_id"])
+        proj = session.get(Project, result["project_id"])
         assert proj.status == "completed"
         slots = session.query(SlotPlan).filter(SlotPlan.project_id == proj.id).count()
         assert slots == 8
@@ -395,7 +395,7 @@ class TestFullPipeline:
         session = get_session()
 
         # Project exists with final status
-        proj = session.query(Project).get(pid)
+        proj = session.get(Project, pid)
         assert proj is not None
         assert proj.status == "completed"
 

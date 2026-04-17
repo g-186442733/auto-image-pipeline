@@ -32,7 +32,7 @@ def create_app():
     def project_detail(project_id):
         session = get_session()
         try:
-            project = session.query(Project).get(project_id)
+            project = session.get(Project, project_id)
             if project is None:
                 return "Project not found", 404
             slots = (
@@ -107,7 +107,12 @@ def create_app():
 
     @app.route("/image/<path:path>")
     def serve_image(path):
-        abs_path = os.path.abspath(path)
+        from pipeline.config import config as cfg
+
+        allowed_dir = os.path.abspath(cfg.image_output_dir)
+        abs_path = os.path.abspath(os.path.join(allowed_dir, path))
+        if not abs_path.startswith(allowed_dir + os.sep):
+            return "Forbidden", 403
         if not os.path.isfile(abs_path):
             return "Image not found", 404
         return send_file(abs_path)

@@ -1,0 +1,9 @@
+02:11:59 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+02:11:59 [INFO] aip.input_layer: Created project id=4 name=TWS Earphone Launch asin=B0TWS00001
+02:11:59 [INFO] aip.orchestrator: Project 4 created: TWS Earphone Launch
+Error: Client error '400 Bad Request' for url 'https://api.keepa.com/product?key=test&domain=1&asin=B0TWS00001'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+--- CLI E2E Note ---
+CLI run requires real KEEPA_API_KEY for analyze step. No --mock-all flag exists.
+However, pytest test_e2e_tws.py covers the full pipeline with mocked externals: 8/8 PASSED.
+['ab_tests', 'amazon_benchmarks', 'brand_profiles', 'projects', 'prompt_assets', 'qa_records', 'slot_plans', 'tag_assignments']

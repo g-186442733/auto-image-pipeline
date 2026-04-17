@@ -25,7 +25,7 @@ def _update_status(project_id: int, status: str) -> None:
     """Update project status in DB."""
     session = get_session()
     try:
-        proj = session.query(Project).get(project_id)
+        proj = session.get(Project, project_id)
         if proj:
             proj.status = status
             session.commit()
@@ -55,7 +55,7 @@ def step_analyze(project_id: int) -> dict:
 
     session = get_session()
     try:
-        proj = session.query(Project).get(project_id)
+        proj = session.get(Project, project_id)
         if not proj:
             raise ValueError(f"Project {project_id} not found")
 
