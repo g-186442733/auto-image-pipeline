@@ -1,0 +1,4 @@
+Task 6 - Prompt Engine Reference Pack Integration
+assemble_prompt signature now accepts reference_pack parameter
+Parameters: ['prompt_asset_id', 'variables', 'brand_profile', 'reference_pack']
+PASS: reference_pack parameter present

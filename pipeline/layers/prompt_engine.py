@@ -33,6 +33,7 @@ def assemble_prompt(
     prompt_asset_id: int,
     variables: dict,
     brand_profile: BrandProfile | None = None,
+    reference_pack: dict | None = None,
 ) -> str:
     """Assemble a final prompt string.
 
@@ -81,6 +82,19 @@ def assemble_prompt(
                 brand_parts.append(brand_profile.guidelines)
             if brand_parts:
                 parts.append(" ".join(brand_parts))
+
+        if reference_pack:
+            rp_parts: list[str] = []
+            if "product_truth" in reference_pack:
+                pt = reference_pack["product_truth"]
+                if isinstance(pt, dict) and pt.get("name"):
+                    rp_parts.append(f"Product: {pt['name']}")
+            if "brand_rules" in reference_pack:
+                br = reference_pack["brand_rules"]
+                if isinstance(br, dict) and br.get("tone"):
+                    rp_parts.append(f"Brand: {br['tone']}")
+            if rp_parts:
+                parts.append("Reference: " + " | ".join(rp_parts))
 
         if asset.negative_prompt:
             parts.append(f"--no {asset.negative_prompt.strip()}")

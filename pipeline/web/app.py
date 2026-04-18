@@ -470,4 +470,24 @@ def create_app():
         finally:
             db.close()
 
+    @app.route("/project/<int:project_id>/reference-pack")
+    def project_reference_pack(project_id):
+        from pipeline.layers.reference_pack import get_reference_pack
+        import json as _json
+
+        rp = get_reference_pack(project_id)
+        if rp is None:
+            return jsonify({"error": "Reference pack not found"}), 404
+        return jsonify(
+            {
+                "project_id": rp.project_id,
+                "product_truth": _json.loads(rp.product_truth or "{}"),
+                "brand_rules": _json.loads(rp.brand_rules or "{}"),
+                "winning_examples": _json.loads(rp.winning_examples or "[]"),
+                "competitor_baseline": _json.loads(rp.competitor_baseline or "[]"),
+                "negative_cases": _json.loads(rp.negative_cases or "[]"),
+                "angle_matrix": _json.loads(rp.angle_matrix or "{}"),
+            }
+        )
+
     return app
