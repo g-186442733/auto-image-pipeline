@@ -1,5 +1,9 @@
 from datetime import datetime, timedelta, timezone
+
+from pipeline.utils.logger import setup_logger
 from pipeline.models.promo_analysis import PromoAnalysis
+
+logger = setup_logger("aip.promo_analyzer")
 
 KEEPA_EPOCH = datetime(2011, 1, 8)
 

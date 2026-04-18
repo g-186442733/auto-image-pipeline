@@ -3,7 +3,10 @@ import os
 import re
 from typing import List
 
+from pipeline.utils.logger import setup_logger
 from pipeline.models.review_cluster import ReviewCluster
+
+logger = setup_logger("aip.review_analyzer")
 
 
 def _strip_markdown_fences(text: str) -> str:

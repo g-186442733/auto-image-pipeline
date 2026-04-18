@@ -1,4 +1,7 @@
+from pipeline.utils.logger import setup_logger
 from pipeline.models.price_analysis import PriceAnalysis
+
+logger = setup_logger("aip.price_analyzer")
 
 
 def _get_price(b) -> float:

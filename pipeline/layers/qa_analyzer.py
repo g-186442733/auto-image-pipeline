@@ -3,7 +3,10 @@ import os
 import re
 from typing import List
 
+from pipeline.utils.logger import setup_logger
 from pipeline.models.qa_entry import QAEntry
+
+logger = setup_logger("aip.qa_analyzer")
 
 
 def _strip_markdown_fences(text: str) -> str:

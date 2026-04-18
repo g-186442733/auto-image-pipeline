@@ -2,7 +2,10 @@ import json
 import os
 from typing import Optional
 
+from pipeline.utils.logger import setup_logger
 from pipeline.models.competitor_listing import CompetitorListing
+
+logger = setup_logger("aip.listing_analyzer")
 
 _GEMINI_MODEL = "gemini-2.0-flash"
 
@@ -36,9 +39,9 @@ def analyze_listing(asin: str, keepa_data: Optional[dict]) -> CompetitorListing:
 
     if keepa_data:
         title = keepa_data.get("title")
-        bullet_points = json.dumps({
-            k: v for k, v in keepa_data.items() if k != "title"
-        })
+        bullet_points = json.dumps(
+            {k: v for k, v in keepa_data.items() if k != "title"}
+        )
 
     if title:
         metadata_str = bullet_points or "{}"
