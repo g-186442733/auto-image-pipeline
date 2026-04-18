@@ -122,18 +122,11 @@ def generate_version_log(
         session = get_session()
     try:
         from pipeline.models.slot_plan import SlotPlan
-        from pipeline.models.image_slot import ImageSlot
 
         plans = (
             session.query(SlotPlan)
             .filter(SlotPlan.project_id == project_id)
             .order_by(SlotPlan.created_at)
-            .all()
-        )
-        slots = (
-            session.query(ImageSlot)
-            .filter(ImageSlot.project_id == project_id)
-            .order_by(ImageSlot.created_at)
             .all()
         )
     finally:
@@ -150,16 +143,6 @@ def generate_version_log(
                 "created_at": str(p.created_at) if p.created_at else None,
             }
         )
-    for s in slots:
-        entries.append(
-            {
-                "type": "image_slot",
-                "slot_index": s.slot_index,
-                "qa_status": s.qa_status,
-                "created_at": str(s.created_at) if s.created_at else None,
-            }
-        )
-
     data = {
         "project_id": project_id,
         "entries": entries,

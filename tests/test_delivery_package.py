@@ -46,7 +46,7 @@ def mock_session():
     project.notes = "Some notes"
     project.customer_brief = "Brief text"
     session.get.return_value = project
-    # SlotPlan / ImageSlot queries return empty by default
+    # SlotPlan queries return empty by default
     session.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
     return session
 

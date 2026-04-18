@@ -1015,7 +1015,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(web): add prompt editor UI`
 
-- [ ] 14. ASIN 排名追踪
+- [x] 14. ASIN 排名追踪
 
   **What to do**:
   - 新建 `pipeline/models/asin_ranking.py` — ASINRanking ORM 模型
@@ -1066,7 +1066,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): add ASIN ranking tracker`
 
-- [ ] 15. 主图变更检测
+- [x] 15. 主图变更检测
 
   **What to do**:
   - 新建 `pipeline/models/image_snapshot.py` — ImageSnapshot ORM 模型
@@ -1118,7 +1118,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): add hero image change detection`
 
-- [ ] 16. 跨项目知识库
+- [x] 16. 跨项目知识库
 
   **What to do**:
   - 新建 `pipeline/models/knowledge_entry.py` — KnowledgeEntry ORM 模型

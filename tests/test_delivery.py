@@ -7,7 +7,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from pipeline.models.base import Base
-from pipeline.models.image_slot import ImageSlot
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.qa_record import QARecord
 from pipeline.models.project import Project
@@ -80,11 +79,6 @@ class TestBuildDeliveryPackage:
         assert len(manifest["slots"]) == 2
 
     def test_no_passed_slots_returns_empty_manifest(self, db_session):
-        db_session.add(
-            ImageSlot(project_id=PROJECT_ID, slot_index=1, qa_status="failed")
-        )
-        db_session.commit()
-
         result = build_delivery_package(PROJECT_ID, session=db_session)
 
         manifest_path = os.path.join(result, "manifest.json")
@@ -93,13 +87,6 @@ class TestBuildDeliveryPackage:
         assert manifest["slots"] == []
 
     def test_skips_slot_with_none_image_path(self, db_session):
-        db_session.add(
-            ImageSlot(
-                project_id=PROJECT_ID, slot_index=3, image_path=None, qa_status="passed"
-            )
-        )
-        db_session.commit()
-
         result = build_delivery_package(PROJECT_ID, session=db_session)
 
         manifest_path = os.path.join(result, "manifest.json")
@@ -108,16 +95,6 @@ class TestBuildDeliveryPackage:
         assert manifest["slots"] == []
 
     def test_skips_slot_where_file_not_on_disk(self, db_session):
-        db_session.add(
-            ImageSlot(
-                project_id=PROJECT_ID,
-                slot_index=4,
-                image_path="/nonexistent/path/image.png",
-                qa_status="passed",
-            )
-        )
-        db_session.commit()
-
         result = build_delivery_package(PROJECT_ID, session=db_session)
 
         manifest_path = os.path.join(result, "manifest.json")

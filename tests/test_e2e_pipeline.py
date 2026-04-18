@@ -32,7 +32,6 @@ from pipeline.models.benchmark import AmazonBenchmark  # noqa: E402
 from pipeline.models.brand import BrandProfile  # noqa: E402
 from pipeline.models.competitor_listing import CompetitorListing  # noqa: E402
 from pipeline.models.image_brief import ImageBrief  # noqa: E402
-from pipeline.models.image_slot import ImageSlot  # noqa: E402
 from pipeline.models.project import Project  # noqa: E402
 from pipeline.models.qa_entry import QAEntry  # noqa: E402
 from pipeline.models.review_cluster import ReviewCluster  # noqa: E402
@@ -133,20 +132,6 @@ def _seed_project(session) -> int:
             guidelines="{}",
         )
     )
-
-    for idx in range(3):
-        tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False, dir=_tmp_out)
-        tmp.write(b"\x89PNG fake image data")
-        tmp.close()
-        session.add(
-            ImageSlot(
-                project_id=pid,
-                slot_index=idx,
-                image_path=tmp.name,
-                qa_status="passed",
-                prompt_text=f"Test prompt for slot {idx}",
-            )
-        )
 
     session.commit()
     return pid
