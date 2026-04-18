@@ -32,6 +32,7 @@ from pipeline.models.client_feedback import ClientFeedback
 from pipeline.models.delivery_version import DeliveryVersion
 from pipeline.models.asin_ranking import ASINRanking
 from pipeline.models.image_snapshot import ImageSnapshot
+from pipeline.models.knowledge_entry import KnowledgeEntry
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -727,6 +728,25 @@ def create_app():
             )
             return render_template(
                 "change_history.html", project=project, snapshots=snapshots
+            )
+        finally:
+            db.close()
+
+    @app.route("/knowledge")
+    def knowledge():
+        db = get_session()
+        try:
+            from pipeline.layers.knowledge_base import search_entries, VALID_CATEGORIES
+
+            q = request.args.get("q", "").strip()
+            category = request.args.get("category", "").strip() or None
+            entries = search_entries(db, query=q or "", category=category)
+            return render_template(
+                "knowledge.html",
+                entries=entries,
+                query=q,
+                selected_category=category or "",
+                categories=VALID_CATEGORIES,
             )
         finally:
             db.close()

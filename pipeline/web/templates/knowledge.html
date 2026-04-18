@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>跨项目知识库</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>跨项目知识库</h1>
+    <p><a href="/">← 返回首页</a></p>
+
+    <form method="get" action="/knowledge">
+      <input
+        type="text"
+        name="q"
+        placeholder="搜索关键词..."
+        value="{{ query }}"
+      />
+      <select name="category">
+        <option value="">全部分类</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">搜索</button>
+    </form>
+
+    {% if entries %}
+    <table>
+      <thead>
+        <tr>
+          <th>标题</th>
+          <th>分类</th>
+          <th>标签</th>
+          <th>使用次数</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td>{{ e.title }}</td>
+          <td><code>{{ e.category }}</code></td>
+          <td>{{ e.tags }}</td>
+          <td>{{ e.usage_count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>暂无知识条目。</p>
+    {% endif %}
+  </body>
+</html>
