@@ -1,0 +1,25 @@
+{% extends "base.html" %} {% block title %}A+ Storyboard — {{ project.name }}{%
+endblock %} {% block content %}
+<h1>A+ Storyboard — {{ project.name }}</h1>
+<p>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >← 返回项目</a
+  >
+</p>
+
+{% if modules %}
+<div class="aplus-grid">
+  {% for m in modules %}
+  <div class="aplus-card aplus-{{ m.module_type|lower }}">
+    <span class="aplus-badge">{{ m.module_type }}</span>
+    <h3>{{ m.headline or '—' }}</h3>
+    <p>{{ m.body_text or '' }}</p>
+    {% if m.image_refs %}
+    <div class="aplus-refs">{{ m.image_refs }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="empty-state">尚未生成 A+ 内容。请先运行 A+ Storyboard 生成步骤。</p>
+{% endif %} {% endblock %}

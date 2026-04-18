@@ -26,6 +26,7 @@ from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.qa_record import QARecord
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.brand_profile import BrandProfile
+from pipeline.models.aplus_content import APlusContent
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -449,6 +450,23 @@ def create_app():
                 setattr(bp_obj, key, val)
             db.commit()
             return redirect(url_for("brand_profile_view", project_id=project_id))
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/aplus")
+    def project_aplus(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            modules = (
+                db.query(APlusContent)
+                .filter_by(project_id=project_id)
+                .order_by(APlusContent.position_index)
+                .all()
+            )
+            return render_template("aplus.html", project=project, modules=modules)
         finally:
             db.close()
 

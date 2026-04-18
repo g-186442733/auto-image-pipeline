@@ -422,6 +422,13 @@ def step_plan(project_id: int, analysis_results: dict | None = None) -> list:
     return slots
 
 
+def step_aplus(project_id: int) -> list:
+    """Generate A+ content storyboard for project. Returns list of APlusContent rows."""
+    from pipeline.layers.aplus_generator import generate_aplus_storyboard
+
+    return generate_aplus_storyboard(project_id)
+
+
 def step_generate(project_id: int, adapter_name: str = "gpt_image") -> dict[str, str]:
     """Generate prompts and run image adapter. Sets status='generated'."""
     from pipeline.models.prompt_asset import PromptAsset
@@ -602,6 +609,7 @@ def run_full_pipeline(brief_path: str, adapter_name: str = "gpt_image") -> dict:
         analysis_results = step_analyze(project_id)
         step_plan(project_id, analysis_results=analysis_results)
         step_generate(project_id, adapter_name)
+        step_aplus(project_id)
         step_qa(project_id, adapter_name=adapter_name)
         report = step_report(project_id)
         delivery_path = step_deliver(project_id)

@@ -19,6 +19,7 @@ from pipeline.models.review_cluster import ReviewCluster
 from pipeline.orchestrator import (
     run_full_pipeline,
     step_analyze,
+    step_aplus,
     step_generate,
     step_init,
     step_plan,
@@ -95,6 +96,18 @@ def generate(project_id: int, adapter: str):
     try:
         results = step_generate(project_id, adapter)
         click.echo(f"Generated {len(results)} images via '{adapter}'")
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("project_id", type=int)
+def aplus(project_id: int):
+    """Generate A+ content storyboard."""
+    try:
+        modules = step_aplus(project_id)
+        click.echo(f"A+ storyboard generated: {len(modules)} modules")
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
