@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASIN Rankings — Project {{ project.id }}</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>ASIN Rankings — {{ project.name }}</h1>
+    <p><a href="/project/{{ project.id }}">← Back to Project</a></p>
+
+    {% if rankings %}
+    <table>
+      <thead>
+        <tr>
+          <th>ASIN</th>
+          <th>Keyword</th>
+          <th>Rank</th>
+          <th>Category</th>
+          <th>Tracked At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rankings %}
+        <tr>
+          <td>{{ r.asin }}</td>
+          <td>{{ r.keyword }}</td>
+          <td>{{ r.rank_position }}</td>
+          <td>{{ r.category_name }}</td>
+          <td>{{ r.tracked_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No ranking data yet.</p>
+    {% endif %}
+  </body>
+</html>

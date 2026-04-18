@@ -768,7 +768,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(delivery): complete delivery package 5 items`
 
-- [ ] 10. 客户反馈UI
+- [x] 10. 客户反馈UI
 
   **What to do**:
   - 新建 `pipeline/models/client_feedback.py` — ClientFeedback ORM 模型
@@ -834,7 +834,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(web): add customer feedback UI`
 
-- [ ] 11. 版本管理
+- [x] 11. 版本管理
 
   **What to do**:
   - 新建 `pipeline/models/delivery_version.py` — DeliveryVersion ORM 模型
@@ -898,7 +898,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): add version management with diff and rollback`
 
-- [ ] 12. 修改决策速查表
+- [x] 12. 修改决策速查表
 
   **What to do**:
   - 新建 `pipeline/layers/revision_lookup.py`:

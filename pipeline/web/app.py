@@ -30,6 +30,7 @@ from pipeline.models.aplus_content import APlusContent
 from pipeline.models.consistency_profile import ConsistencyProfile
 from pipeline.models.client_feedback import ClientFeedback
 from pipeline.models.delivery_version import DeliveryVersion
+from pipeline.models.asin_ranking import ASINRanking
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -690,6 +691,22 @@ def create_app():
                 project=project,
                 asset=asset,
                 slot_name=slot_name,
+            )
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/rankings", methods=["GET"])
+    def rankings_view(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            from pipeline.layers.ranking_tracker import get_ranking_summary
+
+            rankings = get_ranking_summary(db, project_id)
+            return render_template(
+                "ranking_history.html", project=project, rankings=rankings
             )
         finally:
             db.close()
