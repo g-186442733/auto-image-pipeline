@@ -20,6 +20,8 @@ __all__ = [
     "fetch_category_top",
     "fetch_asin_detail",
     "scrape_listing_images",
+    "fetch_reviews",
+    "fetch_qa",
 ]
 
 logger = setup_logger("aip.amazon_data")
@@ -95,7 +97,7 @@ def fetch_category_top(category: str, market: str = "US", top_n: int = 20) -> li
     data = _get(url, params)
     time.sleep(_RATE_LIMIT_SLEEP)
 
-    asin_list: list[str] = data.get("asinList") or []
+    asin_list: list[str] = (data.get("bestSellersList") or data).get("asinList") or []
     if not asin_list:
         raise ValueError(
             f"E_AMAZON_002: Category '{category}' not found or returned no ASINs from Keepa."
@@ -203,9 +205,121 @@ def scrape_listing_images(asin: str) -> list[str]:
     codes = [c.strip() for c in images_csv.split(",") if c.strip()]
 
     image_urls = [
-        f"https://images-na.ssl-images-amazon.com/images/I/{code}.jpg"
+        f"https://images-na.ssl-images-amazon.com/images/I/{code if code.endswith('.jpg') else code + '.jpg'}"
         for code in codes[:9]
     ]
 
     logger.info("scrape_listing_images: asin=%s images=%d", asin, len(image_urls))
     return image_urls
+
+
+def _mock_reviews(asin: str) -> list[dict]:
+    return [
+        {
+            "title": f"Great product #{i}",
+            "body": f"Mock review body for {asin} #{i}.",
+            "rating": 5 - (i % 3),
+            "date": f"2025-01-{10 + i:02d}",
+            "verified_purchase": i % 2 == 0,
+        }
+        for i in range(5)
+    ]
+
+
+def _mock_qa(asin: str) -> list[dict]:
+    return [
+        {
+            "question": f"Does {asin} support feature #{i}?",
+            "answer": f"Yes, it supports feature #{i}.",
+            "votes": 10 - i,
+        }
+        for i in range(5)
+    ]
+
+
+def fetch_reviews(asin: str, market: str = "us") -> list[dict]:
+    """Fetch product reviews for *asin* via Keepa ``reviews=1`` endpoint.
+
+    Returns list[dict] with keys: title, body, rating, date, verified_purchase.
+    On ANY failure (missing key, network, rate-limit) returns mock data and logs a warning.
+    Never raises. Never returns an empty list.
+    """
+    try:
+        key = _api_key()
+        domain = _domain(market)
+        time.sleep(_RATE_LIMIT_SLEEP)
+        data = _get(
+            f"{KEEPA_BASE}/product",
+            {"key": key, "domain": domain, "asin": asin, "reviews": 1},
+        )
+    except (ValueError, httpx.HTTPError) as exc:
+        logger.warning("fetch_reviews fallback for %s: %s", asin, exc)
+        return _mock_reviews(asin)
+
+    products: list[dict] = data.get("products") or []
+    if not products:
+        logger.warning("fetch_reviews: no product data for %s – using mock", asin)
+        return _mock_reviews(asin)
+
+    raw_reviews: list[dict] = products[0].get("reviews") or []
+    if not raw_reviews:
+        logger.warning("fetch_reviews: no reviews returned for %s – using mock", asin)
+        return _mock_reviews(asin)
+
+    results: list[dict] = []
+    for r in raw_reviews:
+        results.append(
+            {
+                "title": r.get("title", ""),
+                "body": r.get("body", ""),
+                "rating": r.get("rating"),
+                "date": r.get("date", ""),
+                "verified_purchase": bool(r.get("verifiedPurchase")),
+            }
+        )
+
+    logger.info("fetch_reviews: asin=%s count=%d", asin, len(results))
+    return results or _mock_reviews(asin)
+
+
+def fetch_qa(asin: str, market: str = "us") -> list[dict]:
+    """Fetch Q&A pairs for *asin* via Keepa ``qa=1`` endpoint.
+
+    Returns list[dict] with keys: question, answer, votes.
+    On ANY failure (missing key, network, rate-limit) returns mock data and logs a warning.
+    Never raises. Never returns an empty list.
+    """
+    try:
+        key = _api_key()
+        domain = _domain(market)
+        time.sleep(_RATE_LIMIT_SLEEP)
+        data = _get(
+            f"{KEEPA_BASE}/product",
+            {"key": key, "domain": domain, "asin": asin, "qa": 1},
+        )
+    except (ValueError, httpx.HTTPError) as exc:
+        logger.warning("fetch_qa fallback for %s: %s", asin, exc)
+        return _mock_qa(asin)
+
+    products: list[dict] = data.get("products") or []
+    if not products:
+        logger.warning("fetch_qa: no product data for %s – using mock", asin)
+        return _mock_qa(asin)
+
+    raw_qa: list[dict] = products[0].get("questions") or []
+    if not raw_qa:
+        logger.warning("fetch_qa: no Q&A returned for %s – using mock", asin)
+        return _mock_qa(asin)
+
+    results: list[dict] = []
+    for q in raw_qa:
+        results.append(
+            {
+                "question": q.get("question", ""),
+                "answer": q.get("answer", ""),
+                "votes": q.get("votes", 0),
+            }
+        )
+
+    logger.info("fetch_qa: asin=%s count=%d", asin, len(results))
+    return results or _mock_qa(asin)

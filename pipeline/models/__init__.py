@@ -6,7 +6,15 @@ from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
 from pipeline.models.qa_record import QARecord
 from pipeline.models.ab_test import ABTest
+from pipeline.models.ab_test_result import ABTestResult
 from pipeline.models.tag_assignment import TagAssignment
+from pipeline.models.intake_checklist import IntakeChecklist
+from pipeline.models.competitor_listing import CompetitorListing
+from pipeline.models.review_cluster import ReviewCluster
+from pipeline.models.qa_entry import QAEntry
+from pipeline.models.image_brief import ImageBrief
+from pipeline.models.price_analysis import PriceAnalysis
+from pipeline.models.promo_analysis import PromoAnalysis
 
 __all__ = [
     "Base",
@@ -20,5 +28,13 @@ __all__ = [
     "SlotPlan",
     "QARecord",
     "ABTest",
+    "ABTestResult",
     "TagAssignment",
+    "IntakeChecklist",
+    "CompetitorListing",
+    "ReviewCluster",
+    "QAEntry",
+    "ImageBrief",
+    "PriceAnalysis",
+    "PromoAnalysis",
 ]

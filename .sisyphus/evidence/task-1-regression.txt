@@ -1,0 +1,1303 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 170 items
+
+tests/test_amazon_data.py::TestFetchReviewsFallback::test_returns_list_on_missing_key PASSED [  0%]
+tests/test_amazon_data.py::TestFetchReviewsFallback::test_review_keys_present PASSED [  1%]
+tests/test_amazon_data.py::TestFetchReviewsFallback::test_never_returns_empty PASSED [  1%]
+tests/test_amazon_data.py::TestFetchQaFallback::test_returns_list_on_missing_key PASSED [  2%]
+tests/test_amazon_data.py::TestFetchQaFallback::test_qa_keys_present PASSED [  2%]
+tests/test_amazon_data.py::TestFetchQaFallback::test_never_returns_empty PASSED [  3%]
+tests/test_amazon_data.py::TestFetchReviewsShape::test_rating_is_numeric PASSED [  4%]
+tests/test_amazon_data.py::TestFetchReviewsShape::test_verified_purchase_is_bool PASSED [  4%]
+tests/test_amazon_data.py::TestFetchQaShape::test_votes_is_int PASSED    [  5%]
+tests/test_brief_generator.py::TestGenerateBrief::test_returns_image_brief PASSED [  5%]
+tests/test_brief_generator.py::TestGenerateBrief::test_brief_has_correct_project_id PASSED [  6%]
+tests/test_brief_generator.py::TestGenerateBrief::test_brief_json_contains_slots PASSED [  7%]
+tests/test_brief_generator.py::TestGenerateBrief::test_brief_written_to_database PASSED [  7%]
+tests/test_brief_generator.py::TestGenerateBrief::test_gemini_failure_returns_default_brief PASSED [  8%]
+tests/test_brief_generator.py::TestGenerateBrief::test_no_api_key_returns_default_brief PASSED [  8%]
+tests/test_brief_generator.py::TestGenerateBrief::test_invalid_json_response_returns_default PASSED [  9%]
+tests/test_brief_generator.py::TestGenerateBrief::test_gemini_prompt_includes_listing_and_reviews PASSED [ 10%]
+tests/test_brief_generator.py::TestCallGeminiBrief::test_call_gemini_returns_text PASSED [ 10%]
+tests/test_brief_generator.py::TestCallGeminiBrief::test_call_gemini_no_key_returns_empty_json PASSED [ 11%]
+tests/test_cli.py::TestBriefCommand::test_brief_success PASSED           [ 11%]
+tests/test_cli.py::TestBriefCommand::test_brief_error PASSED             [ 12%]
+tests/test_cli.py::TestPromptCommand::test_prompt_success PASSED         [ 12%]
+tests/test_cli.py::TestPromptCommand::test_prompt_with_slot_index PASSED [ 13%]
+tests/test_cli.py::TestPromptCommand::test_prompt_error PASSED           [ 14%]
+tests/test_cli.py::TestDeliverCommand::test_deliver_success PASSED       [ 14%]
+tests/test_cli.py::TestDeliverCommand::test_deliver_error PASSED         [ 15%]
+tests/test_cli.py::TestFeedbackCommand::test_feedback_success PASSED     [ 15%]
+tests/test_cli.py::TestFeedbackCommand::test_feedback_error PASSED       [ 16%]
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks PASSED [ 17%]
+tests/test_data_flow.py::TestAnalyzeResultPassthrough::test_step_plan_receives_analysis_results PASSED [ 17%]
+tests/test_data_flow.py::TestStepPlanSignature::test_step_plan_accepts_analysis_results_kwarg PASSED [ 18%]
+tests/test_data_flow.py::TestStepPlanSignature::test_step_plan_works_without_analysis_results PASSED [ 18%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_returns_path_and_manifest_with_passed_slots PASSED [ 19%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_no_passed_slots_returns_empty_manifest PASSED [ 20%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_skips_slot_with_none_image_path PASSED [ 20%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_skips_slot_where_file_not_on_disk PASSED [ 21%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_manifest_has_correct_structure PASSED [ 21%]
+tests/test_delivery.py::TestBuildDeliveryPackage::test_copied_image_exists_in_delivery_dir PASSED [ 22%]
+tests/test_e2e_pipeline.py::TestGenerateBrief::test_returns_image_brief PASSED [ 22%]
+tests/test_e2e_pipeline.py::TestSlotPlanner::test_returns_eight_plans PASSED [ 23%]
+tests/test_e2e_pipeline.py::TestPromptEngine::test_build_prompt_slot_zero PASSED [ 24%]
+tests/test_e2e_pipeline.py::TestDelivery::test_build_delivery_creates_manifest PASSED [ 24%]
+tests/test_e2e_pipeline.py::TestFeedbackLoop::test_record_and_export PASSED [ 25%]
+tests/test_e2e_pipeline.py::TestDegradedFullChain::test_full_chain_no_api_key PASSED [ 25%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_init PASSED             [ 26%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_analyze PASSED          [ 27%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_plan PASSED             [ 27%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_generate PASSED         [ 28%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_qa PASSED               [ 28%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_report PASSED           [ 29%]
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_completes PASSED [ 30%]
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_db_records_complete PASSED [ 30%]
+tests/test_feedback_loop.py::test_record_ab_result_persists PASSED       [ 31%]
+tests/test_feedback_loop.py::test_record_ab_result_owns_session PASSED   [ 31%]
+tests/test_feedback_loop.py::test_update_brand_profile_from_results PASSED [ 32%]
+tests/test_feedback_loop.py::test_update_brand_profile_empty_results PASSED [ 32%]
+tests/test_feedback_loop.py::test_export_conclusions_correct_keys PASSED [ 33%]
+tests/test_feedback_loop.py::test_export_conclusions_no_results PASSED   [ 34%]
+tests/test_input_layer.py::test_create_project_success PASSED            [ 34%]
+tests/test_input_layer.py::test_create_project_missing_fields PASSED     [ 35%]
+tests/test_input_layer.py::test_create_project_invalid_asin PASSED       [ 35%]
+tests/test_input_layer.py::test_get_intake_checklist_returns_none_when_no_data PASSED [ 36%]
+tests/test_input_layer.py::test_get_intake_checklist_returns_none_for_nonexistent_project PASSED [ 37%]
+tests/test_input_layer.py::test_get_intake_checklist_returns_record_after_create_with_checklist PASSED [ 37%]
+tests/test_input_layer.py::test_create_project_without_checklist_stays_backward_compatible PASSED [ 38%]
+tests/test_input_layer.py::test_create_project_with_partial_checklist PASSED [ 38%]
+tests/test_input_layer.py::test_upsert_brand_profile_create PASSED       [ 39%]
+tests/test_input_layer.py::test_upsert_brand_profile_update PASSED       [ 40%]
+tests/test_input_layer.py::test_upsert_brand_profile_invalid_project PASSED [ 40%]
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_returns_competitor_listing PASSED [ 41%]
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_bullet_points_stored PASSED [ 41%]
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_gemini_called_with_title PASSED [ 42%]
+tests/test_listing_analyzer.py::TestAnalyzeListingNoKeepa::test_no_keepa_returns_listing_with_empty_title PASSED [ 42%]
+tests/test_listing_analyzer.py::TestAnalyzeListingNoKeepa::test_no_keepa_no_gemini_returns_empty_selling_points PASSED [ 43%]
+tests/test_listing_analyzer.py::TestCallGemini::test_call_gemini_returns_text PASSED [ 44%]
+tests/test_listing_analyzer.py::TestCallGemini::test_call_gemini_no_key_returns_empty PASSED [ 44%]
+tests/test_new_models.py::TestTablesExist::test_new_tables_created PASSED [ 45%]
+tests/test_new_models.py::TestIntakeChecklist::test_create_and_read PASSED [ 45%]
+tests/test_new_models.py::TestIntakeChecklist::test_fk_constraint PASSED [ 46%]
+tests/test_new_models.py::TestCompetitorListing::test_create_and_read PASSED [ 47%]
+tests/test_new_models.py::TestCompetitorListing::test_nullable_project_id PASSED [ 47%]
+tests/test_new_models.py::TestReviewCluster::test_create_and_read PASSED [ 48%]
+tests/test_new_models.py::TestQAEntry::test_create_and_read PASSED       [ 48%]
+tests/test_new_models.py::TestQAEntry::test_frequency_default PASSED     [ 49%]
+tests/test_new_models.py::TestImageBrief::test_create_and_read PASSED    [ 50%]
+tests/test_new_models.py::TestPriceAnalysis::test_create_and_read PASSED [ 50%]
+tests/test_new_models.py::TestPriceAnalysis::test_table_created PASSED   [ 51%]
+tests/test_new_models.py::TestPriceAnalysis::test_nullable_fields PASSED [ 51%]
+tests/test_new_models.py::TestPromoAnalysis::test_create_and_read PASSED [ 52%]
+tests/test_new_models.py::TestPromoAnalysis::test_table_created PASSED   [ 52%]
+tests/test_new_models.py::TestPromoAnalysis::test_defaults PASSED        [ 53%]
+tests/test_new_models.py::TestModelsImport::test_import_from_package PASSED [ 54%]
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once FAILED [ 54%]
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db FAILED [ 55%]
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_listing_analyzer_failure_does_not_crash_pipeline FAILED [ 55%]
+tests/test_price_analyzer.py::test_basic_case FAILED                     [ 56%]
+tests/test_price_analyzer.py::test_price_band_budget FAILED              [ 57%]
+tests/test_price_analyzer.py::test_price_band_mid FAILED                 [ 57%]
+tests/test_price_analyzer.py::test_price_band_premium FAILED             [ 58%]
+tests/test_price_analyzer.py::test_price_band_luxury FAILED              [ 58%]
+tests/test_price_analyzer.py::test_no_benchmarks FAILED                  [ 59%]
+tests/test_price_analyzer.py::test_identical_prices FAILED               [ 60%]
+tests/test_price_analyzer.py::test_avg_category_price FAILED             [ 60%]
+tests/test_price_analyzer.py::test_missing_price_key FAILED              [ 61%]
+tests/test_promo_analyzer.py::test_frequent_pattern FAILED               [ 61%]
+tests/test_promo_analyzer.py::test_never_pattern_empty_history FAILED    [ 62%]
+tests/test_promo_analyzer.py::test_never_pattern_missing_key FAILED      [ 62%]
+tests/test_promo_analyzer.py::test_rare_pattern FAILED                   [ 63%]
+tests/test_promo_analyzer.py::test_seasonal_pattern FAILED               [ 64%]
+tests/test_promo_analyzer.py::test_single_entry_returns_never FAILED     [ 64%]
+tests/test_promo_analyzer.py::test_no_drops_returns_never FAILED         [ 65%]
+tests/test_promo_analyzer.py::test_unix_timestamp_support FAILED         [ 65%]
+tests/test_prompt_engine_v2.py::TestBuildPromptBasic::test_returns_string_with_brief_data PASSED [ 66%]
+tests/test_prompt_engine_v2.py::TestBuildPromptBasic::test_includes_brief_concept PASSED [ 67%]
+tests/test_prompt_engine_v2.py::TestBuildPromptBasic::test_includes_brand_when_present PASSED [ 67%]
+tests/test_prompt_engine_v2.py::TestBuildPromptBasic::test_includes_competitor_when_present PASSED [ 68%]
+tests/test_prompt_engine_v2.py::TestBuildPromptEdgeCases::test_raises_without_brief PASSED [ 68%]
+tests/test_prompt_engine_v2.py::TestBuildPromptEdgeCases::test_handles_malformed_brief_json PASSED [ 69%]
+tests/test_prompt_engine_v2.py::TestBuildPromptEdgeCases::test_works_without_brand_or_competitor PASSED [ 70%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_returns_list_of_qa_entries PASSED [ 70%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_entry_fields_populated PASSED [ 71%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_empty_qa_returns_empty_list PASSED [ 71%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_gemini_called_with_asin_and_qa PASSED [ 72%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_invalid_json_returns_empty_list PASSED [ 72%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_default_frequency_and_category PASSED [ 73%]
+tests/test_qa_analyzer.py::TestCallGeminiQA::test_call_gemini_returns_text PASSED [ 74%]
+tests/test_qa_analyzer.py::TestCallGeminiQA::test_call_gemini_no_key_returns_empty_array PASSED [ 74%]
+tests/test_qa_gate_v2.py::TestCheckBrandConsistency::test_no_api_key_returns_neutral PASSED [ 75%]
+tests/test_qa_gate_v2.py::TestCheckBrandConsistency::test_with_mocked_gemini PASSED [ 75%]
+tests/test_qa_gate_v2.py::TestCheckBrandConsistency::test_none_image_path_returns_neutral PASSED [ 76%]
+tests/test_qa_gate_v2.py::TestCheckTextAccuracy::test_no_api_key_returns_neutral PASSED [ 77%]
+tests/test_qa_gate_v2.py::TestCheckTextAccuracy::test_with_mocked_gemini PASSED [ 77%]
+tests/test_qa_gate_v2.py::TestRunQaChecksIncludesNewScores::test_result_includes_brand_and_text_scores PASSED [ 78%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_returns_list_of_review_clusters PASSED [ 78%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_cluster_fields_populated PASSED [ 79%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_representative_reviews_stored_as_json PASSED [ 80%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_empty_reviews_returns_empty_list PASSED [ 80%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_gemini_called_with_asin_and_reviews PASSED [ 81%]
+tests/test_review_analyzer.py::TestAnalyzeReviews::test_invalid_json_returns_empty_list PASSED [ 81%]
+tests/test_review_analyzer.py::TestCallGeminiReview::test_call_gemini_returns_text PASSED [ 82%]
+tests/test_review_analyzer.py::TestCallGeminiReview::test_call_gemini_no_key_returns_empty_array PASSED [ 82%]
+tests/test_slot_planner_v2.py::TestSlotPlannerWithBrief::test_uses_brief_tags_when_available PASSED [ 83%]
+tests/test_slot_planner_v2.py::TestSlotPlannerWithBrief::test_returns_slot_plan_objects PASSED [ 84%]
+tests/test_slot_planner_v2.py::TestSlotPlannerWithBrief::test_plans_have_correct_project_id PASSED [ 84%]
+tests/test_slot_planner_v2.py::TestSlotPlannerFallback::test_fallback_to_defaults_without_brief PASSED [ 85%]
+tests/test_slot_planner_v2.py::TestSlotPlannerFallback::test_fallback_returns_8_plans PASSED [ 85%]
+tests/test_slot_planner_v2.py::TestSlotPlannerValidation::test_raises_without_benchmark PASSED [ 86%]
+tests/test_slot_planner_v2.py::TestSlotPlannerValidation::test_replaces_existing_plans PASSED [ 87%]
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count PASSED [ 87%]
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted PASSED [ 88%]
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls PASSED [ 88%]
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped PASSED [ 89%]
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful PASSED [ 90%]
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns PASSED [ 90%]
+tests/test_wave1_bugs.py::TestB1ImagePathPersisted::test_image_path_saved_to_db PASSED [ 91%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_check_resolution_rejects_small_image PASSED [ 91%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_check_resolution_accepts_large_image PASSED [ 92%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_file_exists_validation PASSED [ 92%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_invalid_png_rejected PASSED [ 93%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_validate_image_function_exists PASSED [ 94%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_validate_image_rejects_non_png PASSED [ 94%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_validate_image_rejects_tiny PASSED [ 95%]
+tests/test_wave1_bugs.py::TestB2QAGateValidation::test_validate_image_accepts_good PASSED [ 95%]
+tests/test_wave1_bugs.py::TestB3ASINValidation::test_pattern_accepts_valid_asins PASSED [ 96%]
+tests/test_wave1_bugs.py::TestB3ASINValidation::test_pattern_rejects_invalid_asins PASSED [ 97%]
+tests/test_wave1_bugs.py::TestB3ASINValidation::test_create_project_rejects_bad_asin PASSED [ 97%]
+tests/test_wave1_bugs.py::TestB3ASINValidation::test_web_route_validates_asin PASSED [ 98%]
+tests/test_wave1_bugs.py::TestB4SessionManagement::test_app_has_secret_key PASSED [ 98%]
+tests/test_wave1_bugs.py::TestB4SessionManagement::test_session_has_ttl PASSED [ 99%]
+tests/test_wave1_bugs.py::TestB4SessionManagement::test_session_is_permanent PASSED [100%]
+
+=================================== FAILURES ===================================
+_____ TestStepAnalyzeCallsListingAnalyzer.test_analyze_listing_called_once _____
+
+self = <test_orchestrator_listing.TestStepAnalyzeCallsListingAnalyzer object at 0x1091bb890>
+
+    def test_analyze_listing_called_once(self):
+        project_id = _seed_project()
+    
+        mock_listing = CompetitorListing(
+            asin="B0LISTTEST",
+            title="Test Headphones Pro",
+            bullet_points='{"price": 49.99}',
+            selling_points_map='{"quality": "Excellent build quality"}',
+        )
+    
+        with (
+            patch(
+                "pipeline.layers.amazon_data.fetch_asin_detail",
+                return_value=_FAKE_ASIN_DETAIL,
+            ),
+            patch(
+                "pipeline.layers.amazon_data.fetch_category_top",
+                return_value=_FAKE_CATEGORY_TOP,
+            ),
+            patch(
+                "pipeline.layers.vision_analyzer.analyze_competitor_listing",
+                return_value={"vision": "ok"},
+            ),
+            patch(
+                "pipeline.layers.listing_analyzer.analyze_listing",
+                return_value=mock_listing,
+            ) as mock_analyze,
+        ):
+            from pipeline.orchestrator import step_analyze
+    
+>           step_analyze(project_id)
+
+tests/test_orchestrator_listing.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:71: in step_analyze
+    asin_detail = fetch_asin_detail(proj.asin)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:140: in fetch_asin_detail
+    data = _get(url, params)
+           ^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:74: in _get
+    resp.raise_for_status()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [400 Bad Request]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://api.keepa.com/product?key=test-key&domain=1&asin=B0LISTTEST'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+
+.venv/lib/python3.14/site-packages/httpx/_models.py:829: HTTPStatusError
+_ TestStepAnalyzeCallsListingAnalyzer.test_competitor_listing_row_exists_in_db _
+
+self = <test_orchestrator_listing.TestStepAnalyzeCallsListingAnalyzer object at 0x1091bbb10>
+
+    def test_competitor_listing_row_exists_in_db(self):
+        project_id = _seed_project()
+    
+        mock_listing = CompetitorListing(
+            asin="B0LISTTEST",
+            title="Test Headphones Pro",
+            bullet_points='{"price": 49.99}',
+            selling_points_map='{"quality": "Excellent build quality"}',
+        )
+    
+        with (
+            patch(
+                "pipeline.layers.amazon_data.fetch_asin_detail",
+                return_value=_FAKE_ASIN_DETAIL,
+            ),
+            patch(
+                "pipeline.layers.amazon_data.fetch_category_top",
+                return_value=_FAKE_CATEGORY_TOP,
+            ),
+            patch(
+                "pipeline.layers.vision_analyzer.analyze_competitor_listing",
+                return_value={"vision": "ok"},
+            ),
+            patch(
+                "pipeline.layers.listing_analyzer.analyze_listing",
+                return_value=mock_listing,
+            ),
+        ):
+            from pipeline.orchestrator import step_analyze
+    
+>           step_analyze(project_id)
+
+tests/test_orchestrator_listing.py:123: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:71: in step_analyze
+    asin_detail = fetch_asin_detail(proj.asin)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:140: in fetch_asin_detail
+    data = _get(url, params)
+           ^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:74: in _get
+    resp.raise_for_status()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [400 Bad Request]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://api.keepa.com/product?key=test-key&domain=1&asin=B0LISTTEST'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+
+.venv/lib/python3.14/site-packages/httpx/_models.py:829: HTTPStatusError
+_ TestStepAnalyzeCallsListingAnalyzer.test_listing_analyzer_failure_does_not_crash_pipeline _
+
+self = <test_orchestrator_listing.TestStepAnalyzeCallsListingAnalyzer object at 0x1091c3950>
+
+    def test_listing_analyzer_failure_does_not_crash_pipeline(self):
+        project_id = _seed_project()
+    
+        with (
+            patch(
+                "pipeline.layers.amazon_data.fetch_asin_detail",
+                return_value=_FAKE_ASIN_DETAIL,
+            ),
+            patch(
+                "pipeline.layers.amazon_data.fetch_category_top",
+                return_value=_FAKE_CATEGORY_TOP,
+            ),
+            patch(
+                "pipeline.layers.vision_analyzer.analyze_competitor_listing",
+                return_value={"vision": "ok"},
+            ),
+            patch(
+                "pipeline.layers.listing_analyzer.analyze_listing",
+                side_effect=RuntimeError("Gemini API down"),
+            ),
+        ):
+            from pipeline.orchestrator import step_analyze
+    
+>           result = step_analyze(project_id)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_orchestrator_listing.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:71: in step_analyze
+    asin_detail = fetch_asin_detail(proj.asin)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:140: in fetch_asin_detail
+    data = _get(url, params)
+           ^^^^^^^^^^^^^^^^^
+pipeline/layers/amazon_data.py:74: in _get
+    resp.raise_for_status()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [400 Bad Request]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://api.keepa.com/product?key=test-key&domain=1&asin=B0LISTTEST'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+
+.venv/lib/python3.14/site-packages/httpx/_models.py:829: HTTPStatusError
+_______________________________ test_basic_case ________________________________
+
+    def test_basic_case():
+>       result = analyze_price(
+            "B09XS7JWHH", {"price": 348}, [{"price": 200}, {"price": 300}, {"price": 400}]
+        )
+
+tests/test_price_analyzer.py:6: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109d9ae90>
+kwargs = {'asin': 'B09XS7JWHH', 'avg_category_price': 300.0, 'current_price': 348, 'price_band': 'premium', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_price_band_budget ____________________________
+
+    def test_price_band_budget():
+>       result = analyze_price(
+            "ASIN1",
+            {"price": 10},
+            [{"price": 100}, {"price": 200}, {"price": 300}, {"price": 400}],
+        )
+
+tests/test_price_analyzer.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x10a177230>
+kwargs = {'asin': 'ASIN1', 'avg_category_price': 250.0, 'current_price': 10, 'price_band': 'budget', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_____________________________ test_price_band_mid ______________________________
+
+    def test_price_band_mid():
+>       result = analyze_price(
+            "ASIN2",
+            {"price": 150},
+            [{"price": 100}, {"price": 200}, {"price": 300}, {"price": 400}],
+        )
+
+tests/test_price_analyzer.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x10a177490>
+kwargs = {'asin': 'ASIN2', 'avg_category_price': 250.0, 'current_price': 150, 'price_band': 'mid', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+___________________________ test_price_band_premium ____________________________
+
+    def test_price_band_premium():
+>       result = analyze_price(
+            "ASIN3",
+            {"price": 350},
+            [{"price": 100}, {"price": 200}, {"price": 300}, {"price": 400}],
+        )
+
+tests/test_price_analyzer.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x10a20f9b0>
+kwargs = {'asin': 'ASIN3', 'avg_category_price': 250.0, 'current_price': 350, 'price_band': 'premium', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_price_band_luxury ____________________________
+
+    def test_price_band_luxury():
+>       result = analyze_price(
+            "ASIN4",
+            {"price": 500},
+            [{"price": 100}, {"price": 200}, {"price": 300}, {"price": 400}],
+        )
+
+tests/test_price_analyzer.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109dd4e20>
+kwargs = {'asin': 'ASIN4', 'avg_category_price': 250.0, 'current_price': 500, 'price_band': 'luxury', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+______________________________ test_no_benchmarks ______________________________
+
+    def test_no_benchmarks():
+>       result = analyze_price("ASIN5", {"price": 99}, [])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_price_analyzer.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109dd79b0>
+kwargs = {'asin': 'ASIN5', 'avg_category_price': 99, 'current_price': 99, 'price_band': 'mid', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_identical_prices _____________________________
+
+    def test_identical_prices():
+>       result = analyze_price(
+            "ASIN6", {"price": 100}, [{"price": 100}, {"price": 100}, {"price": 100}]
+        )
+
+tests/test_price_analyzer.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109efc750>
+kwargs = {'asin': 'ASIN6', 'avg_category_price': 100.0, 'current_price': 100, 'price_band': 'luxury', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+___________________________ test_avg_category_price ____________________________
+
+    def test_avg_category_price():
+>       result = analyze_price(
+            "ASIN7", {"price": 300}, [{"price": 100}, {"price": 200}, {"price": 300}]
+        )
+
+tests/test_price_analyzer.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109dd8150>
+kwargs = {'asin': 'ASIN7', 'avg_category_price': 200.0, 'current_price': 300, 'price_band': 'luxury', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_missing_price_key ____________________________
+
+    def test_missing_price_key():
+>       result = analyze_price("ASIN8", {}, [{"price": 100}, {"price": 200}])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_price_analyzer.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/price_analyzer.py:29: in analyze_price
+    return PriceAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.price_analysis.PriceAnalysis object at 0x109c1c9b0>
+kwargs = {'asin': 'ASIN8', 'avg_category_price': 150.0, 'current_price': 0, 'price_band': 'budget', ...}
+cls_ = <class 'pipeline.models.price_analysis.PriceAnalysis'>
+k = 'current_price'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'current_price' is an invalid keyword argument for PriceAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_frequent_pattern _____________________________
+
+    def test_frequent_pattern():
+        base = datetime(2023, 1, 1)
+        history = []
+        price = 100.0
+        for month in range(12):
+            dt = base + timedelta(days=month * 30)
+            history.append({"timestamp": keepa_ts(dt), "price": price})
+            drop_dt = dt + timedelta(days=10)
+            history.append({"timestamp": keepa_ts(drop_dt), "price": price * 0.80})
+            recover_dt = drop_dt + timedelta(days=5)
+            history.append({"timestamp": keepa_ts(recover_dt), "price": price})
+    
+>       result = analyze_promo("B09XS7JWHH", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:69: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x109d99bd0>
+kwargs = {'asin': 'B09XS7JWHH', 'avg_discount_pct': 20.0, 'last_promo_date': '2023-12-07', 'promo_frequency': 12.5217, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_______________________ test_never_pattern_empty_history _______________________
+
+    def test_never_pattern_empty_history():
+>       result = analyze_promo("B09XS7JWHH", {"priceHistory": []})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:17: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x10a1762c0>
+kwargs = {'asin': 'B09XS7JWHH', 'avg_discount_pct': 0.0, 'last_promo_date': None, 'promo_frequency': 0.0, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+________________________ test_never_pattern_missing_key ________________________
+
+    def test_never_pattern_missing_key():
+>       result = analyze_promo("B09XS7JWHH", {})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:17: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x10a176ea0>
+kwargs = {'asin': 'B09XS7JWHH', 'avg_discount_pct': 0.0, 'last_promo_date': None, 'promo_frequency': 0.0, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+______________________________ test_rare_pattern _______________________________
+
+    def test_rare_pattern():
+        base = datetime(2022, 1, 1)
+        history = [
+            {"timestamp": keepa_ts(base), "price": 100.0},
+            {"timestamp": keepa_ts(base + timedelta(days=180)), "price": 85.0},
+            {"timestamp": keepa_ts(base + timedelta(days=365)), "price": 100.0},
+        ]
+>       result = analyze_promo("TESTB001", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:69: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x10a20f890>
+kwargs = {'asin': 'TESTB001', 'avg_discount_pct': 15.0, 'last_promo_date': '2022-06-30', 'promo_frequency': 0.9863, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________________________ test_seasonal_pattern _____________________________
+
+    def test_seasonal_pattern():
+        base = datetime(2022, 1, 1)
+        history = []
+        price = 100.0
+        history.append({"timestamp": keepa_ts(base), "price": price})
+        for q in range(3):
+            drop_dt = base + timedelta(days=90 * q + 45)
+            history.append({"timestamp": keepa_ts(drop_dt), "price": price * 0.80})
+            recover_dt = drop_dt + timedelta(days=15)
+            history.append({"timestamp": keepa_ts(recover_dt), "price": price})
+    
+>       result = analyze_promo("TESTB002", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:69: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x109dd45a0>
+kwargs = {'asin': 'TESTB002', 'avg_discount_pct': 20.0, 'last_promo_date': '2022-08-14', 'promo_frequency': 4.5, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_______________________ test_single_entry_returns_never ________________________
+
+    def test_single_entry_returns_never():
+        base = datetime(2023, 6, 1)
+        history = [{"timestamp": keepa_ts(base), "price": 99.99}]
+>       result = analyze_promo("TESTB003", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:17: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x109dd7ce0>
+kwargs = {'asin': 'TESTB003', 'avg_discount_pct': 0.0, 'last_promo_date': None, 'promo_frequency': 0.0, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_________________________ test_no_drops_returns_never __________________________
+
+    def test_no_drops_returns_never():
+        base = datetime(2023, 1, 1)
+        history = [
+            {"timestamp": keepa_ts(base + timedelta(days=i * 30)), "price": 100.0 + i}
+            for i in range(6)
+        ]
+>       result = analyze_promo("TESTB004", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:49: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x10a0f5950>
+kwargs = {'asin': 'TESTB004', 'avg_discount_pct': 0.0, 'last_promo_date': None, 'promo_frequency': 0.0, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_________________________ test_unix_timestamp_support __________________________
+
+    def test_unix_timestamp_support():
+        base_unix = 1_700_000_000
+        history = [
+            {"timestamp": base_unix, "price": 100.0},
+            {"timestamp": base_unix + 86400 * 10, "price": 80.0},
+            {"timestamp": base_unix + 86400 * 20, "price": 100.0},
+            {"timestamp": base_unix + 86400 * 365, "price": 100.0},
+        ]
+>       result = analyze_promo("TESTB005", {"priceHistory": history})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_promo_analyzer.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/layers/promo_analyzer.py:69: in analyze_promo
+    return PromoAnalysis(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.promo_analysis.PromoAnalysis object at 0x109b61c50>
+kwargs = {'asin': 'TESTB005', 'avg_discount_pct': 20.0, 'last_promo_date': '2023-11-24', 'promo_frequency': 0.9863, ...}
+cls_ = <class 'pipeline.models.promo_analysis.PromoAnalysis'>
+k = 'promo_frequency'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'promo_frequency' is an invalid keyword argument for PromoAnalysis
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+=============================== warnings summary ===============================
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:109: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (1,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_analyze
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:109: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (3,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once
+FAILED tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db
+FAILED tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_listing_analyzer_failure_does_not_crash_pipeline
+FAILED tests/test_price_analyzer.py::test_basic_case - TypeError: 'current_pr...
+FAILED tests/test_price_analyzer.py::test_price_band_budget - TypeError: 'cur...
+FAILED tests/test_price_analyzer.py::test_price_band_mid - TypeError: 'curren...
+FAILED tests/test_price_analyzer.py::test_price_band_premium - TypeError: 'cu...
+FAILED tests/test_price_analyzer.py::test_price_band_luxury - TypeError: 'cur...
+FAILED tests/test_price_analyzer.py::test_no_benchmarks - TypeError: 'current...
+FAILED tests/test_price_analyzer.py::test_identical_prices - TypeError: 'curr...
+FAILED tests/test_price_analyzer.py::test_avg_category_price - TypeError: 'cu...
+FAILED tests/test_price_analyzer.py::test_missing_price_key - TypeError: 'cur...
+FAILED tests/test_promo_analyzer.py::test_frequent_pattern - TypeError: 'prom...
+FAILED tests/test_promo_analyzer.py::test_never_pattern_empty_history - TypeE...
+FAILED tests/test_promo_analyzer.py::test_never_pattern_missing_key - TypeErr...
+FAILED tests/test_promo_analyzer.py::test_rare_pattern - TypeError: 'promo_fr...
+FAILED tests/test_promo_analyzer.py::test_seasonal_pattern - TypeError: 'prom...
+FAILED tests/test_promo_analyzer.py::test_single_entry_returns_never - TypeEr...
+FAILED tests/test_promo_analyzer.py::test_no_drops_returns_never - TypeError:...
+FAILED tests/test_promo_analyzer.py::test_unix_timestamp_support - TypeError:...
+================== 20 failed, 150 passed, 8 warnings in 6.05s ==================

@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import json
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
 from pipeline.constants.tags import SLOT_MAPPING
 from pipeline.models.base import get_session
 from pipeline.models.benchmark import AmazonBenchmark
+from pipeline.models.image_brief import ImageBrief
 from pipeline.models.slot_plan import SlotPlan
 from pipeline.utils.logger import setup_logger
 
@@ -24,13 +30,36 @@ _SLOT_DEFAULTS: dict[int, tuple[str, str, str, str]] = {
 }
 
 
-def generate_slot_plan(project_id: int) -> list[SlotPlan]:
+def _tags_from_brief(brief: ImageBrief) -> tuple[str, str, str, str] | None:
+    try:
+        data = json.loads(brief.brief_json)
+        tags = data.get("target_tags", {})
+        intent = tags.get("intent_tag")
+        layout = tags.get("layout_tag")
+        style = tags.get("style_tag")
+        color = tags.get("color_tag")
+        if all((intent, layout, style, color)):
+            return (intent, layout, style, color)
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return None
+
+
+def generate_slot_plan(
+    project_id: int, session: Optional[Session] = None
+) -> list[SlotPlan]:
     """Generate 8 SlotPlan records for *project_id*.
+
+    When *session* is ``None`` a new session is created via ``get_session()``.
+    If ``ImageBrief`` rows exist for the project, slot tags are derived from
+    ``brief_json["target_tags"]``; otherwise ``_SLOT_DEFAULTS`` is used.
 
     Raises ``ValueError`` with code ``E_PLANNER_001`` when no
     AmazonBenchmark rows exist for the project.
     """
-    session = get_session()
+    owns_session = session is None
+    if owns_session:
+        session = get_session()
     try:
         bench_count = (
             session.query(AmazonBenchmark)
@@ -42,11 +71,21 @@ def generate_slot_plan(project_id: int) -> list[SlotPlan]:
                 f"E_PLANNER_001: No AmazonBenchmark rows for project {project_id}"
             )
 
+        briefs: dict[int, ImageBrief] = {
+            b.slot_index: b
+            for b in session.query(ImageBrief)
+            .filter(ImageBrief.project_id == project_id)
+            .all()
+        }
+
         session.query(SlotPlan).filter(SlotPlan.project_id == project_id).delete()
 
         plans: list[SlotPlan] = []
         for slot_index in range(1, 9):
-            intent, layout, style, color = _SLOT_DEFAULTS[slot_index]
+            brief = briefs.get(slot_index)
+            brief_tags = _tags_from_brief(brief) if brief else None
+            intent, layout, style, color = brief_tags or _SLOT_DEFAULTS[slot_index]
+
             plan = SlotPlan(
                 project_id=project_id,
                 slot_index=slot_index,
@@ -69,4 +108,5 @@ def generate_slot_plan(project_id: int) -> list[SlotPlan]:
         session.rollback()
         raise
     finally:
-        session.close()
+        if owns_session:
+            session.close()

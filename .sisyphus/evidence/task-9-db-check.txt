@@ -1,0 +1,6 @@
+CompetitorListing: 1 rows
+ReviewCluster: 0 rows
+QAEntry: 0 rows
+PriceAnalysis: 0 rows
+PromoAnalysis: 0 rows
+ImageBrief: 1 rows

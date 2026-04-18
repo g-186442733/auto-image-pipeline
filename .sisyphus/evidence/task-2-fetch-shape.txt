@@ -1,0 +1,11 @@
+21:06:34 [WARNING] aip.amazon_data: fetch_reviews: no reviews returned for B000TEST01 – using mock
+21:06:36 [WARNING] aip.amazon_data: fetch_qa: no Q&A returned for B000TEST01 – using mock
+=== fetch_reviews shape ===
+type: list, len: 5
+keys: {'date', 'verified_purchase', 'body', 'rating', 'title'}
+sample: {'title': 'Great product #0', 'body': 'Mock review body for B000TEST01 #0.', 'rating': 5, 'date': '2025-01-10', 'verified_purchase': True}
+
+=== fetch_qa shape ===
+type: list, len: 5
+keys: {'question', 'answer', 'votes'}
+sample: {'question': 'Does B000TEST01 support feature #0?', 'answer': 'Yes, it supports feature #0.', 'votes': 10}

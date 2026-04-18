@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_returns_competitor_listing PASSED [ 14%]
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_bullet_points_stored PASSED [ 28%]
+tests/test_listing_analyzer.py::TestAnalyzeListingWithKeepa::test_gemini_called_with_title PASSED [ 42%]
+tests/test_listing_analyzer.py::TestAnalyzeListingNoKeepa::test_no_keepa_returns_listing_with_empty_title PASSED [ 57%]
+tests/test_listing_analyzer.py::TestAnalyzeListingNoKeepa::test_no_keepa_no_gemini_returns_empty_selling_points PASSED [ 71%]
+tests/test_listing_analyzer.py::TestCallGemini::test_call_gemini_returns_text PASSED [ 85%]
+tests/test_listing_analyzer.py::TestCallGemini::test_call_gemini_no_key_returns_empty PASSED [100%]
+
+============================== 7 passed in 0.16s ===============================
+---
+Full suite: 55 passed (48 baseline + 7 new)

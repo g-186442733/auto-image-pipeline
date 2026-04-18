@@ -1,0 +1,31 @@
+# Task 20 — interfaces.md L4 升级证据
+
+日期: 2026-04-18
+文件: docs/interfaces.md (780 → 968 行)
+
+## 已完成变更
+
+1. 版本头: "L2 MVP" → "L4"，日期 → 2026-04-18
+2. 架构总览表新增: listing_analyzer, review_analyzer, qa_analyzer, brief_generator, delivery
+3. L4 新增数据结构章节: ImageSlot, ABTestResult, CompetitorListing, ReviewCluster, QAEntry, ImageBrief
+4. L4 新增模块接口章节:
+   - listing_analyzer.analyze_listing(asin, keepa_data) → CompetitorListing
+   - review_analyzer.analyze_reviews(asin, reviews) → List[ReviewCluster]
+   - qa_analyzer.analyze_qa(asin, qa_pairs) → List[QAEntry]
+   - brief_generator.generate_brief(project_id, competitor_listing, review_clusters, qa_entries, session) → ImageBrief
+   - slot_planner.generate_slot_plan L4 更新: 新增 session 参数
+   - prompt_engine.build_prompt(project_id, slot_index, session) → str  [E_BUILD_001]
+   - delivery.build_delivery_package → 返回目录路径（非 manifest path）
+   - qa_gate.check_brand_consistency, check_text_accuracy（Gemini，降级返回0.5）
+   - feedback_loop.record_ab_result, update_brand_profile_from_results, export_conclusions
+5. CLI 章节: 新增 brief/prompt/deliver/feedback 命令，注明迁移至 Click
+6. 错误码表新增: E_BUILD_001 (prompt_engine, 无 ImageBrief)
+
+## 关键事实
+
+- 所有 Gemini 调用使用 gemini-2.0-flash；无 API key 时静默降级
+- ImageBrief.slot_index=0 表示 brief 覆盖所有槽位
+- build_delivery_package 返回目录路径 output/{project_id}/delivery/，不是 manifest path
+- slot_planner L4 新增 session 参数（owns_session 模式）
+- feedback_loop 新增 3 个函数：record_ab_result, update_brand_profile_from_results, export_conclusions
+- qa_gate L4 新增 2 个检查项：brand_consistency, text_accuracy（共 6 项）

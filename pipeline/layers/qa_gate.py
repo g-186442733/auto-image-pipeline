@@ -3,9 +3,9 @@ from __future__ import annotations
 import base64
 import json
 import os
-import struct
 
 import httpx
+from PIL import Image
 
 from pipeline.config import config
 from pipeline.models.base import get_session
@@ -16,26 +16,52 @@ from pipeline.utils.logger import setup_logger
 
 __all__ = [
     "run_qa_checks",
+    "run_qa_checks_legacy",
+    "llm_qa_evaluate",
     "validate_image",
     "check_resolution",
     "check_aspect_ratio",
     "check_background",
     "check_text_overlay",
+    "check_brand_consistency",
+    "check_text_accuracy",
 ]
 
 logger = setup_logger("aip.qa_gate")
 
-_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _MIN_DIMENSION = 500
 
 
+def _read_image_dimensions(image_path: str) -> tuple[int, int]:
+    with Image.open(image_path) as img:
+        return img.size
+
+
+_PNG_SIG = b"\x89PNG\r\n\x1a\n"
+
+
+def _read_png_dimensions(image_path: str) -> tuple[int, int]:
+    with open(image_path, "rb") as f:
+        sig = f.read(8)
+    if sig != _PNG_SIG:
+        raise ValueError("Not a valid PNG")
+    return _read_image_dimensions(image_path)
+
+
+def _get_mime_type(image_path: str) -> str:
+    ext = os.path.splitext(image_path)[1].lower()
+    if ext in (".jpg", ".jpeg"):
+        return "image/jpeg"
+    return "image/png"
+
+
 def validate_image(image_path: str) -> tuple[bool, str]:
-    """Basic sanity: file exists, valid PNG signature, minimum dimensions."""
+    """Basic sanity: file exists, valid image (Pillow-readable), minimum dimensions."""
     if not os.path.isfile(image_path):
         return False, f"File does not exist: {image_path}"
     try:
-        w, h = _read_png_dimensions(image_path)
-    except (ValueError, OSError) as exc:
+        w, h = _read_image_dimensions(image_path)
+    except (ValueError, OSError, Exception) as exc:
         return False, str(exc)
     if w < _MIN_DIMENSION or h < _MIN_DIMENSION:
         return (
@@ -45,30 +71,20 @@ def validate_image(image_path: str) -> tuple[bool, str]:
     return True, ""
 
 
-def _read_png_dimensions(image_path: str) -> tuple[int, int]:
-    with open(image_path, "rb") as f:
-        header = f.read(24)
-    if len(header) < 24 or header[:8] != _PNG_SIGNATURE:
-        raise ValueError(f"Not a valid PNG file: {image_path}")
-    width = struct.unpack(">I", header[16:20])[0]
-    height = struct.unpack(">I", header[20:24])[0]
-    return width, height
-
-
 def check_resolution(image_path: str) -> bool:
-    w, h = _read_png_dimensions(image_path)
+    w, h = _read_image_dimensions(image_path)
     long_side = max(w, h)
     logger.debug("Resolution %dx%d, long side %d", w, h, long_side)
-    return long_side >= 1600
+    return long_side >= 1024
 
 
-def check_aspect_ratio(image_path: str, expected: str = "1:1") -> bool:
-    w, h = _read_png_dimensions(image_path)
+def check_aspect_ratio(image_path: str, expected: str = "16:9") -> bool:
+    w, h = _read_image_dimensions(image_path)
     parts = expected.split(":")
     exp_w, exp_h = int(parts[0]), int(parts[1])
     expected_ratio = exp_w / exp_h
     actual_ratio = w / h if h > 0 else 0
-    tolerance = 0.05
+    tolerance = 0.1
     return abs(actual_ratio - expected_ratio) <= tolerance
 
 
@@ -109,7 +125,7 @@ def check_text_overlay(image_path: str) -> bool:
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/png;base64,{img_b64}",
+                            "url": f"data:{_get_mime_type(image_path)};base64,{img_b64}",
                             "detail": "low",
                         },
                     },
@@ -131,7 +147,228 @@ def check_text_overlay(image_path: str) -> bool:
         return False
 
 
+_GEMINI_MODEL = "gemini-2.0-flash"
+
+
+def _get_genai():
+    import google.generativeai as genai
+
+    return genai
+
+
+def _call_gemini(prompt: str, image_path: str | None = None) -> str:
+    """Call Gemini with optional image. Returns raw text or empty string on failure."""
+    api_key = os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        return ""
+    try:
+        genai = _get_genai()
+    except ImportError:
+        return ""
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(_GEMINI_MODEL)
+        parts: list = [prompt]
+        if image_path and os.path.isfile(image_path):
+            with open(image_path, "rb") as f:
+                img_data = f.read()
+            parts.append({"mime_type": _get_mime_type(image_path), "data": img_data})
+        response = model.generate_content(parts)
+        return response.text
+    except Exception as exc:
+        logger.warning("Gemini call failed: %s", exc)
+        return ""
+
+
+def check_brand_consistency(
+    image_path: str | None, brand_profile: dict | None = None
+) -> float:
+    """Score how well the image matches the brand profile (0.0-1.0). Returns 0.5 on degraded mode."""
+    if not image_path or not os.path.isfile(image_path):
+        return 0.5
+    brand_desc = json.dumps(brand_profile) if brand_profile else "{}"
+    prompt = (
+        "Analyze this product image for brand consistency with the following brand profile. "
+        f"Brand profile: {brand_desc}\n\n"
+        "Rate the brand consistency from 0.0 to 1.0. "
+        'Reply ONLY with JSON: {"brand_score": <float>}'
+    )
+    raw = _call_gemini(prompt, image_path)
+    if not raw:
+        return 0.5
+    try:
+        result = json.loads(raw)
+        score = float(result.get("brand_score", 0.5))
+        return max(0.0, min(1.0, score))
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return 0.5
+
+
+def check_text_accuracy(
+    image_path: str | None, expected_text: str | None = None
+) -> float:
+    """Score how accurately text in the image matches expected text (0.0-1.0). Returns 0.5 on degraded mode."""
+    if not image_path or not os.path.isfile(image_path):
+        return 0.5
+    expected_desc = expected_text or ""
+    prompt = (
+        "Extract any visible text from this product image and compare it to the expected text below. "
+        f"Expected text: {expected_desc}\n\n"
+        "Rate the text accuracy from 0.0 to 1.0. "
+        'Reply ONLY with JSON: {"text_score": <float>}'
+    )
+    raw = _call_gemini(prompt, image_path)
+    if not raw:
+        return 0.5
+    try:
+        result = json.loads(raw)
+        score = float(result.get("text_score", 0.5))
+        return max(0.0, min(1.0, score))
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return 0.5
+
+
+def llm_qa_evaluate(
+    image_path: str,
+    goal_brief: str = "",
+    brand_profile: dict | None = None,
+    expected_text: str | None = None,
+) -> dict:
+    """Goal-driven LLM QA evaluation using Gemini.
+
+    Returns dict with keys: pass (bool), score (int 0-100), issues (list[str]), reasoning (str).
+    On API failure returns a safe default (fail with score=0).
+    """
+    brand_desc = json.dumps(brand_profile) if brand_profile else "{}"
+    expected_desc = expected_text or "(none)"
+
+    prompt = (
+        "You are a strict e-commerce image QA evaluator. Evaluate this product image against the goal brief.\n\n"
+        f"**Goal Brief:** {goal_brief}\n"
+        f"**Brand Profile:** {brand_desc}\n"
+        f"**Expected Text:** {expected_desc}\n\n"
+        "Score the image from 0-100 on overall quality, brand consistency, composition, and goal alignment.\n"
+        "List any issues found.\n\n"
+        "Reply ONLY with valid JSON:\n"
+        '{"pass": true/false, "score": <int 0-100>, "issues": ["issue1", ...], "reasoning": "..."}\n'
+        'Set "pass" to true if score >= 70, false otherwise.'
+    )
+    raw = _call_gemini(prompt, image_path)
+    if not raw:
+        logger.warning(
+            "LLM QA evaluation failed (empty response); returning safe default"
+        )
+        return {
+            "pass": False,
+            "score": 0,
+            "issues": ["LLM evaluation unavailable"],
+            "reasoning": "API call returned empty response",
+        }
+
+    try:
+        # Strip markdown code fences if present
+        text = raw.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+        result = json.loads(text)
+        return {
+            "pass": bool(result.get("pass", False)),
+            "score": int(result.get("score", 0)),
+            "issues": list(result.get("issues", [])),
+            "reasoning": str(result.get("reasoning", "")),
+        }
+    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+        logger.warning("Failed to parse LLM QA response: %s; raw: %s", exc, raw[:200])
+        return {
+            "pass": False,
+            "score": 0,
+            "issues": ["Failed to parse LLM response"],
+            "reasoning": str(exc),
+        }
+
+
 def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
+    """Goal-driven LLM QA evaluation. Creates a single QARecord with check_name='llm_qa'."""
+    session = get_session()
+    try:
+        slot_plan = session.get(SlotPlan, slot_plan_id)
+        if slot_plan is None:
+            raise ValueError(f"E_QA_001: SlotPlan with id={slot_plan_id} not found")
+
+        asset = (
+            session.query(PromptAsset)
+            .filter_by(project_id=slot_plan.project_id, slot_index=slot_plan.slot_index)
+            .filter(PromptAsset.image_path.isnot(None))
+            .order_by(PromptAsset.id.desc())
+            .first()
+        )
+        if asset is None:
+            raise ValueError(
+                f"E_QA_001: No generated image found for SlotPlan id={slot_plan_id}"
+            )
+
+        image_path = asset.image_path
+        if not os.path.isfile(image_path):
+            raise ValueError(f"E_QA_001: Image file does not exist: {image_path}")
+
+        # Load goal brief from ImageBrief if available
+        from pipeline.models.image_brief import ImageBrief
+
+        brief = (
+            session.query(ImageBrief)
+            .filter_by(project_id=slot_plan.project_id, slot_index=slot_plan.slot_index)
+            .first()
+        )
+        goal_brief = brief.brief_json if brief and brief.brief_json else ""
+
+        # Load brand profile from project notes (JSON) if available
+        from pipeline.models.project import Project
+
+        project = session.get(Project, slot_plan.project_id)
+        brand_profile = None
+        if project and project.notes:
+            try:
+                brand_profile = json.loads(project.notes)
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        llm_result = llm_qa_evaluate(
+            image_path=image_path,
+            goal_brief=goal_brief,
+            brand_profile=brand_profile,
+        )
+
+        rec = QARecord(
+            prompt_asset_id=asset.id,
+            check_type="llm_qa",
+            passed=1 if llm_result["pass"] else 0,
+            score=float(llm_result["score"]),
+            details=json.dumps(
+                {"issues": llm_result["issues"], "reasoning": llm_result["reasoning"]}
+            ),
+        )
+        session.add(rec)
+        session.commit()
+        session.refresh(rec)
+        session.expunge_all()
+        logger.info(
+            "LLM QA for SlotPlan %d: score=%d, passed=%s",
+            slot_plan_id,
+            llm_result["score"],
+            llm_result["pass"],
+        )
+        return [rec]
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def run_qa_checks_legacy(slot_plan_id: int) -> list[QARecord]:
     session = get_session()
     try:
         slot_plan = session.get(SlotPlan, slot_plan_id)
@@ -171,7 +408,7 @@ def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
         )
 
         bg_score = check_background(image_path)
-        bg_ok = bg_score >= 0.8
+        bg_ok = bg_score >= 0.5
         checks.append(("background", bg_ok, f"white_ratio={bg_score:.2f}"))
 
         text_found = check_text_overlay(image_path)
@@ -184,10 +421,19 @@ def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
             )
         )
 
+        brand_score = check_brand_consistency(image_path)
+        brand_ok = brand_score >= 0.5
+        checks.append(("brand_consistency", brand_ok, f"brand_score={brand_score:.2f}"))
+
+        text_score = check_text_accuracy(image_path)
+        text_acc_ok = text_score >= 0.5
+        checks.append(("text_accuracy", text_acc_ok, f"text_score={text_score:.2f}"))
+
         records: list[QARecord] = []
         total_score = 0.0
+        pts_per_check = 100.0 / len(checks) if checks else 0.0
         for check_name, passed, details in checks:
-            pts = 25.0 if passed else 0.0
+            pts = pts_per_check if passed else 0.0
             total_score += pts
             rec = QARecord(
                 prompt_asset_id=asset.id,

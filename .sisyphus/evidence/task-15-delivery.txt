@@ -1,0 +1,13 @@
+Task T15: delivery.py — COMPLETED
+
+Files created:
+- pipeline/models/image_slot.py  (ImageSlot model: id, project_id, slot_index, image_path, qa_status, prompt_text, created_at)
+- pipeline/layers/delivery.py    (build_delivery_package: queries passed slots, copies images, writes manifest.json)
+- tests/test_delivery.py         (6 tests, all pass)
+
+Test results:
+  6/6 tests pass in test_delivery.py
+  Full suite: 107 passed (baseline was 101, target was ≥106)
+
+Return value: "output/{project_id}/delivery/" path string
+manifest.json structure: {"project_id": ..., "slots": [...], "created_at": "ISO"}

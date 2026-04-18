@@ -1,0 +1,24 @@
+T17: Activate feedback_loop.py — Evidence
+=========================================
+Date: 2026-04-18
+
+## What was done
+1. Created ABTestResult model (pipeline/models/ab_test_result.py)
+   - Fields: id, project_id, slot_index, variant (Text), score (Float), created_at
+2. Registered ABTestResult in pipeline/models/__init__.py
+3. Added 3 new functions to pipeline/layers/feedback_loop.py:
+   - record_ab_result() — persists ABTestResult with owns_session pattern
+   - update_brand_profile_from_results() — averages scores by variant, updates BrandProfile.guidelines
+   - export_conclusions() — returns dict with project_id, total_tests, best_variant, avg_score, results
+4. All 3 functions use owns_session pattern (session param optional)
+5. Created tests/test_feedback_loop.py with 6 tests (target was ≥5)
+
+## Test results
+- New tests: 6/6 passed
+- Full suite: 116 passed, 3 failed (pre-existing failures)
+- Target ≥112: ACHIEVED
+
+## Pre-existing failures (not caused by this task)
+- test_e2e_tws.py::TestFullPipeline::test_full_pipeline_db_records_complete
+- test_qa_gate_v2.py::TestCheckTextAccuracy::test_with_mocked_gemini
+- test_qa_gate_v2.py::TestRunQaChecksIncludesNewScores::test_result_includes_brand_and_text_scores

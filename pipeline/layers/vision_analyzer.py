@@ -1,6 +1,7 @@
 """Vision analysis layer using GPT-4o Vision API."""
 
 import json
+import re
 import httpx
 from pipeline.config import config
 from pipeline.layers.amazon_data import scrape_listing_images
@@ -93,7 +94,7 @@ def analyze_image(image_url: str) -> dict:
 
     logger.debug("Calling Vision API for image: %s", image_url)
     try:
-        response = httpx.post(endpoint, headers=headers, json=payload, timeout=60)
+        response = httpx.post(endpoint, headers=headers, json=payload, timeout=20)
         response.raise_for_status()
     except httpx.HTTPStatusError as exc:
         raise ValueError(
@@ -113,7 +114,11 @@ def analyze_image(image_url: str) -> dict:
         ) from exc
 
     try:
-        result = json.loads(raw_content)
+        cleaned = raw_content
+        m = re.match(r"^```(?:json)?\s*\n?(.*?)```\s*$", cleaned, re.DOTALL)
+        if m:
+            cleaned = m.group(1).strip()
+        result = json.loads(cleaned)
     except json.JSONDecodeError:
         logger.warning(
             "Failed to parse Vision API JSON response for %s; returning default dict. Raw: %s",

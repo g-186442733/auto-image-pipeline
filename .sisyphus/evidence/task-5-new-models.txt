@@ -1,0 +1,34 @@
+Task 5: New Models — Evidence
+==============================
+Date: 2026-04-18
+
+## Models Created (5)
+1. IntakeChecklist   → intake_checklists   (pipeline/models/intake_checklist.py)
+2. CompetitorListing → competitor_listings  (pipeline/models/competitor_listing.py)
+3. ReviewCluster     → review_clusters      (pipeline/models/review_cluster.py)
+4. QAEntry           → qa_entries           (pipeline/models/qa_entry.py)
+5. ImageBrief        → image_briefs         (pipeline/models/image_brief.py)
+
+## Tests (tests/test_new_models.py) — 9 passed
+- TestTablesExist::test_new_tables_created
+- TestIntakeChecklist::test_create_and_read
+- TestIntakeChecklist::test_fk_constraint
+- TestCompetitorListing::test_create_and_read
+- TestCompetitorListing::test_nullable_project_id
+- TestReviewCluster::test_create_and_read
+- TestQAEntry::test_create_and_read
+- TestQAEntry::test_frequency_default
+- TestImageBrief::test_create_and_read
+
+## Full Suite: 33 passed, 4 failed (pre-existing failures in test_data_flow/test_e2e_tws)
+## No regressions introduced.
+
+## Pattern followed
+- Inherits Base from pipeline.models.base
+- Column style matching project.py / benchmark.py
+- server_default=func.now() for created_at
+- ForeignKey("projects.id") for project_id
+- Nullable project_id on CompetitorListing, ReviewCluster, QAEntry
+- Non-nullable project_id on IntakeChecklist, ImageBrief
+- Text columns for JSON-like data (SQLite compatible)
+- Registered in pipeline/models/__init__.py

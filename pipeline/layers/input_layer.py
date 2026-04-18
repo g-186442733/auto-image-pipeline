@@ -1,27 +1,27 @@
-"""Input layer: project creation and brand profile upsert."""
-
 import re
+from typing import Optional
 
 from pipeline.models.base import get_session
 from pipeline.models.project import Project
 from pipeline.models.brand import BrandProfile
+from pipeline.models.intake_checklist import IntakeChecklist
 from pipeline.utils.logger import setup_logger
 
 logger = setup_logger("aip.input_layer")
 
-__all__ = ["create_project", "upsert_brand_profile"]
+__all__ = ["create_project", "upsert_brand_profile", "get_intake_checklist"]
 
 ASIN_PATTERN = re.compile(r"^B[0-9A-Z]{9}$")
 
+INTAKE_CHECKLIST_FIELDS = (
+    "product_photos",
+    "brand_guide",
+    "competitor_asins",
+    "platform_requirements",
+)
 
-def create_project(brief: dict) -> Project:
-    """Create new project.
 
-    brief must contain: name (str), asin (str), category (str). Optional: notes (str).
-    Returns Project with status="draft".
-    Raises ValueError("E_INPUT_001: ...") if missing required fields.
-    Raises ValueError("E_INPUT_002: ...") if ASIN format invalid (must match r'^B[0-9A-Z]{9}$').
-    """
+def create_project(brief: dict, intake_checklist: Optional[dict] = None) -> Project:
     required_fields = ("name", "asin", "category")
     missing = [f for f in required_fields if f not in brief or brief[f] is None]
     if missing:
@@ -43,6 +43,16 @@ def create_project(brief: dict) -> Project:
             notes=brief.get("notes"),
         )
         session.add(project)
+        session.flush()
+
+        if intake_checklist is not None:
+            checklist = IntakeChecklist(
+                project_id=project.id,
+                **{f: intake_checklist.get(f) for f in INTAKE_CHECKLIST_FIELDS},
+            )
+            session.add(checklist)
+            logger.info("Created IntakeChecklist project_id=%s", project.id)
+
         session.commit()
         session.refresh(project)
         logger.info(
@@ -57,13 +67,6 @@ def create_project(brief: dict) -> Project:
 
 
 def upsert_brand_profile(data: dict) -> BrandProfile:
-    """Create or update brand profile.
-
-    data must contain: project_id (int), brand_name (str).
-    Optional: color_palette, font_family, tone, logo_path, guidelines.
-    If brand profile exists for project_id, update it. Otherwise create new.
-    Raises ValueError("E_INPUT_003: ...") if project_id not found.
-    """
     project_id = data.get("project_id")
     brand_name = data.get("brand_name")
 
@@ -108,5 +111,17 @@ def upsert_brand_profile(data: dict) -> BrandProfile:
         session.commit()
         session.refresh(profile)
         return profile
+    finally:
+        session.close()
+
+
+def get_intake_checklist(project_id: int) -> Optional[IntakeChecklist]:
+    session = get_session()
+    try:
+        return (
+            session.query(IntakeChecklist)
+            .filter(IntakeChecklist.project_id == project_id)
+            .first()
+        )
     finally:
         session.close()

@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 8 items
+
+tests/test_promo_analyzer.py::test_frequent_pattern PASSED               [ 12%]
+tests/test_promo_analyzer.py::test_never_pattern_empty_history PASSED    [ 25%]
+tests/test_promo_analyzer.py::test_never_pattern_missing_key PASSED      [ 37%]
+tests/test_promo_analyzer.py::test_rare_pattern PASSED                   [ 50%]
+tests/test_promo_analyzer.py::test_seasonal_pattern PASSED               [ 62%]
+tests/test_promo_analyzer.py::test_single_entry_returns_never PASSED     [ 75%]
+tests/test_promo_analyzer.py::test_no_drops_returns_never PASSED         [ 87%]
+tests/test_promo_analyzer.py::test_unix_timestamp_support PASSED         [100%]
+
+============================== 8 passed in 0.15s ===============================

@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from typing import Optional
+
+from sqlalchemy.orm import Session
 
 from pipeline.models.base import Base, get_session
 from pipeline.models.ab_test import ABTest
+from pipeline.models.ab_test_result import ABTestResult
 from pipeline.models.project import Project
 from pipeline.models.slot_plan import SlotPlan
 from pipeline.models.qa_record import QARecord
@@ -19,8 +23,11 @@ logger = setup_logger("aip.feedback_loop")
 
 __all__ = [
     "record_ab_test",
+    "record_ab_result",
     "record_delivery_result",
     "get_category_insights",
+    "update_brand_profile_from_results",
+    "export_conclusions",
     "export_project_report",
 ]
 
@@ -239,3 +246,161 @@ def export_project_report(project_id: int) -> dict:
         return report
     finally:
         session.close()
+
+
+def record_ab_result(
+    project_id: int,
+    slot_index: int,
+    variant: str,
+    score: float,
+    session: Optional[Session] = None,
+) -> ABTestResult:
+    """Persist a single A/B test result row.
+
+    Uses the owns_session pattern so callers can optionally pass their own
+    session for batching.
+    """
+    owns_session = False
+    if session is None:
+        session = get_session()
+        owns_session = True
+    try:
+        row = ABTestResult(
+            project_id=project_id,
+            slot_index=slot_index,
+            variant=variant,
+            score=score,
+        )
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        session.expunge(row)
+        logger.info(
+            "Recorded ABTestResult id=%s project=%s variant=%s score=%s",
+            row.id,
+            project_id,
+            variant,
+            score,
+        )
+        return row
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        if owns_session:
+            session.close()
+
+
+def update_brand_profile_from_results(
+    project_id: int, session: Optional[Session] = None
+) -> BrandProfile | None:
+    """Average ABTestResult scores by variant and store the conclusion in BrandProfile.guidelines.
+
+    Returns the updated BrandProfile or None if no brand profile exists.
+    """
+    owns_session = False
+    if session is None:
+        session = get_session()
+        owns_session = True
+    try:
+        results = (
+            session.query(ABTestResult)
+            .filter(ABTestResult.project_id == project_id)
+            .all()
+        )
+        if not results:
+            return (
+                session.query(BrandProfile)
+                .filter(BrandProfile.project_id == project_id)
+                .first()
+            )
+
+        variant_scores: dict[str, list[float]] = {}
+        for r in results:
+            variant_scores.setdefault(r.variant, []).append(r.score)
+
+        averages = {v: sum(s) / len(s) for v, s in variant_scores.items()}
+        best = max(averages, key=averages.get)  # type: ignore[arg-type]
+
+        conclusion = json.dumps(
+            {"variant_averages": averages, "best_variant": best},
+            ensure_ascii=False,
+        )
+
+        brand = (
+            session.query(BrandProfile)
+            .filter(BrandProfile.project_id == project_id)
+            .first()
+        )
+        if brand is None:
+            logger.warning("No BrandProfile for project=%s; cannot update.", project_id)
+            return None
+
+        brand.guidelines = conclusion
+        session.commit()
+        session.refresh(brand)
+        logger.info(
+            "Updated BrandProfile id=%s guidelines with best_variant=%s",
+            brand.id,
+            best,
+        )
+        return brand
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        if owns_session:
+            session.close()
+
+
+def export_conclusions(project_id: int, session: Optional[Session] = None) -> dict:
+    """Export a summary dict of A/B test conclusions for *project_id*.
+
+    Returns dict with keys: project_id, total_tests, best_variant, avg_score, results.
+    """
+    owns_session = False
+    if session is None:
+        session = get_session()
+        owns_session = True
+    try:
+        results = (
+            session.query(ABTestResult)
+            .filter(ABTestResult.project_id == project_id)
+            .all()
+        )
+
+        if not results:
+            return {
+                "project_id": project_id,
+                "total_tests": 0,
+                "best_variant": None,
+                "avg_score": 0.0,
+                "results": [],
+            }
+
+        variant_scores: dict[str, list[float]] = {}
+        for r in results:
+            variant_scores.setdefault(r.variant, []).append(r.score)
+
+        averages = {v: sum(s) / len(s) for v, s in variant_scores.items()}
+        best = max(averages, key=averages.get)  # type: ignore[arg-type]
+        overall_avg = sum(r.score for r in results) / len(results)
+
+        return {
+            "project_id": project_id,
+            "total_tests": len(results),
+            "best_variant": best,
+            "avg_score": round(overall_avg, 4),
+            "results": [
+                {
+                    "id": r.id,
+                    "slot_index": r.slot_index,
+                    "variant": r.variant,
+                    "score": r.score,
+                }
+                for r in results
+            ],
+        }
+    finally:
+        if owns_session:
+            session.close()

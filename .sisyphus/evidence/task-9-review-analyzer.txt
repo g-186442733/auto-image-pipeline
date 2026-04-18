@@ -1,0 +1,26 @@
+Task 9 – Review Analyzer Evidence
+===================================
+Date: 2026-04-18
+
+Files created:
+- pipeline/layers/review_analyzer.py
+- tests/test_review_analyzer.py (8 tests)
+
+Test results: 63 passed in 1.38s (baseline ≥55 met)
+
+Tests:
+- test_returns_list_of_review_clusters: PASSED
+- test_cluster_fields_populated: PASSED
+- test_representative_reviews_stored_as_json: PASSED
+- test_empty_reviews_returns_empty_list: PASSED
+- test_gemini_called_with_asin_and_reviews: PASSED
+- test_invalid_json_returns_empty_list: PASSED
+- test_call_gemini_returns_text: PASSED
+- test_call_gemini_no_key_returns_empty_array: PASSED
+
+Implementation:
+- Lazy-loaded Gemini via try/except import (matches listing_analyzer pattern)
+- No API key → returns "[]", no exception
+- Parses Gemini JSON response into ReviewCluster objects
+- representative_reviews stored as JSON string (Text column)
+- Invalid JSON gracefully returns empty list

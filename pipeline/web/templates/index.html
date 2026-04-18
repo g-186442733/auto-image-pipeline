@@ -1,39 +1,66 @@
-{% extends "base.html" %} {% block title %}Projects — Auto Image Pipeline{%
-endblock %} {% block content %}
-<h1>Projects</h1>
+{% extends "base.html" %} {% block title %}项目列表 — 主图工厂{% endblock %} {%
+block content %}
+<div class="page-header">
+  <h1>项目列表</h1>
+  <a href="{{ url_for('project_new') }}" class="btn btn-primary">+ 新建项目</a>
+</div>
 {% if projects %}
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>ASIN</th>
-      <th>Category</th>
-      <th>Status</th>
-      <th>Updated</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in projects %}
-    <tr>
-      <td>{{ p.id }}</td>
-      <td>
-        <a href="{{ url_for('project_detail', project_id=p.id) }}"
-          >{{ p.name }}</a
-        >
-      </td>
-      <td>{{ p.asin or '—' }}</td>
-      <td>{{ p.category or '—' }}</td>
-      <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
-      <td>
-        {{ p.updated_at.strftime('%Y-%m-%d %H:%M') if p.updated_at else '—' }}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>项目名称</th>
+        <th>ASIN</th>
+        <th>品类</th>
+        <th>状态</th>
+        <th>更新时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in projects %}
+      <tr>
+        <td class="mono">{{ p.id }}</td>
+        <td>
+          <a href="{{ url_for('project_detail', project_id=p.id) }}"
+            >{{ p.name }}</a
+          >
+        </td>
+        <td class="mono">{{ p.asin or '—' }}</td>
+        <td>{{ p.category or '—' }}</td>
+        <td>
+          <span class="badge badge-{{ p.status }}">
+            {%- if p.status == 'draft' -%}草稿 {%- elif p.status ==
+            'in_progress' -%}进行中 {%- elif p.status == 'review' -%}待审核 {%-
+            elif p.status == 'done' or p.status == 'completed' -%}已完成 {%-
+            elif p.status == 'initialized' -%}初始化 {%- else -%}{{ p.status }}
+            {%- endif -%}
+          </span>
+        </td>
+        <td class="mono">
+          {{ p.updated_at.strftime('%Y-%m-%d %H:%M') if p.updated_at else '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
-<p class="empty">
-  No projects yet. <a href="{{ url_for('project_new') }}">Create one</a>.
-</p>
+<div class="empty-state">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"
+    />
+  </svg>
+  <p>还没有任何项目</p>
+  <a href="{{ url_for('project_new') }}">立即创建第一个项目 →</a>
+</div>
 {% endif %} {% endblock %}

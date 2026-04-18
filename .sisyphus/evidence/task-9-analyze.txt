@@ -1,0 +1,66 @@
+21:35:30 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+21:35:30 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+21:35:30 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+21:35:30 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+21:35:32 [INFO] aip.amazon_data: fetch_category_top: category=172541 market=US asins=20
+21:35:33 [INFO] aip.amazon_data: fetch_asin_detail: asin=B09XS7JWHH title=Sony WH-1000XM5 Premium Noise Canceling 
+21:35:33 [INFO] aip.orchestrator: Upserted CompetitorListing for project 7 asin B09XS7JWHH
+21:35:35 [WARNING] aip.amazon_data: fetch_qa: no Q&A returned for B09XS7JWHH – using mock
+21:35:35 [WARNING] aip.amazon_data: fetch_reviews: no reviews returned for B09XS7JWHH – using mock
+21:35:35 [INFO] aip.orchestrator: listing_analyzer complete for project 7
+21:35:35 [INFO] aip.orchestrator: review_analyzer complete for project 7
+21:35:35 [INFO] aip.orchestrator: qa_analyzer complete for project 7
+21:35:35 [INFO] aip.orchestrator: brief_generator complete for project 7
+21:35:35 [INFO] aip.orchestrator: Persisted 20 benchmarks for project 7
+21:35:35 [INFO] aip.orchestrator: Vision analyzed 0 benchmarks for project 7
+21:35:35 [INFO] aip.vision_analyzer: Fetching listing images for ASIN: B09XS7JWHH
+21:35:40 [INFO] aip.amazon_data: scrape_listing_images: asin=B09XS7JWHH images=9
+21:35:43 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/61vJtKbAssL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_HERO",
+  "role_tags": ["ROLE_PRODUCT"],
+  "composition": "The image features a pair of black over-ear headphones centered on a white background.",
+  "color_palette": ["#
+21:35:49 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/51QbrLdao0L.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_LIFESTYLE",
+  "role_tags": ["ROLE_MODEL", "ROLE_PROP", "ROLE_BG"],
+  "composition": "A person wearing headphones is sitting on public transport, holding a phone, with a 
+21:35:54 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/81V1VCLb4oL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_LIFESTYLE",
+  "role_tags": ["ROLE_MODEL", "ROLE_PRODUCT", "ROLE_TEXT", "ROLE_BG"],
+  "composition": "A person wearing headphones is shown in a night-time urban setting w
+21:36:02 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/81gW2Vb93RL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_LIFESTYLE",
+  "role_tags": ["ROLE_MODEL", "ROLE_PRODUCT", "ROLE_TEXT", "ROLE_BG"],
+  "composition": "A person wearing headphones is relaxing on a couch with text overlay
+21:36:07 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/81zk7HFkz7L.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_LIFESTYLE",
+  "role_tags": ["ROLE_MODEL", "ROLE_PRODUCT", "ROLE_TEXT", "ROLE_PROP"],
+  "composition": "A person wearing headphones is engaged in a video call on a laptop
+21:36:12 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/81kCCjRFZTL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_INFOGRAPHIC",
+  "role_tags": ["ROLE_PRODUCT", "ROLE_TEXT", "ROLE_PROP"],
+  "composition": "Headphones and a smartphone placed on a suitcase with text overlay describing 
+21:36:18 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/81q1SrpG1PL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_INFOGRAPHIC",
+  "role_tags": ["ROLE_PRODUCT", "ROLE_TEXT", "ROLE_PROP", "ROLE_BG"],
+  "composition": "Headphones placed on a dark surface next to a laptop and smartphone
+21:36:22 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/51pFYV7FHdL.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_PACKAGING",
+  "role_tags": ["ROLE_PRODUCT"],
+  "composition": "The image shows a set of headphones, a carrying case, an audio cable, and a USB cable arranged neatly on a
+21:36:30 [WARNING] aip.vision_analyzer: Failed to parse Vision API JSON response for https://images-na.ssl-images-amazon.com/images/I/51OGN-Nlu7L.jpg; returning default dict. Raw: ```json
+{
+  "intent_tag": "INT_INFOGRAPHIC",
+  "role_tags": ["ROLE_PRODUCT", "ROLE_TEXT"],
+  "composition": "The image features a pair of black headphones prominently displayed above a text quote from
+21:36:30 [INFO] aip.vision_analyzer: Analyzed 9/9 images for ASIN B09XS7JWHH
+21:36:30 [INFO] aip.orchestrator: Analysis complete for project 7
+Analysis complete: 9 competitors analyzed

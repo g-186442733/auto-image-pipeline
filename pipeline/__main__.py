@@ -6,6 +6,14 @@ import sys
 
 import click
 
+from pipeline.models.base import get_session
+from pipeline.layers.brief_generator import generate_brief
+from pipeline.layers.delivery import build_delivery_package
+from pipeline.layers.feedback_loop import export_conclusions
+from pipeline.layers.prompt_engine import build_prompt
+from pipeline.models.competitor_listing import CompetitorListing
+from pipeline.models.qa_entry import QAEntry
+from pipeline.models.review_cluster import ReviewCluster
 from pipeline.orchestrator import (
     run_full_pipeline,
     step_analyze,
@@ -109,6 +117,74 @@ def run(brief: str, adapter: str):
         click.echo(
             f"Pipeline complete: project_id={result['project_id']} status={result['status']}"
         )
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("project_id", type=int)
+def brief(project_id: int):
+    """Generate an image brief from competitor data."""
+    try:
+        session = get_session()
+        comps = (
+            session.query(CompetitorListing)
+            .filter(CompetitorListing.project_id == project_id)
+            .all()
+        )
+        clusters = (
+            session.query(ReviewCluster)
+            .filter(ReviewCluster.project_id == project_id)
+            .all()
+        )
+        qa_entries = (
+            session.query(QAEntry).filter(QAEntry.project_id == project_id).all()
+        )
+        if not comps:
+            click.echo("No competitor data found; run 'analyze' first.")
+            return
+        result = generate_brief(
+            project_id, comps[0], clusters, qa_entries, session=session
+        )
+        click.echo(f"Brief generated: id={result.id} slot_index={result.slot_index}")
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("project_id", type=int)
+@click.option("--slot-index", default=0, type=int, help="Slot index for the prompt.")
+def prompt(project_id: int, slot_index: int):
+    """Build a generation prompt for a slot."""
+    try:
+        result = build_prompt(project_id, slot_index)
+        click.echo(f"Prompt built ({len(result)} chars)")
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("project_id", type=int)
+def deliver(project_id: int):
+    """Package deliverables for a project."""
+    try:
+        path = build_delivery_package(project_id)
+        click.echo(f"Delivery package: {path}")
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("project_id", type=int)
+def feedback(project_id: int):
+    """Export feedback conclusions."""
+    try:
+        result = export_conclusions(project_id)
+        click.echo(f"Feedback exported: {len(result)} entries")
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)

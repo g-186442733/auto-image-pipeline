@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Auto Image Pipeline{% endblock %}</title>
+    <title>{% block title %}主图工厂{% endblock %}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -11,10 +11,11 @@
   </head>
   <body>
     <nav>
-      <a href="{{ url_for('index') }}">Projects</a>
-      <a href="{{ url_for('project_new') }}">New Project</a>
-      <a href="{{ url_for('prompts_list') }}">Prompts</a>
-      <a href="{{ url_for('benchmarks_list') }}">Benchmarks</a>
+      <a class="nav-brand" href="{{ url_for('index') }}">✦ 主图工厂</a>
+      <a href="{{ url_for('index') }}">项目列表</a>
+      <a href="{{ url_for('project_new') }}">新建项目</a>
+      <a href="{{ url_for('prompts_list') }}">Prompt 库</a>
+      <a href="{{ url_for('benchmarks_list') }}">竞品基准</a>
     </nav>
     <main>{% block content %}{% endblock %}</main>
   </body>

@@ -1,27 +1,52 @@
-{% extends "base.html" %} {% block title %}New Project — Auto Image Pipeline{%
-endblock %} {% block content %}
-<h1>New Project</h1>
-<form method="post" action="{{ url_for('project_create') }}">
-  <label for="name">Name</label>
-  <input type="text" id="name" name="name" required />
+{% extends "base.html" %} {% block title %}新建项目 — 主图工厂{% endblock %} {%
+block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <span>新建项目</span>
+</div>
 
-  <label for="asin">ASIN</label>
-  <input type="text" id="asin" name="asin" maxlength="20" />
+<h1>新建项目</h1>
 
-  <label for="category">Category</label>
-  <input type="text" id="category" name="category" />
+<div class="form-container">
+  <div class="form-card">
+    <form method="post" action="{{ url_for('project_create') }}">
+      <label for="name">项目名称 *</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        required
+        placeholder="例：蓝牙耳机主图"
+      />
 
-  <label for="status">Status</label>
-  <select id="status" name="status">
-    <option value="draft" selected>Draft</option>
-    <option value="in_progress">In Progress</option>
-    <option value="review">Review</option>
-    <option value="done">Done</option>
-  </select>
+      <label for="asin">ASIN</label>
+      <input
+        type="text"
+        id="asin"
+        name="asin"
+        maxlength="20"
+        placeholder="B0XXXXXXXXX"
+      />
 
-  <label for="notes">Notes</label>
-  <textarea id="notes" name="notes" rows="4"></textarea>
+      <label for="category">品类</label>
+      <input
+        type="text"
+        id="category"
+        name="category"
+        placeholder="例：Electronics > Headphones"
+      />
 
-  <button type="submit">Create Project</button>
-</form>
+      <label for="notes">备注</label>
+      <textarea
+        id="notes"
+        name="notes"
+        rows="4"
+        placeholder="项目备注信息…"
+      ></textarea>
+
+      <button type="submit">创建项目</button>
+    </form>
+  </div>
+</div>
 {% endblock %}

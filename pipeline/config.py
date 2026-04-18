@@ -48,6 +48,11 @@ class Config:
     image_output_dir: str = field(
         default_factory=lambda: os.getenv("AIP_IMAGE_OUTPUT_DIR", "data/images")
     )
+    parallel_analyze: bool = field(
+        default_factory=lambda: (
+            os.getenv("AIP_PARALLEL_ANALYZE", "1").lower() in ("1", "true", "yes")
+        )
+    )
     log_level: str = field(default_factory=lambda: os.getenv("AIP_LOG_LEVEL", "INFO"))
     flask_port: int = field(
         default_factory=lambda: int(os.getenv("AIP_FLASK_PORT", "5100"))

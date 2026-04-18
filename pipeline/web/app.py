@@ -1,8 +1,19 @@
 import os
 import secrets
+import threading
+import traceback
 from datetime import timedelta
 
-from flask import Flask, render_template, request, redirect, url_for, send_file, session
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    send_file,
+    session,
+    jsonify,
+)
 
 from pipeline.models.base import get_session, create_all
 from pipeline.models.project import Project
@@ -10,6 +21,43 @@ from pipeline.models.slot_plan import SlotPlan
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.qa_record import QARecord
 from pipeline.models.benchmark import AmazonBenchmark
+
+# Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
+_run_status: dict[int, dict] = {}
+
+
+def _run_pipeline_thread(project_id: int):
+    """Run all pipeline steps in a background thread."""
+    from pipeline.orchestrator import (
+        step_analyze,
+        step_plan,
+        step_generate,
+        step_qa,
+        step_report,
+    )
+
+    try:
+        _run_status[project_id] = {"state": "running", "message": "正在分析竞品..."}
+        step_analyze(project_id)
+
+        _run_status[project_id] = {"state": "running", "message": "正在生成图位规划..."}
+        step_plan(project_id)
+
+        _run_status[project_id] = {"state": "running", "message": "正在生成图片..."}
+        step_generate(project_id, adapter_name="gpt_image")
+
+        _run_status[project_id] = {"state": "running", "message": "正在质检..."}
+        step_qa(project_id)
+
+        _run_status[project_id] = {"state": "running", "message": "正在生成报告..."}
+        step_report(project_id)
+
+        _run_status[project_id] = {"state": "done", "message": "流水线完成"}
+    except Exception as exc:
+        _run_status[project_id] = {
+            "state": "error",
+            "message": f"失败: {exc}\n{traceback.format_exc()}",
+        }
 
 
 def create_app():
@@ -115,14 +163,32 @@ def create_app():
 
     @app.route("/image/<path:path>")
     def serve_image(path):
-        from pipeline.config import config as cfg
-
-        allowed_dir = os.path.abspath(cfg.image_output_dir)
-        abs_path = os.path.abspath(os.path.join(allowed_dir, path))
-        if not abs_path.startswith(allowed_dir + os.sep):
+        # Allow serving from project root (covers output/, data/images/, etc.)
+        project_root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..")
+        )
+        abs_path = os.path.abspath(os.path.join(project_root, path))
+        if not abs_path.startswith(project_root + os.sep):
             return "Forbidden", 403
         if not os.path.isfile(abs_path):
             return "Image not found", 404
         return send_file(abs_path)
+
+    @app.route("/project/<int:project_id>/run", methods=["POST"])
+    def project_run(project_id):
+        status = _run_status.get(project_id, {})
+        if status.get("state") == "running":
+            return jsonify({"error": "Pipeline already running"}), 409
+        _run_status[project_id] = {"state": "running", "message": "启动中..."}
+        t = threading.Thread(
+            target=_run_pipeline_thread, args=(project_id,), daemon=True
+        )
+        t.start()
+        return jsonify({"state": "running", "message": "启动中..."})
+
+    @app.route("/project/<int:project_id>/status")
+    def project_status(project_id):
+        status = _run_status.get(project_id, {"state": "idle", "message": ""})
+        return jsonify(status)
 
     return app

@@ -4,16 +4,23 @@ from __future__ import annotations
 
 from jinja2 import Environment, BaseLoader, TemplateSyntaxError
 
+import json
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
 from pipeline.constants.tags import SLOT_MAPPING
 from pipeline.models.base import get_session
 from pipeline.models.brand import BrandProfile
+from pipeline.models.competitor_listing import CompetitorListing
+from pipeline.models.image_brief import ImageBrief
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
 from pipeline.utils.logger import setup_logger
 
 logger = setup_logger("aip.prompt_engine")
 
-__all__ = ["assemble_prompt", "generate_slot_prompts"]
+__all__ = ["assemble_prompt", "build_prompt", "generate_slot_prompts"]
 
 REQUIRED_VARIABLE_KEYS = frozenset(
     ["composition", "subject", "environment", "camera", "tone", "constraints"]
@@ -79,6 +86,85 @@ def assemble_prompt(
             parts.append(f"--no {asset.negative_prompt.strip()}")
 
         return "\n".join(parts)
+
+
+def build_prompt(
+    project_id: int, slot_index: int, session: Optional[Session] = None
+) -> str:
+    owns_session = session is None
+    if owns_session:
+        session = get_session()
+    try:
+        brief = (
+            session.query(ImageBrief)
+            .filter(
+                ImageBrief.project_id == project_id,
+                ImageBrief.slot_index == slot_index,
+            )
+            .first()
+        )
+        if brief is None:
+            raise ValueError(
+                f"E_BUILD_001: No ImageBrief for project {project_id} slot {slot_index}"
+            )
+
+        try:
+            brief_data = json.loads(brief.brief_json)
+        except (json.JSONDecodeError, TypeError):
+            brief_data = {}
+
+        tags = brief_data.get("target_tags", {})
+        concept = brief_data.get("concept", "")
+
+        brand = (
+            session.query(BrandProfile)
+            .filter(BrandProfile.project_id == project_id)
+            .first()
+        )
+
+        competitor = (
+            session.query(CompetitorListing)
+            .filter(CompetitorListing.project_id == project_id)
+            .first()
+        )
+
+        parts: list[str] = []
+
+        slot_desc = SLOT_MAPPING.get(slot_index, f"Slot {slot_index}")
+        parts.append(f"Slot {slot_index}: {slot_desc}")
+
+        if concept:
+            parts.append(f"Concept: {concept}")
+        if tags:
+            parts.append(
+                f"Style: {tags.get('intent_tag', '')} {tags.get('layout_tag', '')} "
+                f"{tags.get('style_tag', '')} {tags.get('color_tag', '')}"
+            )
+
+        if competitor:
+            comp_parts = []
+            if competitor.title:
+                comp_parts.append(f"Competitor: {competitor.title}")
+            if competitor.bullet_points:
+                comp_parts.append(f"Key points: {competitor.bullet_points}")
+            if comp_parts:
+                parts.append(" | ".join(comp_parts))
+
+        if brand:
+            brand_parts = []
+            if brand.tone:
+                brand_parts.append(f"Brand tone: {brand.tone}")
+            if brand.color_palette:
+                brand_parts.append(f"Brand colors: {brand.color_palette}")
+            if brand.guidelines:
+                brand_parts.append(brand.guidelines)
+            if brand_parts:
+                parts.append(" ".join(brand_parts))
+
+        return "\n".join(parts)
+    finally:
+        if owns_session:
+            session.close()
 
 
 def _slot_label(slot_index: int) -> str:

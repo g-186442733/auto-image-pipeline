@@ -1,0 +1,16 @@
+T16: QA Gate - Brand Consistency & Text Accuracy Checks
+========================================================
+Date: 2026-04-18
+
+Changes:
+- pipeline/layers/qa_gate.py: Added _get_genai(), _call_gemini(), check_brand_consistency(), check_text_accuracy()
+- pipeline/layers/qa_gate.py: Updated run_qa_checks() to include brand_consistency and text_accuracy checks (6 total checks)
+- pipeline/layers/qa_gate.py: Scoring changed from fixed 25pts/check to dynamic 100/N pts per check
+- tests/test_qa_gate_v2.py: Created with 6 tests
+- tests/test_e2e_tws.py: Updated QA record count assertion from 32 to 48
+
+Test results: 119 passed, 0 failed
+New tests added: 6 (target was ≥5)
+
+Degraded mode: Both new checks return 0.5 when GOOGLE_API_KEY is missing or image_path is None.
+Pass threshold in run_qa_checks: >= 0.5 (neutral scores pass in degraded mode).

@@ -1,0 +1,2 @@
+141:            from pipeline.layers.qa_analyzer import analyze_qa
+144:            qa_entries = analyze_qa(proj.asin, qa_pairs)

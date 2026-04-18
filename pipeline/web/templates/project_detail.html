@@ -1,46 +1,105 @@
-{% extends "base.html" %} {% block title %}{{ project.name }} — Auto Image
-Pipeline{% endblock %} {% block content %}
-<h1>{{ project.name }}</h1>
-<div class="meta">
-  <span>ASIN: {{ project.asin or '—' }}</span>
-  <span>Category: {{ project.category or '—' }}</span>
-  <span class="badge badge-{{ project.status }}">{{ project.status }}</span>
+{% extends "base.html" %} {% block title %}{{ project.name }} — 主图工厂{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <span>{{ project.name }}</span>
 </div>
-{% if project.notes %}
-<p class="notes">{{ project.notes }}</p>
-{% endif %}
 
-<h2>Slot Plans</h2>
+<div class="page-header">
+  <h1>{{ project.name }}</h1>
+  <div style="display: flex; align-items: center; gap: 0.75rem">
+    <button id="btn-run" class="btn btn-run" onclick="startPipeline()">
+      🚀 跑流水线
+    </button>
+    <span id="run-status-text"></span>
+    <span class="badge badge-{{ project.status }}">
+      {%- if project.status == 'draft' -%}草稿 {%- elif project.status ==
+      'in_progress' -%}进行中 {%- elif project.status == 'review' -%}待审核 {%-
+      elif project.status == 'done' -%}已完成 {%- else -%}{{ project.status }}
+      {%- endif -%}
+    </span>
+  </div>
+</div>
+
+<div class="info-card">
+  <div class="info-grid">
+    <div class="info-item">
+      <label>ASIN</label>
+      <span class="mono">{{ project.asin or '—' }}</span>
+    </div>
+    <div class="info-item">
+      <label>品类</label>
+      <span>{{ project.category or '—' }}</span>
+    </div>
+    <div class="info-item">
+      <label>创建时间</label>
+      <span class="mono"
+        >{{ project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at
+        else '—' }}</span
+      >
+    </div>
+    <div class="info-item">
+      <label>更新时间</label>
+      <span class="mono"
+        >{{ project.updated_at.strftime('%Y-%m-%d %H:%M') if project.updated_at
+        else '—' }}</span
+      >
+    </div>
+  </div>
+  {% if project.notes %}
+  <div class="notes-block">{{ project.notes }}</div>
+  {% endif %}
+</div>
+
+<h2>图位规划</h2>
 {% if slots %}
-<table>
-  <thead>
-    <tr>
-      <th>Slot</th>
-      <th>Intent</th>
-      <th>Layout</th>
-      <th>Style</th>
-      <th>Color</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in slots %}
-    <tr>
-      <td>{{ s.slot_index }}</td>
-      <td>{{ s.intent_tag or '—' }}</td>
-      <td>{{ s.layout_tag or '—' }}</td>
-      <td>{{ s.style_tag or '—' }}</td>
-      <td>{{ s.color_tag or '—' }}</td>
-      <td>{{ s.description or '—' }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>图位</th>
+        <th>意图</th>
+        <th>布局</th>
+        <th>风格</th>
+        <th>色彩</th>
+        <th>描述</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in slots %}
+      <tr>
+        <td class="mono">{{ s.slot_index }}</td>
+        <td>{{ s.intent_tag or '—' }}</td>
+        <td>{{ s.layout_tag or '—' }}</td>
+        <td>{{ s.style_tag or '—' }}</td>
+        <td>{{ s.color_tag or '—' }}</td>
+        <td class="cell-truncate">{{ s.description or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
-<p class="empty">No slot plans.</p>
+<div class="empty-state">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+    />
+  </svg>
+  <p>暂无图位规划</p>
+</div>
 {% endif %}
 
-<h2>Prompt Assets</h2>
+<h2>Prompt 素材</h2>
 {% if prompts %}
 <div class="card-grid">
   {% for pa in prompts %}
@@ -48,49 +107,198 @@ Pipeline{% endblock %} {% block content %}
     {% if pa.image_path %}
     <img
       src="{{ url_for('serve_image', path=pa.image_path) }}"
-      alt="Slot {{ pa.slot_index }}"
+      alt="图位 {{ pa.slot_index }}"
     />
     {% endif %}
     <div class="card-body">
-      <strong>Slot {{ pa.slot_index }} v{{ pa.version }}</strong>
-      <p>
-        {{ pa.prompt_text[:120] }}{% if pa.prompt_text|length > 120 %}…{% endif
-        %}
+      <strong>图位 {{ pa.slot_index }} · v{{ pa.version }}</strong>
+      <p class="card-text prompt-cell" data-full="{{ pa.prompt_text }}">
+        {{ pa.prompt_text }}
       </p>
-      <small>{{ pa.model_name or 'unknown model' }}</small>
+      <small>{{ pa.model_name or '未知模型' }}</small>
     </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
-<p class="empty">No prompt assets.</p>
+<div class="empty-state">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+    />
+  </svg>
+  <p>暂无 Prompt 素材</p>
+</div>
 {% endif %}
 
-<h2>Benchmarks</h2>
+<h2>竞品基准</h2>
 {% if benchmarks %}
-<table>
-  <thead>
-    <tr>
-      <th>Competitor ASIN</th>
-      <th>Slot</th>
-      <th>Score</th>
-      <th>Analysis</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for b in benchmarks %}
-    <tr>
-      <td>{{ b.competitor_asin }}</td>
-      <td>{{ b.slot_index if b.slot_index is not none else '—' }}</td>
-      <td>{{ '%.1f'|format(b.score) if b.score is not none else '—' }}</td>
-      <td>
-        {{ b.analysis[:80] if b.analysis else '—' }}{% if b.analysis and
-        b.analysis|length > 80 %}…{% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>竞品 ASIN</th>
+        <th>图位</th>
+        <th>评分</th>
+        <th>分析</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in benchmarks %}
+      <tr>
+        <td class="mono">{{ b.competitor_asin }}</td>
+        <td class="mono">
+          {{ b.slot_index if b.slot_index is not none else '—' }}
+        </td>
+        <td class="mono">
+          {{ '%.1f'|format(b.score) if b.score is not none else '—' }}
+        </td>
+        <td class="cell-truncate">{{ b.analysis or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
-<p class="empty">No benchmarks.</p>
-{% endif %} {% endblock %}
+<div class="empty-state">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+    />
+  </svg>
+  <p>暂无竞品基准数据</p>
+</div>
+{% endif %}
+
+<!-- Prompt Modal -->
+<div
+  id="prompt-modal"
+  style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  "
+>
+  <div
+    style="
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 700px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    "
+  >
+    <button
+      onclick="document.getElementById('prompt-modal').style.display = 'none'"
+      style="
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+      "
+    >
+      ✕
+    </button>
+    <h3 style="margin: 0 0 1rem">完整 Prompt</h3>
+    <pre
+      id="prompt-modal-body"
+      style="
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 0;
+      "
+    ></pre>
+  </div>
+</div>
+<script>
+  document.querySelectorAll(".prompt-cell").forEach(function (el) {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", function () {
+      document.getElementById("prompt-modal-body").textContent =
+        el.dataset.full;
+      var modal = document.getElementById("prompt-modal");
+      modal.style.display = "flex";
+    });
+  });
+  document
+    .getElementById("prompt-modal")
+    .addEventListener("click", function (e) {
+      if (e.target === this) this.style.display = "none";
+    });
+</script>
+<script>
+  var projectId = {{ project.id }};
+  var btnRun = document.getElementById('btn-run');
+  var statusText = document.getElementById('run-status-text');
+  var pollTimer = null;
+
+  function startPipeline() {
+    btnRun.disabled = true;
+    statusText.textContent = '启动中...';
+    fetch('/project/' + projectId + '/run', {method: 'POST'})
+      .then(function(r) {
+        if (r.status === 409) { statusText.textContent = '已在运行中'; return; }
+        return r.json();
+      })
+      .then(function() { pollStatus(); })
+      .catch(function(e) { statusText.textContent = '请求失败: ' + e; btnRun.disabled = false; });
+  }
+
+  function pollStatus() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function() {
+      fetch('/project/' + projectId + '/status')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          statusText.textContent = d.message || '';
+          if (d.state === 'done') {
+            clearInterval(pollTimer);
+            location.reload();
+          } else if (d.state === 'error') {
+            clearInterval(pollTimer);
+            btnRun.disabled = false;
+            statusText.textContent = d.message;
+          }
+        });
+    }, 3000);
+  }
+
+  fetch('/project/' + projectId + '/status')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.state === 'running') {
+        btnRun.disabled = true;
+        statusText.textContent = d.message || '运行中...';
+        pollStatus();
+      }
+    });
+</script>
+{% endblock %}
