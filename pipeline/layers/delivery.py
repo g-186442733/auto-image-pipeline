@@ -259,6 +259,13 @@ def build_delivery_package(
         generate_version_log(project_id, output_dir, session=session)
         generate_spec_check(project_id, output_dir)
 
+        try:
+            from pipeline.layers.version_manager import create_version
+
+            create_version(session, project_id, "initial", "first delivery", output_dir)
+        except Exception:
+            pass
+
         return delivery_dir
     finally:
         if owns_session:

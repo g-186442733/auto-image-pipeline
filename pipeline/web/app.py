@@ -29,6 +29,7 @@ from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.aplus_content import APlusContent
 from pipeline.models.consistency_profile import ConsistencyProfile
 from pipeline.models.client_feedback import ClientFeedback
+from pipeline.models.delivery_version import DeliveryVersion
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -603,6 +604,25 @@ def create_app():
             if slot_name and feedback_type:
                 submit_feedback(db, project_id, slot_name, feedback_type, feedback_text)
             return redirect(url_for("feedback_view", project_id=project_id))
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/versions")
+    def version_history(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            versions = (
+                db.query(DeliveryVersion)
+                .filter_by(project_id=project_id)
+                .order_by(DeliveryVersion.version_number.desc())
+                .all()
+            )
+            return render_template(
+                "version_history.html", project=project, versions=versions
+            )
         finally:
             db.close()
 

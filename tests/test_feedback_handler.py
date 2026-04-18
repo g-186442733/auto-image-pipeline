@@ -1,9 +1,10 @@
 """TDD tests for client feedback system (Task 10)."""
 
-import json
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from pipeline.models.base import Base, get_engine, get_session, create_all
+from pipeline.models.base import Base
 from pipeline.models.project import Project
 from pipeline.models.client_feedback import ClientFeedback
 from pipeline.layers.feedback_handler import (
@@ -14,33 +15,27 @@ from pipeline.layers.feedback_handler import (
 
 TEST_PID = 10010
 
+_mem_engine = create_engine("sqlite:///:memory:")
+_MemSession = sessionmaker(bind=_mem_engine)
+
 
 @pytest.fixture(autouse=True)
 def _setup_db():
-    """Ensure tables exist and clean up test data."""
-    create_all()
-    session = get_session()
+    """Create fresh in-memory tables for each test."""
+    Base.metadata.create_all(_mem_engine)
+    session = _MemSession()
     try:
-        session.query(ClientFeedback).filter_by(project_id=TEST_PID).delete()
-        session.query(Project).filter_by(id=TEST_PID).delete()
-        session.commit()
         session.add(Project(id=TEST_PID, name="Feedback Test Project", status="draft"))
         session.commit()
     finally:
         session.close()
     yield
-    session = get_session()
-    try:
-        session.query(ClientFeedback).filter_by(project_id=TEST_PID).delete()
-        session.query(Project).filter_by(id=TEST_PID).delete()
-        session.commit()
-    finally:
-        session.close()
+    Base.metadata.drop_all(_mem_engine)
 
 
 class TestSubmitFeedback:
     def test_creates_record(self):
-        session = get_session()
+        session = _MemSession()
         try:
             fb = submit_feedback(session, TEST_PID, "slot_1", "approve", "Looks good")
             assert fb.id is not None
@@ -52,7 +47,7 @@ class TestSubmitFeedback:
             session.close()
 
     def test_rejects_invalid_type(self):
-        session = get_session()
+        session = _MemSession()
         try:
             with pytest.raises(ValueError):
                 submit_feedback(session, TEST_PID, "slot_1", "invalid_type", "")
@@ -60,7 +55,7 @@ class TestSubmitFeedback:
             session.close()
 
     def test_multiple_feedback_same_slot(self):
-        session = get_session()
+        session = _MemSession()
         try:
             submit_feedback(session, TEST_PID, "slot_1", "revise", "Change color")
             submit_feedback(session, TEST_PID, "slot_1", "approve", "Now OK")
@@ -76,7 +71,7 @@ class TestSubmitFeedback:
 
 class TestGetFeedbackSummary:
     def test_returns_dict_with_slots(self):
-        session = get_session()
+        session = _MemSession()
         try:
             submit_feedback(session, TEST_PID, "slot_1", "approve", "")
             submit_feedback(session, TEST_PID, "slot_2", "revise", "Fix text")
@@ -90,7 +85,7 @@ class TestGetFeedbackSummary:
             session.close()
 
     def test_empty_project(self):
-        session = get_session()
+        session = _MemSession()
         try:
             summary = get_feedback_summary(session, TEST_PID)
             assert summary == {}
@@ -100,7 +95,7 @@ class TestGetFeedbackSummary:
 
 class TestApplyFeedback:
     def test_approve_marks_done(self):
-        session = get_session()
+        session = _MemSession()
         try:
             submit_feedback(session, TEST_PID, "slot_1", "approve", "")
             result = apply_feedback(session, TEST_PID)
@@ -110,7 +105,7 @@ class TestApplyFeedback:
             session.close()
 
     def test_revise_marks_pending(self):
-        session = get_session()
+        session = _MemSession()
         try:
             submit_feedback(session, TEST_PID, "slot_1", "revise", "Needs changes")
             result = apply_feedback(session, TEST_PID)
@@ -119,7 +114,7 @@ class TestApplyFeedback:
             session.close()
 
     def test_reject_marks_rejected(self):
-        session = get_session()
+        session = _MemSession()
         try:
             submit_feedback(session, TEST_PID, "slot_1", "reject", "Not usable")
             result = apply_feedback(session, TEST_PID)
@@ -130,7 +125,8 @@ class TestApplyFeedback:
 
 class TestFeedbackRoutes:
     @pytest.fixture()
-    def client(self):
+    def client(self, monkeypatch):
+        monkeypatch.setattr("pipeline.web.app.get_session", _MemSession)
         from pipeline.web.app import create_app
 
         app = create_app()
@@ -164,7 +160,7 @@ class TestFeedbackRoutes:
                 "feedback_text": "Fix color",
             },
         )
-        session = get_session()
+        session = _MemSession()
         try:
             fb = (
                 session.query(ClientFeedback)
