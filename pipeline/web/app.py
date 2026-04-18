@@ -28,6 +28,7 @@ from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.aplus_content import APlusContent
 from pipeline.models.consistency_profile import ConsistencyProfile
+from pipeline.models.client_feedback import ClientFeedback
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -570,6 +571,38 @@ def create_app():
                 return "Project not found", 404
             lock_consistency_profile(project_id)
             return redirect(url_for("consistency_view", project_id=project_id))
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/feedback", methods=["GET"])
+    def feedback_view(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.feedback_handler import get_feedback_summary
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            summary = get_feedback_summary(db, project_id)
+            return render_template("feedback.html", project=project, summary=summary)
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/feedback", methods=["POST"])
+    def feedback_submit(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.feedback_handler import submit_feedback
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            slot_name = request.form.get("slot_name", "").strip()
+            feedback_type = request.form.get("feedback_type", "").strip()
+            feedback_text = request.form.get("feedback_text", "").strip()
+            if slot_name and feedback_type:
+                submit_feedback(db, project_id, slot_name, feedback_type, feedback_text)
+            return redirect(url_for("feedback_view", project_id=project_id))
         finally:
             db.close()
 

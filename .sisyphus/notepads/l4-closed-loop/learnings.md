@@ -31,3 +31,19 @@
 - 现有 SQLite DB 缺少 `customer_brief` 列，截图需用临时 DB（`create_all('sqlite:///tmp.db')`）
 - 模板用 `dimensions` 列表（含 key/label/icon/value）统一渲染 10 卡片，避免硬编码
 - 256 passed（基准 226 + 7 新测试 + 23 其他模块新增）
+
+## [2026-04-19] Task 1 — 引导式客户输入 UI
+
+- CSS class 必须与模板实际使用的 class 名一致（ci-fields vs ci-field, ci-dot vs ci-progress-dot）
+- 模板 JS 用 `style.display` 切换步骤可见性，不依赖 `.active` CSS class
+- `create_project()` in input_layer.py 要求 ASIN 格式验证，新路由直接操作 Project 模型绕过
+- 分步表单用 `data-step` 属性 + JS render() 函数实现，无需前端框架
+- progress bar 用 width% 过渡 + 圆形数字 dot 指示器
+- 13 新测试全通过，总计 264 passed（251 + 13）
+- 5 个 test_brand_profile 失败是 pre-existing，与本次变更无关
+
+## [Task 5] 三层标签体系
+- assign_tags 集成到 slot_planner 时，必须在 expunge_all() 之后调用，否则 assign_tags 的 commit 会导致已 refresh 的 SlotPlan 对象 expired → DetachedInstanceError
+- TagAssignment 的 tag_layer server_default='intent'，但显式传入 tag_layer 值时 server_default 不生效，无需 refresh 来获取
+- UniqueConstraint 幂等处理：插入前 query 检查 existing，避免 IntegrityError
+- _call_llm_for_scenes 独立为可 mock 的函数，测试通过 @patch 注入

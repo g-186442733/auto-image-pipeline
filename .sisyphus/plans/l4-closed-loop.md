@@ -221,7 +221,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
 ## TODOs
 
-- [ ] 0. Schema 修复：APlusContent + TagAssignment 扩展
+- [x] 0. Schema 修复：APlusContent + TagAssignment 扩展
 
   **What to do**:
   - APlusContent 新增 `layout = Column(Text, nullable=True)`
@@ -264,7 +264,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `fix(models): extend APlusContent and TagAssignment schemas for L4`
 
-- [ ] 1. 引导式客户输入 UI
+- [x] 1. 引导式客户输入 UI
 
   **What to do**:
   - 新建 `pipeline/web/templates/customer_input.html` — 分步表单 Step 1-5 必问 + 6-10 建议问
@@ -310,7 +310,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(web): add guided customer input UI with 10 question groups`
 
-- [ ] 2. 素材上传 UI
+- [x] 2. 素材上传 UI
 
   **What to do**:
   - 新建 `pipeline/web/templates/upload.html` — 拖拽上传 + 预览
@@ -351,7 +351,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(web): add asset upload UI with drag-and-drop`
 
-- [ ] 3. 品牌画像卡 UI
+- [x] 3. 品牌画像卡 UI
 
   **What to do**:
   - 新建 `pipeline/web/templates/brand_profile.html` — 10 维度卡片展示 + 编辑
@@ -393,7 +393,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(web): add brand profile card UI with 10 dimensions`
 
-- [ ] 4. A+ 内容生成逻辑
+- [x] 4. A+ 内容生成逻辑
 
   **What to do**:
   - 新建 `pipeline/layers/aplus_generator.py`，包含 `generate_aplus_storyboard(project_id)` 函数
@@ -464,7 +464,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): implement A+ content generation logic`
 
-- [ ] 5. 三层标签体系
+- [x] 5. 三层标签体系
 
   **What to do**:
   - 新建 `pipeline/layers/tag_system.py`，定义标签常量和打标逻辑
@@ -525,7 +525,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): implement 3-layer tag system`
 
-- [ ] 6. Reference Pack 数据结构 + 填充
+- [x] 6. Reference Pack 数据结构 + 填充
 
   **What to do**:
   - 新建 `pipeline/models/reference_pack.py` — ReferencePack ORM 模型
@@ -585,7 +585,7 @@ Max Concurrent: 4 (Waves 1, 2, 4)
 
   **Commit**: `feat(layers): implement reference pack 6 components`
 
-- [ ] 7. 一致性系统5变量
+- [x] 7. 一致性系统5变量
 
   **What to do**:
   - 新建 `pipeline/models/consistency_profile.py` — ConsistencyProfile ORM 模型
