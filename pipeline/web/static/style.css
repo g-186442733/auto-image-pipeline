@@ -1160,3 +1160,64 @@ button[type="submit"]:active {
   color: var(--color-text-muted, #999);
   font-size: 1.1rem;
 }
+
+.consistency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0;
+}
+.consistency-card {
+  background: var(--color-card-bg, #fff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-card, 12px);
+  padding: 1.2rem;
+}
+.consistency-card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+.consistency-card-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.consistency-card-value {
+  color: var(--color-text-muted, #666);
+}
+.consistency-input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border, #d0d0d0);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+.consistency-actions {
+  margin: 1.5rem 0;
+}
+.consistency-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.consistency-badge--locked {
+  background: var(--color-status-locked-bg, #ffeaa7);
+  color: var(--color-status-locked-text, #856404);
+}
+.consistency-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.consistency-form .page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

@@ -27,6 +27,7 @@ from pipeline.models.qa_record import QARecord
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.aplus_content import APlusContent
+from pipeline.models.consistency_profile import ConsistencyProfile
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -489,5 +490,87 @@ def create_app():
                 "angle_matrix": _json.loads(rp.angle_matrix or "{}"),
             }
         )
+
+    _CONSISTENCY_VARS = [
+        ("lighting_style", "💡", "光线风格", "如: soft diffused, studio, natural"),
+        ("color_palette", "🎨", "色彩系统", "如: warm earth tones, neutral, vibrant"),
+        ("camera_angle", "📐", "拍摄角度", "如: eye level, 45-degree, overhead"),
+        ("element_density", "📦", "元素密度", "如: minimal, medium, dense"),
+        ("text_overlay_style", "🔤", "文字叠层风格", "如: minimal, bold, none"),
+    ]
+
+    @app.route("/project/<int:project_id>/consistency", methods=["GET"])
+    def consistency_view(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.consistency_system import (
+                get_consistency_profile,
+                validate_consistency,
+            )
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            profile = get_consistency_profile(project_id)
+            valid, missing = validate_consistency(project_id)
+            variables = [
+                {
+                    "key": k,
+                    "icon": icon,
+                    "label": label,
+                    "placeholder": ph,
+                    "value": getattr(profile, k, None),
+                }
+                for k, icon, label, ph in _CONSISTENCY_VARS
+            ]
+            return render_template(
+                "consistency.html",
+                project=project,
+                profile=profile,
+                variables=variables,
+                valid=valid,
+                missing=missing,
+            )
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/consistency", methods=["POST"])
+    def consistency_update(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.consistency_system import (
+                get_consistency_profile,
+                update_consistency_profile,
+            )
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            get_consistency_profile(project_id)
+            kwargs = {}
+            for k, _, _, _ in _CONSISTENCY_VARS:
+                val = request.form.get(k, "").strip() or None
+                kwargs[k] = val
+            try:
+                update_consistency_profile(project_id, **kwargs)
+            except ValueError:
+                pass
+            return redirect(url_for("consistency_view", project_id=project_id))
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/consistency/lock", methods=["POST"])
+    def consistency_lock(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.consistency_system import lock_consistency_profile
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            lock_consistency_profile(project_id)
+            return redirect(url_for("consistency_view", project_id=project_id))
+        finally:
+            db.close()
 
     return app
