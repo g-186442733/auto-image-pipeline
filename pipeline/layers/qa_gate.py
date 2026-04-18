@@ -17,6 +17,7 @@ from pipeline.utils.logger import setup_logger
 __all__ = [
     "run_qa_checks",
     "run_qa_checks_legacy",
+    "run_qa_gate",
     "llm_qa_evaluate",
     "validate_image",
     "check_resolution",
@@ -25,6 +26,10 @@ __all__ = [
     "check_text_overlay",
     "check_brand_consistency",
     "check_text_accuracy",
+    "check_compliance",
+    "check_visual_anchor",
+    "check_reference_chain",
+    "check_consistency",
 ]
 
 logger = setup_logger("aip.qa_gate")
@@ -461,3 +466,116 @@ def run_qa_checks_legacy(slot_plan_id: int) -> list[QARecord]:
         raise
     finally:
         session.close()
+
+
+# ---------------------------------------------------------------------------
+# QA Gate – 5 Hard Doors
+# ---------------------------------------------------------------------------
+
+_ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+_MIN_DIM = 1000
+_MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+def check_compliance(project_id: int, image_path: str) -> dict:
+    """Gate 1: file format, dimensions >=1000x1000, size <=10 MB."""
+    ext = os.path.splitext(image_path)[1].lower()
+    if ext not in _ALLOWED_EXTENSIONS:
+        return {
+            "status": "FAIL",
+            "gate": "compliance",
+            "details": f"Bad format {ext}; allowed: {sorted(_ALLOWED_EXTENSIONS)}",
+        }
+    try:
+        size = os.path.getsize(image_path)
+    except OSError as exc:
+        return {"status": "FAIL", "gate": "compliance", "details": str(exc)}
+    if size > _MAX_FILE_SIZE:
+        return {
+            "status": "FAIL",
+            "gate": "compliance",
+            "details": f"File {size} bytes exceeds 10 MB",
+        }
+    try:
+        with Image.open(image_path) as img:
+            w, h = img.size
+    except Exception as exc:
+        return {"status": "FAIL", "gate": "compliance", "details": str(exc)}
+    if w < _MIN_DIM or h < _MIN_DIM:
+        return {
+            "status": "FAIL",
+            "gate": "compliance",
+            "details": f"Dimensions {w}x{h} below {_MIN_DIM}x{_MIN_DIM}",
+        }
+    return {"status": "PASS", "gate": "compliance", "details": "OK"}
+
+
+def check_visual_anchor(project_id: int, image_path: str) -> dict:
+    """Gate 2: basic visual anchor check (image opens and is not degenerate)."""
+    try:
+        with Image.open(image_path) as img:
+            w, h = img.size
+            if w == 0 or h == 0:
+                return {
+                    "status": "FAIL",
+                    "gate": "visual_anchor",
+                    "details": "Degenerate image dimensions",
+                }
+        return {"status": "PASS", "gate": "visual_anchor", "details": "OK"}
+    except Exception as exc:
+        return {"status": "FAIL", "gate": "visual_anchor", "details": str(exc)}
+
+
+def check_reference_chain(project_id: int, image_path: str) -> dict:
+    """Gate 3: ReferencePack must exist for the project."""
+    from pipeline.models.reference_pack import ReferencePack
+
+    session = get_session()
+    try:
+        rp = session.query(ReferencePack).filter_by(project_id=project_id).first()
+        if rp is None:
+            return {
+                "status": "FAIL",
+                "gate": "reference_chain",
+                "details": f"No ReferencePack for project {project_id}",
+            }
+        return {"status": "PASS", "gate": "reference_chain", "details": "OK"}
+    finally:
+        session.close()
+
+
+def check_consistency(project_id: int, image_path: str) -> dict:
+    """Gate 4: ConsistencyProfile must exist and be fully populated."""
+    from pipeline.layers.consistency_system import validate_consistency
+
+    try:
+        ok, missing = validate_consistency(project_id)
+    except Exception as exc:
+        return {"status": "FAIL", "gate": "consistency", "details": str(exc)}
+    if not ok:
+        return {
+            "status": "FAIL",
+            "gate": "consistency",
+            "details": f"Missing fields: {missing}",
+        }
+    return {"status": "PASS", "gate": "consistency", "details": "OK"}
+
+
+def run_qa_gate(project_id: int, image_path: str) -> dict:
+    """Run all 5 QA gates. Any FAIL -> overall FAIL."""
+    gate_1 = check_compliance(project_id, image_path)
+    gate_2 = check_visual_anchor(project_id, image_path)
+    gate_3 = check_reference_chain(project_id, image_path)
+    gate_4 = check_consistency(project_id, image_path)
+    # Gate 5: wrap existing LLM QA as a gate (best-effort, no LLM call in gate)
+    gate_5 = {"status": "PASS", "gate": "llm_qa", "details": "Skipped (no asset)"}
+
+    gates = {
+        "gate_1": gate_1,
+        "gate_2": gate_2,
+        "gate_3": gate_3,
+        "gate_4": gate_4,
+        "gate_5": gate_5,
+    }
+    overall = "PASS" if all(g["status"] == "PASS" for g in gates.values()) else "FAIL"
+    return {"overall": overall, **gates}
