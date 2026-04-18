@@ -626,4 +626,10 @@ def create_app():
         finally:
             db.close()
 
+    @app.route("/revision-guide")
+    def revision_guide():
+        from pipeline.layers.revision_lookup import REVISION_TABLE
+
+        return render_template("revision_guide.html", table=REVISION_TABLE)
+
     return app

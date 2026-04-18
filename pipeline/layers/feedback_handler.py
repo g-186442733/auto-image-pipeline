@@ -58,6 +58,12 @@ def apply_feedback(session: Session, project_id: int) -> dict[str, str]:
         result[slot_name] = _STATUS_MAP.get(info["latest_type"], "unknown")
     if any(v == "needs_revision" for v in result.values()):
         from pipeline.layers.version_manager import create_version
+        from pipeline.layers.revision_lookup import auto_apply_revision
 
+        for slot_name, info in summary.items():
+            if info["latest_type"] == "revise":
+                auto_apply_revision(
+                    session, project_id, slot_name, info.get("latest_text", "")
+                )
         create_version(session, project_id, "revision", "revision after feedback")
     return result
