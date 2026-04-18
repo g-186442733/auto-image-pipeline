@@ -12,6 +12,7 @@ from pipeline.models.base import get_session
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.image_brief import ImageBrief
 from pipeline.models.slot_plan import SlotPlan
+from pipeline.layers.tag_system import assign_tags
 from pipeline.utils.logger import setup_logger
 
 __all__ = ["generate_slot_plan"]
@@ -104,6 +105,14 @@ def generate_slot_plan(
         for p in plans:
             session.refresh(p)
         session.expunge_all()
+
+        try:
+            assign_tags(project_id, project_id, session=session)
+        except Exception:
+            logger.warning(
+                "Tag assignment failed for project %d", project_id, exc_info=True
+            )
+
         logger.info("Created %d slot plans for project %d", len(plans), project_id)
         return plans
     except Exception:
