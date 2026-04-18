@@ -1,0 +1,72 @@
+{% extends "base.html" %} {% block title %}品牌画像 — {{ project.name }}{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <span>品牌画像</span>
+</div>
+
+<div class="page-header">
+  <h1>品牌画像 — {{ project.name }}</h1>
+  <a
+    href="{{ url_for('project_detail', project_id=project.id) }}"
+    class="btn btn-outline"
+    >← 返回项目</a
+  >
+</div>
+
+{% if editing %}
+<form
+  method="POST"
+  action="{{ url_for('brand_profile_update', project_id=project.id) }}"
+  class="bp-edit-form"
+>
+  <div class="bp-grid">
+    {% for dim in dimensions %}
+    <div class="bp-card bp-card--edit">
+      <div class="bp-card-icon">{{ dim.icon }}</div>
+      <label class="bp-card-label" for="field-{{ dim.key }}"
+        >{{ dim.label }}</label
+      >
+      <textarea
+        id="field-{{ dim.key }}"
+        name="{{ dim.key }}"
+        rows="3"
+        placeholder="请输入{{ dim.label }}..."
+      >
+{{ dim.value or '' }}</textarea
+      >
+    </div>
+    {% endfor %}
+  </div>
+  <div class="bp-actions">
+    <button type="submit" class="btn btn-primary">保存画像</button>
+    <a
+      href="{{ url_for('brand_profile_view', project_id=project.id) }}"
+      class="btn btn-outline"
+      >取消</a
+    >
+  </div>
+</form>
+{% else %}
+<div class="bp-grid">
+  {% for dim in dimensions %}
+  <div class="bp-card">
+    <div class="bp-card-icon">{{ dim.icon }}</div>
+    <div class="bp-card-label">{{ dim.label }}</div>
+    <div class="bp-card-value">{{ dim.value or '—' }}</div>
+  </div>
+  {% endfor %}
+</div>
+<div class="bp-actions">
+  <a
+    href="{{ url_for('brand_profile_view', project_id=project.id, edit=1) }}"
+    class="btn btn-primary"
+    >✏️ 编辑画像</a
+  >
+</div>
+{% endif %} {% endblock %}

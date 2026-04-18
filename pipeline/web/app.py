@@ -1,4 +1,7 @@
+import json
 import os
+
+from pipeline.config import config as _app_config
 import secrets
 import threading
 import traceback
@@ -22,6 +25,7 @@ from pipeline.models.slot_plan import SlotPlan
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.qa_record import QARecord
 from pipeline.models.benchmark import AmazonBenchmark
+from pipeline.models.brand_profile import BrandProfile
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -222,5 +226,230 @@ def create_app():
             f.write(file_data)
 
         return jsonify({"path": filepath})
+
+    CUSTOMER_INPUT_REQUIRED = [
+        "product_name",
+        "asin",
+        "product_category",
+        "key_selling_points",
+        "target_age",
+        "target_gender",
+        "lifestyle",
+        "purchase_motivation",
+        "competitor_asins",
+        "differentiation",
+        "primary_color",
+        "style_keywords",
+        "budget_level",
+        "deadline",
+    ]
+
+    CUSTOMER_INPUT_ALL = CUSTOMER_INPUT_REQUIRED + [
+        "reference_urls",
+        "brand_history",
+        "founding_idea",
+        "usp_core",
+        "usp_proof",
+        "pain_points",
+        "usage_scenario",
+        "lifestyle_image",
+        "season_relevance",
+        "holiday_promo",
+    ]
+
+    @app.route("/input/new", methods=["GET"])
+    def customer_input_new():
+        return render_template("customer_input.html", step_data={}, project_id=None)
+
+    @app.route("/input/new", methods=["POST"])
+    def customer_input_create():
+        data = {k: request.form.get(k, "").strip() for k in CUSTOMER_INPUT_ALL}
+        missing = [f for f in CUSTOMER_INPUT_REQUIRED if not data.get(f)]
+        if missing:
+            return f"Missing required fields: {', '.join(missing)}", 400
+
+        db = get_session()
+        try:
+            project = Project(
+                name=data["product_name"],
+                asin=data.get("asin", ""),
+                category=data.get("product_category", ""),
+                status="draft",
+                customer_brief=json.dumps(data, ensure_ascii=False),
+            )
+            db.add(project)
+            db.commit()
+            db.refresh(project)
+            return redirect(url_for("project_detail", project_id=project.id))
+        finally:
+            db.close()
+
+    @app.route("/input/<int:project_id>/edit", methods=["GET"])
+    def customer_input_edit(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            step_data = {}
+            if project.customer_brief:
+                step_data = json.loads(project.customer_brief)
+            return render_template(
+                "customer_input.html", step_data=step_data, project_id=project_id
+            )
+        finally:
+            db.close()
+
+    @app.route("/input/<int:project_id>/edit", methods=["POST"])
+    def customer_input_update(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            data = {k: request.form.get(k, "").strip() for k in CUSTOMER_INPUT_ALL}
+            missing = [f for f in CUSTOMER_INPUT_REQUIRED if not data.get(f)]
+            if missing:
+                return f"Missing required fields: {', '.join(missing)}", 400
+            project.name = data["product_name"]
+            project.asin = data.get("asin", "")
+            project.category = data.get("product_category", "")
+            project.customer_brief = json.dumps(data, ensure_ascii=False)
+            db.commit()
+            return redirect(url_for("project_detail", project_id=project.id))
+        finally:
+            db.close()
+
+    UPLOAD_ALLOWED_EXT = {"png", "jpg", "jpeg", "webp", "svg"}
+    UPLOAD_MAX_SIZE = 10 * 1024 * 1024
+
+    def _assets_dir(project_id: int) -> str:
+        base = getattr(app, "_aip_output_dir", None) or _app_config.output_dir
+        return os.path.join(base, str(project_id), "assets")
+
+    @app.route("/upload/<int:project_id>")
+    def upload_page(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            assets_path = _assets_dir(project_id)
+            files = (
+                sorted(os.listdir(assets_path)) if os.path.isdir(assets_path) else []
+            )
+            return render_template("upload.html", project=project, files=files)
+        finally:
+            db.close()
+
+    @app.route("/upload/<int:project_id>", methods=["POST"])
+    def upload_asset(project_id):
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if not file.filename:
+            return jsonify({"error": "No file selected"}), 400
+
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        if ext not in UPLOAD_ALLOWED_EXT:
+            return jsonify({"error": f"File type '{ext}' not allowed"}), 400
+
+        file_data = file.read()
+        if len(file_data) > UPLOAD_MAX_SIZE:
+            return jsonify({"error": "File exceeds 10MB limit"}), 413
+
+        assets_path = _assets_dir(project_id)
+        os.makedirs(assets_path, exist_ok=True)
+        filename = secure_filename(file.filename)
+        with open(os.path.join(assets_path, filename), "wb") as f:
+            f.write(file_data)
+
+        if request.headers.get("Accept", "").startswith("application/json"):
+            return jsonify(
+                {"path": os.path.join(assets_path, filename), "filename": filename}
+            )
+        return redirect(url_for("upload_page", project_id=project_id))
+
+    @app.route("/upload/<int:project_id>/delete", methods=["POST"])
+    def delete_asset(project_id):
+        filename = request.form.get("filename", "")
+        if not filename:
+            return jsonify({"error": "No filename"}), 400
+
+        filename = secure_filename(filename)
+        filepath = os.path.join(_assets_dir(project_id), filename)
+        if not os.path.exists(filepath):
+            return jsonify({"error": "File not found"}), 404
+
+        os.remove(filepath)
+        if request.headers.get("Accept", "").startswith("application/json"):
+            return jsonify({"deleted": filename})
+        return redirect(url_for("upload_page", project_id=project_id))
+
+    # ---- Brand Profile routes ----
+
+    _BP_DIMENSIONS = [
+        ("brand_tone", "品牌调性", "🎨"),
+        ("color_system", "色彩体系", "🌈"),
+        ("font_preference", "字体偏好", "🔤"),
+        ("photo_style", "拍摄风格", "📷"),
+        ("model_type", "模特类型", "🧑"),
+        ("scene_preference", "场景偏好", "🏞️"),
+        ("composition_preference", "构图偏好", "📐"),
+        ("material_texture", "材质质感", "🧶"),
+        ("competitor_positioning", "竞品定位", "🎯"),
+        ("brand_story", "品牌故事", "📖"),
+    ]
+
+    def _build_dimensions(bp):
+        return [
+            {"key": key, "label": label, "icon": icon, "value": getattr(bp, key, None)}
+            for key, label, icon in _BP_DIMENSIONS
+        ]
+
+    @app.route("/brand-profile/<int:project_id>", methods=["GET"])
+    def brand_profile_view(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.brand_profiler import build_brand_profile
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            bp = build_brand_profile(project_id)
+            editing = request.args.get("edit") == "1"
+            return render_template(
+                "brand_profile.html",
+                project=project,
+                editing=editing,
+                dimensions=_build_dimensions(bp),
+            )
+        finally:
+            db.close()
+
+    @app.route("/brand-profile/<int:project_id>", methods=["POST"])
+    def brand_profile_update(project_id):
+        db = get_session()
+        try:
+            from pipeline.layers.brand_profiler import build_brand_profile
+
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            bp = build_brand_profile(project_id)
+            from pipeline.models.brand_profile import BrandProfile as BP
+
+            bp_obj = db.query(BP).filter_by(project_id=project_id).first()
+            if bp_obj is None:
+                bp_obj = BP(project_id=project_id)
+                db.add(bp_obj)
+            for key, _, _ in _BP_DIMENSIONS:
+                val = request.form.get(key, "").strip() or None
+                setattr(bp_obj, key, val)
+            db.commit()
+            return redirect(url_for("brand_profile_view", project_id=project_id))
+        finally:
+            db.close()
 
     return app
