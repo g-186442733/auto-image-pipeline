@@ -101,6 +101,8 @@ class TestGate3ReferenceChain:
 
         session = get_session()
         try:
+            session.query(ReferencePack).filter_by(project_id=88888).delete()
+            session.commit()
             rp = ReferencePack(project_id=88888, product_truth="test")
             session.add(rp)
             session.commit()
@@ -124,6 +126,8 @@ class TestGate4Consistency:
 
         session = get_session()
         try:
+            session.query(ConsistencyProfile).filter_by(project_id=88887).delete()
+            session.commit()
             cp = ConsistencyProfile(
                 project_id=88887,
                 lighting_style="soft",
