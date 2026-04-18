@@ -1,0 +1,181 @@
+{% extends "base.html" %} {% block title %}素材上传 — {{ project.name }}{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <span>素材上传</span>
+</div>
+
+<div class="page-header">
+  <h1>素材上传</h1>
+  <span class="badge badge-{{ project.status }}">{{ project.status }}</span>
+</div>
+
+<div class="upload-zone" id="upload-zone">
+  <div class="upload-zone-inner">
+    <div class="upload-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <path
+          d="M24 4L14 18h7v12h6V18h7L24 4z"
+          fill="var(--color-primary)"
+          opacity="0.7"
+        />
+        <rect
+          x="8"
+          y="36"
+          width="32"
+          height="4"
+          rx="2"
+          fill="var(--color-primary)"
+          opacity="0.3"
+        />
+      </svg>
+    </div>
+    <p class="upload-text">拖拽文件到此处，或点击选择</p>
+    <p class="upload-hint">支持 JPG / PNG / WebP / SVG，最大 10MB</p>
+    <input
+      type="file"
+      id="file-input"
+      accept=".jpg,.jpeg,.png,.webp,.svg"
+      hidden
+    />
+  </div>
+</div>
+
+<div id="upload-feedback" class="upload-feedback" hidden></div>
+
+{% if files %}
+<h2>已上传素材 <span class="count-badge">{{ files|length }}</span></h2>
+<div class="asset-grid">
+  {% for f in files %}
+  <div class="asset-card">
+    <div class="asset-thumb">
+      {% if f.endswith('.svg') %}
+      <img
+        src="{{ url_for('static', filename='') }}../../../{{ _assets_base }}/{{ f }}"
+        alt="{{ f }}"
+        loading="lazy"
+      />
+      {% else %}
+      <img
+        src="{{ url_for('static', filename='') }}../../../{{ _assets_base }}/{{ f }}"
+        alt="{{ f }}"
+        loading="lazy"
+      />
+      {% endif %}
+    </div>
+    <div class="asset-info">
+      <span class="asset-name" title="{{ f }}">{{ f }}</span>
+      <form
+        method="post"
+        action="{{ url_for('delete_asset', project_id=project.id) }}"
+        class="asset-delete-form"
+      >
+        <input type="hidden" name="filename" value="{{ f }}" />
+        <button type="submit" class="btn-delete-asset" title="删除">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 010-2h3a1 1 0 011-1h3a1 1 0 011 1h3a1 1 0 011 1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118z"
+            />
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p>暂无素材，拖拽文件到上方区域开始上传</p>
+</div>
+{% endif %}
+
+<script>
+  (function () {
+    var zone = document.getElementById("upload-zone");
+    var input = document.getElementById("file-input");
+    var feedback = document.getElementById("upload-feedback");
+    var ALLOWED = ["jpg", "jpeg", "png", "webp", "svg"];
+    var MAX_SIZE = 10 * 1024 * 1024;
+
+    zone.addEventListener("click", function () {
+      input.click();
+    });
+    zone.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+    });
+    zone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove("drag-over");
+      if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    });
+    input.addEventListener("change", function () {
+      if (input.files.length) uploadFile(input.files[0]);
+    });
+
+    function showFeedback(msg, isError) {
+      feedback.textContent = msg;
+      feedback.className =
+        "upload-feedback " + (isError ? "feedback-error" : "feedback-ok");
+      feedback.hidden = false;
+      setTimeout(function () {
+        feedback.hidden = true;
+      }, 4000);
+    }
+
+    function uploadFile(file) {
+      var ext = file.name.split(".").pop().toLowerCase();
+      if (ALLOWED.indexOf(ext) === -1) {
+        showFeedback("不支持的文件格式: ." + ext, true);
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        showFeedback("文件超过 10MB 限制", true);
+        return;
+      }
+      var fd = new FormData();
+      fd.append("file", file);
+      zone.classList.add("uploading");
+
+      fetch(window.location.pathname, {
+        method: "POST",
+        body: fd,
+        headers: { Accept: "application/json" },
+      })
+        .then(function (r) {
+          zone.classList.remove("uploading");
+          if (!r.ok)
+            return r.json().then(function (d) {
+              throw new Error(d.error || "Upload failed");
+            });
+          return r.json();
+        })
+        .then(function () {
+          showFeedback("上传成功", false);
+          setTimeout(function () {
+            location.reload();
+          }, 600);
+        })
+        .catch(function (err) {
+          zone.classList.remove("uploading");
+          showFeedback(err.message, true);
+        });
+    }
+  })();
+</script>
+{% endblock %}
