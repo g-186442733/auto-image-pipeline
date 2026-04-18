@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block title %}客户需求输入 — 主图工厂{% endblock %}
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <span>客户需求输入</span>
+</div>
+
+<h1>客户需求输入</h1>
+
+<div class="ci-container">
+  <div class="ci-progress">
+    <div class="ci-progress-bar">
+      <div class="ci-progress-fill" id="progressFill"></div>
+    </div>
+    <div class="ci-steps" id="stepIndicators"></div>
+  </div>
+
+  <form
+    method="post"
+    action="{% if project_id %}{{ url_for('customer_input_update', project_id=project_id) }}{% else %}{{ url_for('customer_input_create') }}{% endif %}"
+    id="ciForm"
+  >
+    <div class="ci-step" data-step="1">
+      <div class="ci-step-header">
+        <span class="ci-step-number">01</span>
+        <div>
+          <h2 class="ci-step-title">产品基本信息</h2>
+          <p class="ci-step-desc">告诉我们产品的核心信息</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="product_name">产品名称 *</label>
+        <input type="text" id="product_name" name="product_name" required
+               placeholder="例：无线蓝牙降噪耳机"
+               value="{{ step_data.get('product_name', '') }}" />
+
+        <label for="asin">ASIN *</label>
+        <input type="text" id="asin" name="asin" required maxlength="20"
+               placeholder="B0XXXXXXXXX"
+               value="{{ step_data.get('asin', '') }}" />
+
+        <label for="product_category">品类 *</label>
+        <input type="text" id="product_category" name="product_category" required
+               placeholder="例：Electronics > Headphones"
+               value="{{ step_data.get('product_category', '') }}" />
+
+        <label for="key_selling_points">主要卖点 *</label>
+        <textarea id="key_selling_points" name="key_selling_points" rows="3" required
+                  placeholder="列出 3-5 个核心卖点，用逗号分隔">{{ step_data.get('key_selling_points', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="2">
+      <div class="ci-step-header">
+        <span class="ci-step-number">02</span>
+        <div>
+          <h2 class="ci-step-title">目标受众</h2>
+          <p class="ci-step-desc">谁是你的理想客户？</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="target_age">年龄段 *</label>
+        <input type="text" id="target_age" name="target_age" required
+               placeholder="例：25-35"
+               value="{{ step_data.get('target_age', '') }}" />
+
+        <label for="target_gender">性别 *</label>
+        <input type="text" id="target_gender" name="target_gender" required
+               placeholder="例：不限 / 女性为主"
+               value="{{ step_data.get('target_gender', '') }}" />
+
+        <label for="lifestyle">生活方式 *</label>
+        <input type="text" id="lifestyle" name="lifestyle" required
+               placeholder="例：都市白领、健身爱好者"
+               value="{{ step_data.get('lifestyle', '') }}" />
+
+        <label for="purchase_motivation">购买动机 *</label>
+        <textarea id="purchase_motivation" name="purchase_motivation" rows="2" required
+                  placeholder="客户为什么会买这个产品？">{{ step_data.get('purchase_motivation', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="3">
+      <div class="ci-step-header">
+        <span class="ci-step-number">03</span>
+        <div>
+          <h2 class="ci-step-title">竞品分析</h2>
+          <p class="ci-step-desc">了解竞争环境</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="competitor_asins">主要竞品 ASIN *</label>
+        <textarea id="competitor_asins" name="competitor_asins" rows="2" required
+                  placeholder="每行一个 ASIN">{{ step_data.get('competitor_asins', '') }}</textarea>
+
+        <label for="differentiation">差异化优势 *</label>
+        <textarea id="differentiation" name="differentiation" rows="3" required
+                  placeholder="相比竞品，你的产品有什么独特之处？">{{ step_data.get('differentiation', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="4">
+      <div class="ci-step-header">
+        <span class="ci-step-number">04</span>
+        <div>
+          <h2 class="ci-step-title">视觉偏好</h2>
+          <p class="ci-step-desc">设定主图的视觉方向</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="primary_color">主色调 *</label>
+        <input type="text" id="primary_color" name="primary_color" required
+               placeholder="例：#1a1a2e 或 深蓝色"
+               value="{{ step_data.get('primary_color', '') }}" />
+
+        <label for="style_keywords">风格关键词 *</label>
+        <input type="text" id="style_keywords" name="style_keywords" required
+               placeholder="例：科技感,简约,高端"
+               value="{{ step_data.get('style_keywords', '') }}" />
+
+        <label for="reference_urls">参考图片 URL</label>
+        <textarea id="reference_urls" name="reference_urls" rows="2"
+                  placeholder="每行一个 URL（可选）">{{ step_data.get('reference_urls', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="5">
+      <div class="ci-step-header">
+        <span class="ci-step-number">05</span>
+        <div>
+          <h2 class="ci-step-title">预算与时间</h2>
+          <p class="ci-step-desc">项目约束条件</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="budget_level">预算等级 *</label>
+        <select id="budget_level" name="budget_level" required>
+          <option value="">请选择</option>
+          <option value="low" {{ 'selected' if step_data.get('budget_level') == 'low' }}>基础版</option>
+          <option value="mid" {{ 'selected' if step_data.get('budget_level') == 'mid' }}>标准版</option>
+          <option value="high" {{ 'selected' if step_data.get('budget_level') == 'high' }}>高端版</option>
+        </select>
+
+        <label for="deadline">交付时限 *</label>
+        <input type="text" id="deadline" name="deadline" required
+               placeholder="例：7天、14天"
+               value="{{ step_data.get('deadline', '') }}" />
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="6">
+      <div class="ci-step-header">
+        <span class="ci-step-number">06</span>
+        <div>
+          <h2 class="ci-step-title">品牌故事</h2>
+          <p class="ci-step-desc">让主图传达品牌温度（可选）</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="brand_history">品牌历史</label>
+        <textarea id="brand_history" name="brand_history" rows="3"
+                  placeholder="品牌成立时间、发展历程...">{{ step_data.get('brand_history', '') }}</textarea>
+
+        <label for="founding_idea">创始理念</label>
+        <textarea id="founding_idea" name="founding_idea" rows="3"
+                  placeholder="为什么创立这个品牌？">{{ step_data.get('founding_idea', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="7">
+      <div class="ci-step-header">
+        <span class="ci-step-number">07</span>
+        <div>
+          <h2 class="ci-step-title">USP 独特卖点</h2>
+          <p class="ci-step-desc">深入挖掘产品的核心价值（可选）</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="usp_core">核心独特卖点</label>
+        <textarea id="usp_core" name="usp_core" rows="3"
+                  placeholder="一句话说清楚你的产品为什么独一无二">{{ step_data.get('usp_core', '') }}</textarea>
+
+        <label for="usp_proof">证明材料</label>
+        <textarea id="usp_proof" name="usp_proof" rows="3"
+                  placeholder="专利、认证、测试数据等">{{ step_data.get('usp_proof', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="8">
+      <div class="ci-step-header">
+        <span class="ci-step-number">08</span>
+        <div>
+          <h2 class="ci-step-title">痛点场景</h2>
+          <p class="ci-step-desc">客户的问题和使用场景（可选）</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="pain_points">客户主要痛点</label>
+        <textarea id="pain_points" name="pain_points" rows="3"
+                  placeholder="客户在使用同类产品时遇到的问题">{{ step_data.get('pain_points', '') }}</textarea>
+
+        <label for="usage_scenario">使用场景</label>
+        <textarea id="usage_scenario" name="usage_scenario" rows="3"
+                  placeholder="客户会在什么场景下使用这个产品？">{{ step_data.get('usage_scenario', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="9">
+      <div class="ci-step-header">
+        <span class="ci-step-number">09</span>
+        <div>
+          <h2 class="ci-step-title">生活方式图景</h2>
+          <p class="ci-step-desc">目标客户的理想生活（可选）</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="lifestyle_image">生活方式描述</label>
+        <textarea id="lifestyle_image" name="lifestyle_image" rows="4"
+                  placeholder="描绘你的目标客户的日常生活画面">{{ step_data.get('lifestyle_image', '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="10">
+      <div class="ci-step-header">
+        <span class="ci-step-number">10</span>
+        <div>
+          <h2 class="ci-step-title">季节 / 节日</h2>
+          <p class="ci-step-desc">季节性和促销时机（可选）</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="season_relevance">季节相关性</label>
+        <input type="text" id="season_relevance" name="season_relevance"
+               placeholder="例：夏季主推、四季通用"
+               value="{{ step_data.get('season_relevance', '') }}" />
+
+        <label for="holiday_promo">节日促销</label>
+        <input type="text" id="holiday_promo" name="holiday_promo"
+               placeholder="例：黑五、Prime Day"
+               value="{{ step_data.get('holiday_promo', '') }}" />
+      </div>
+    </div>
+
+    <div class="ci-nav" id="ciNav">
+      <button type="button" class="btn btn-outline" id="btnPrev" onclick="changeStep(-1)">上一步</button>
+      <span class="ci-step-label" id="stepLabel">第 1 / 10 步</span>
+      <button type="button" class="btn btn-primary" id="btnNext" onclick="changeStep(1)">下一步</button>
+      <button type="submit" class="btn btn-primary" id="btnSubmit">提交</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  var currentStep = 1;
+  var totalSteps = 10;
+  var steps = document.querySelectorAll('.ci-step');
+  var progressFill = document.getElementById('progressFill');
+  var stepLabel = document.getElementById('stepLabel');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  var btnSubmit = document.getElementById('btnSubmit');
+  var indicatorContainer = document.getElementById('stepIndicators');
+
+  for (var i = 1; i <= totalSteps; i++) {
+    var dot = document.createElement('span');
+    dot.className = 'ci-dot';
+    dot.setAttribute('data-n', i);
+    dot.textContent = i;
+    (function(n) {
+      dot.addEventListener('click', function() { goToStep(n); });
+    })(i);
+    indicatorContainer.appendChild(dot);
+  }
+
+  function goToStep(n) {
+    currentStep = n;
+    render();
+  }
+
+  window.changeStep = function(delta) {
+    var next = currentStep + delta;
+    if (next < 1 || next > totalSteps) return;
+    currentStep = next;
+    render();
+  };
+
+  function render() {
+    for (var i = 0; i < steps.length; i++) {
+      steps[i].style.display = (parseInt(steps[i].getAttribute('data-step')) === currentStep) ? '' : 'none';
+    }
+    progressFill.style.width = ((currentStep / totalSteps) * 100) + '%';
+    stepLabel.textContent = '\u7B2C ' + currentStep + ' / ' + totalSteps + ' \u6B65';
+    btnPrev.style.display = currentStep === 1 ? 'none' : '';
+    btnNext.style.display = currentStep === totalSteps ? 'none' : '';
+    btnSubmit.style.display = currentStep === totalSteps ? '' : 'none';
+
+    var dots = indicatorContainer.querySelectorAll('.ci-dot');
+    for (var j = 0; j < dots.length; j++) {
+      var n = parseInt(dots[j].getAttribute('data-n'));
+      dots[j].className = 'ci-dot' + (n === currentStep ? ' active' : '') + (n < currentStep ? ' done' : '');
+    }
+  }
+
+  render();
+})();
+</script>
+{% endblock %}

@@ -13,6 +13,7 @@ class Project(Base):
     category = Column(String(100))
     status = Column(String(30), default="draft")
     notes = Column(Text)
+    customer_brief = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
