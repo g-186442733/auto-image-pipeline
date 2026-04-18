@@ -15,6 +15,7 @@ from pipeline.models.qa_entry import QAEntry
 from pipeline.models.image_brief import ImageBrief
 from pipeline.models.price_analysis import PriceAnalysis
 from pipeline.models.promo_analysis import PromoAnalysis
+from pipeline.models.aplus_content import APlusContent
 
 __all__ = [
     "Base",
@@ -37,4 +38,5 @@ __all__ = [
     "ImageBrief",
     "PriceAnalysis",
     "PromoAnalysis",
+    "APlusContent",
 ]

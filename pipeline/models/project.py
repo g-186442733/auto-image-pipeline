@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, func
+from sqlalchemy.orm import relationship
+
 from pipeline.models.base import Base
 
 
@@ -13,3 +15,5 @@ class Project(Base):
     notes = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    aplus_contents = relationship("APlusContent", back_populates="project")

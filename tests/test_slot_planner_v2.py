@@ -120,8 +120,9 @@ class TestSlotPlannerValidation:
     """Edge cases and error handling."""
 
     def test_raises_without_benchmark(self, db_session):
-        with pytest.raises(ValueError, match="E_PLANNER_001"):
-            generate_slot_plan(NO_BRIEF_PROJECT_ID, session=db_session)
+        # When no AmazonBenchmark rows exist, should return empty list (resilient, no crash)
+        result = generate_slot_plan(NO_BRIEF_PROJECT_ID, session=db_session)
+        assert result == []
 
     def test_replaces_existing_plans(self, db_session):
         _seed_benchmark(db_session, SAMPLE_PROJECT_ID)

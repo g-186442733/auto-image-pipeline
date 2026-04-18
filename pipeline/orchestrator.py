@@ -74,38 +74,63 @@ def step_analyze(project_id: int) -> dict:
             raise ValueError(f"Project {project_id} not found")
 
         # --- Phase 1: fetch Amazon data (parallel or sequential) ---
+        asin_detail = None
+        category_top = None
         if parallel:
             with ThreadPoolExecutor(max_workers=2) as pool:
                 fut_asin = pool.submit(fetch_asin_detail, proj.asin)
                 fut_cat = pool.submit(fetch_category_top, proj.category)
-                asin_detail = fut_asin.result()
-                category_top = fut_cat.result()
+                try:
+                    asin_detail = fut_asin.result()
+                except Exception as e:
+                    logger.error(
+                        "fetch_asin_detail failed for project %d: %s", project_id, e
+                    )
+                try:
+                    category_top = fut_cat.result()
+                except Exception as e:
+                    logger.error(
+                        "fetch_category_top failed for project %d: %s", project_id, e
+                    )
         else:
-            asin_detail = fetch_asin_detail(proj.asin)
-            category_top = fetch_category_top(proj.category)
+            try:
+                asin_detail = fetch_asin_detail(proj.asin)
+            except Exception as e:
+                logger.error(
+                    "fetch_asin_detail failed for project %d: %s", project_id, e
+                )
+            try:
+                category_top = fetch_category_top(proj.category)
+            except Exception as e:
+                logger.error(
+                    "fetch_category_top failed for project %d: %s", project_id, e
+                )
 
         # 持久化竞品主 listing（CompetitorListing）
-        existing_cl = (
-            session.query(CompetitorListing)
-            .filter(
-                CompetitorListing.project_id == project_id,
-                CompetitorListing.asin == proj.asin,
+        if asin_detail is not None:
+            existing_cl = (
+                session.query(CompetitorListing)
+                .filter(
+                    CompetitorListing.project_id == project_id,
+                    CompetitorListing.asin == proj.asin,
+                )
+                .first()
             )
-            .first()
-        )
-        if existing_cl:
-            existing_cl.title = asin_detail.get("title")
-        else:
-            cl = CompetitorListing(
-                project_id=project_id,
-                asin=proj.asin,
-                title=asin_detail.get("title"),
+            if existing_cl:
+                existing_cl.title = asin_detail.get("title")
+            else:
+                cl = CompetitorListing(
+                    project_id=project_id,
+                    asin=proj.asin,
+                    title=asin_detail.get("title"),
+                )
+                session.add(cl)
+            session.commit()
+            logger.info(
+                "Upserted CompetitorListing for project %d asin %s",
+                project_id,
+                proj.asin,
             )
-            session.add(cl)
-        session.commit()
-        logger.info(
-            "Upserted CompetitorListing for project %d asin %s", project_id, proj.asin
-        )
 
         # 预初始化变量，防止 try 块失败时未定义
         listing_result = None
@@ -234,7 +259,7 @@ def step_analyze(project_id: int) -> dict:
             session.query(PromoAnalysis).filter(
                 PromoAnalysis.project_id == project_id,
             ).delete()
-            pra = analyze_promo(proj.asin, asin_detail)
+            pra = analyze_promo(proj.asin, asin_detail or {})
             pra.project_id = project_id
             session.add(pra)
             session.commit()
@@ -264,14 +289,18 @@ def step_analyze(project_id: int) -> dict:
                 ).delete()
                 session.commit()
 
-                brief = generate_brief(
+                briefs = generate_brief(
                     project_id=project_id,
                     competitor_listing=cl_for_brief,
                     review_clusters=review_clusters or [],
                     qa_entries=qa_entries or [],
                     session=session,
                 )
-                logger.info("brief_generator complete for project %d", project_id)
+                logger.info(
+                    "brief_generator complete for project %d: %d slots",
+                    project_id,
+                    len(briefs),
+                )
             else:
                 logger.warning(
                     "brief_generator skipped: no CompetitorListing for project %d",
@@ -286,7 +315,7 @@ def step_analyze(project_id: int) -> dict:
             "created_at",
         }
         persisted = 0
-        for bm in category_top:
+        for bm in category_top or []:
             if isinstance(bm, dict):
                 filtered = {k: v for k, v in bm.items() if k in _bm_cols}
                 filtered["project_id"] = project_id
@@ -518,10 +547,52 @@ def step_report(project_id: int) -> dict:
     return report
 
 
+def step_deliver(project_id: int) -> str | None:
+    """Build delivery package. Returns package path or None if empty."""
+    from pipeline.layers.delivery import build_delivery_package
+
+    delivery_path = build_delivery_package(project_id)
+    if not delivery_path or not any(Path(delivery_path).iterdir()):
+        logger.warning(
+            "step_deliver: empty or missing delivery package for project %d",
+            project_id,
+        )
+        return None
+    logger.info("Delivery package built for project %d: %s", project_id, delivery_path)
+    return delivery_path
+
+
+def step_feedback(project_id: int, session=None) -> None:
+    """Run feedback loop to update BrandProfile from pipeline results.
+
+    Skips silently if no BrandProfile exists for the project.
+    """
+    from pipeline.layers.feedback_loop import update_brand_profile_from_results
+    from pipeline.models.brand import BrandProfile
+
+    owns_session = False
+    if session is None:
+        session = get_session()
+        owns_session = True
+    try:
+        brand = session.query(BrandProfile).filter_by(project_id=project_id).first()
+        if brand is None:
+            logger.warning(
+                "No BrandProfile found for project %d, skipping feedback loop",
+                project_id,
+            )
+            return
+        update_brand_profile_from_results(project_id)
+        logger.info("Feedback loop completed for project %d", project_id)
+    finally:
+        if owns_session:
+            session.close()
+
+
 def run_full_pipeline(brief_path: str, adapter_name: str = "gpt_image") -> dict:
     """Run all pipeline steps end-to-end.
 
-    Returns dict with keys: project_id, status, report.
+    Returns dict with keys: project_id, status, report, delivery_path.
     On failure, sets project status to 'failed' and re-raises.
     """
     project = step_init(brief_path)
@@ -533,10 +604,13 @@ def run_full_pipeline(brief_path: str, adapter_name: str = "gpt_image") -> dict:
         step_generate(project_id, adapter_name)
         step_qa(project_id, adapter_name=adapter_name)
         report = step_report(project_id)
+        delivery_path = step_deliver(project_id)
+        step_feedback(project_id)
         return {
             "project_id": project_id,
             "status": "completed",
             "report": report,
+            "delivery_path": delivery_path,
         }
     except Exception:
         _update_status(project_id, "failed")

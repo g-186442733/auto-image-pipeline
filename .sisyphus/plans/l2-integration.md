@@ -84,11 +84,11 @@
 
 ### Definition of Done
 
-- [ ] `pytest tests/ -v` 全部通过（含新增测试），零回归
-- [ ] `PYTHONPATH=. python -m pipeline.__main__ run --project-id 7` 完整执行无报错
-- [ ] DB 中 project_id=7 的 ImageBrief、ReviewCluster、QAEntry、PriceAnalysis、PromoAnalysis 均有数据
-- [ ] QA gate 使用 LLM 评分（非硬编码规则），QARecord.details 包含 LLM reasoning
-- [ ] step_analyze 中多个分析器并行执行（通过日志时间戳可验证）
+- [x] `pytest tests/ -v` 全部通过（含新增测试），零回归
+- [x] `PYTHONPATH=. python -m pipeline.__main__ run --project-id 7` 完整执行无报错
+- [x] DB 中 project_id=7 的 ImageBrief、ReviewCluster、QAEntry、PriceAnalysis、PromoAnalysis 均有数据
+- [x] QA gate 使用 LLM 评分（非硬编码规则），QARecord.details 包含 LLM reasoning
+- [x] step_analyze 中多个分析器并行执行（通过日志时间戳可验证）
 
 ### Must Have
 
@@ -200,7 +200,7 @@ Max Concurrent: 6 (Wave 1)
 
 ## TODOs
 
-- [ ] 1. New DB Models — PriceAnalysis + PromoAnalysis
+- [x] 1. New DB Models — PriceAnalysis + PromoAnalysis
 
   **What to do**:
   - Create `pipeline/models/price_analysis.py` with ORM model: id, project_id, asin, price_current, price_avg_30d, price_min_30d, price_max_30d, price_position (TEXT: budget/mid/premium), competitor_prices (JSON), created_at
@@ -229,10 +229,10 @@ Max Concurrent: 6 (Wave 1)
   - `pipeline/layers/amazon_data.py:fetch_asin_detail()` — returns price, bsr_rank fields that price_analyzer will consume
 
   **Acceptance Criteria**:
-  - [ ] `pipeline/models/price_analysis.py` exists, PriceAnalysis importable
-  - [ ] `pipeline/models/promo_analysis.py` exists, PromoAnalysis importable
-  - [ ] `from pipeline.models import PriceAnalysis, PromoAnalysis` works
-  - [ ] `pytest tests/ -v` — zero regressions (134+ pass)
+  - [x] `pipeline/models/price_analysis.py` exists, PriceAnalysis importable
+  - [x] `pipeline/models/promo_analysis.py` exists, PromoAnalysis importable
+  - [x] `from pipeline.models import PriceAnalysis, PromoAnalysis` works
+  - [x] `pytest tests/ -v` — zero regressions (134+ pass)
 
   **QA Scenarios**:
 
@@ -259,7 +259,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/models/price_analysis.py`, `pipeline/models/promo_analysis.py`, `pipeline/models/__init__.py`, `tests/test_new_models.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 2. Add fetch_reviews() + fetch_qa() to amazon_data.py
+- [x] 2. Add fetch_reviews() + fetch_qa() to amazon_data.py
 
   **What to do**:
   - Add `fetch_reviews(asin: str, market: str = "us") -> list[dict]` to `pipeline/layers/amazon_data.py`
@@ -290,9 +290,9 @@ Max Concurrent: 6 (Wave 1)
   - Keepa API docs: https://keepa.com/#!discuss/t/product-api/116 — reviews endpoint
 
   **Acceptance Criteria**:
-  - [ ] `from pipeline.layers.amazon_data import fetch_reviews, fetch_qa` works
-  - [ ] Both functions return list[dict] with correct keys
-  - [ ] `pytest tests/test_amazon_data.py -v` passes
+  - [x] `from pipeline.layers.amazon_data import fetch_reviews, fetch_qa` works
+  - [x] Both functions return list[dict] with correct keys
+  - [x] `pytest tests/test_amazon_data.py -v` passes
 
   **QA Scenarios**:
 
@@ -318,7 +318,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/layers/amazon_data.py`, `tests/test_amazon_data.py`
   - Pre-commit: `pytest tests/test_amazon_data.py -v`
 
-- [ ] 3. Wire listing_analyzer into orchestrator.step_analyze
+- [x] 3. Wire listing_analyzer into orchestrator.step_analyze
 
   **What to do**:
   - In `pipeline/orchestrator.py` step_analyze, after existing vision_analyzer call:
@@ -349,10 +349,10 @@ Max Concurrent: 6 (Wave 1)
   - `pipeline/models/competitor_listing.py` — CompetitorListing ORM model fields
 
   **Acceptance Criteria**:
-  - [ ] orchestrator.step_analyze calls listing_analyzer.analyze_listing
-  - [ ] CompetitorListing written to DB after step_analyze
-  - [ ] Failure in listing_analyzer doesn't crash pipeline
-  - [ ] `pytest tests/ -v` — zero regressions
+  - [x] orchestrator.step_analyze calls listing_analyzer.analyze_listing
+  - [x] CompetitorListing written to DB after step_analyze
+  - [x] Failure in listing_analyzer doesn't crash pipeline
+  - [x] `pytest tests/ -v` — zero regressions
 
   **QA Scenarios**:
 
@@ -378,7 +378,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/orchestrator.py`, `tests/test_orchestrator_listing.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 4. Wire review_analyzer into step_analyze
+- [x] 4. Wire review_analyzer into step_analyze
 
   **What to do**:
   - In `orchestrator.py` `step_analyze`, after fetching reviews via `fetch_reviews(asin)` (from T2), call `review_analyzer.analyze_reviews(asin, reviews)`
@@ -406,7 +406,7 @@ Max Concurrent: 6 (Wave 1)
   - T3 wiring pattern for listing_analyzer — same upsert + try/except pattern
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_orchestrator_review.py -v` → PASS
+  - [x] `pytest tests/test_orchestrator_review.py -v` → PASS
 
   **QA Scenarios**:
 
@@ -431,7 +431,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/orchestrator.py`, `tests/test_orchestrator_review.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 5. Wire qa_analyzer into step_analyze
+- [x] 5. Wire qa_analyzer into step_analyze
 
   **What to do**:
   - In `orchestrator.py` `step_analyze`, after fetching QA via `fetch_qa(asin)` (from T2), call `qa_analyzer.analyze_qa(asin, qa_pairs)`
@@ -459,7 +459,7 @@ Max Concurrent: 6 (Wave 1)
   - T3/T4 wiring pattern — same upsert + try/except
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_orchestrator_qa.py -v` → PASS
+  - [x] `pytest tests/test_orchestrator_qa.py -v` → PASS
 
   **QA Scenarios**:
 
@@ -484,7 +484,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/orchestrator.py`, `tests/test_orchestrator_qa.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 6. Build price_analyzer module
+- [x] 6. Build price_analyzer module
 
   **What to do**:
   - Create `pipeline/layers/price_analyzer.py` with function `analyze_price(asin: str, keepa_data: dict, category_benchmarks: list) -> PriceAnalysis`
@@ -513,9 +513,9 @@ Max Concurrent: 6 (Wave 1)
   - `pipeline/layers/amazon_data.py:fetch_category_top()` — returns AmazonBenchmark with price field
 
   **Acceptance Criteria**:
-  - [ ] `pipeline/layers/price_analyzer.py` exists
-  - [ ] `pipeline/models/price_analysis.py` exists
-  - [ ] `pytest tests/test_price_analyzer.py -v` → PASS
+  - [x] `pipeline/layers/price_analyzer.py` exists
+  - [x] `pipeline/models/price_analysis.py` exists
+  - [x] `pytest tests/test_price_analyzer.py -v` → PASS
 
   **QA Scenarios**:
 
@@ -541,7 +541,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/layers/price_analyzer.py`, `pipeline/models/price_analysis.py`, `pipeline/models/__init__.py`, `tests/test_price_analyzer.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 7. Build promo_analyzer module
+- [x] 7. Build promo_analyzer module
 
   **What to do**:
   - Create `pipeline/layers/promo_analyzer.py` with function `analyze_promo(asin: str, keepa_data: dict) -> PromoAnalysis`
@@ -570,9 +570,9 @@ Max Concurrent: 6 (Wave 1)
   - Keepa data structure: dict with `priceHistory` array of `{timestamp, price}` entries
 
   **Acceptance Criteria**:
-  - [ ] `pipeline/layers/promo_analyzer.py` exists
-  - [ ] `pipeline/models/promo_analysis.py` exists
-  - [ ] `pytest tests/test_promo_analyzer.py -v` → PASS
+  - [x] `pipeline/layers/promo_analyzer.py` exists
+  - [x] `pipeline/models/promo_analysis.py` exists
+  - [x] `pytest tests/test_promo_analyzer.py -v` → PASS
 
   **QA Scenarios**:
 
@@ -598,7 +598,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/layers/promo_analyzer.py`, `pipeline/models/promo_analysis.py`, `pipeline/models/__init__.py`, `tests/test_promo_analyzer.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 8. Wire brief_generator into orchestrator (new step or end of step_analyze)
+- [x] 8. Wire brief_generator into orchestrator (new step or end of step_analyze)
 
   **What to do**:
   - After all analyzers complete in `step_analyze`, call `brief_generator.generate_brief(project_id, competitor_listing, review_clusters, qa_entries)`
@@ -629,8 +629,8 @@ Max Concurrent: 6 (Wave 1)
   - `pipeline/layers/slot_planner.py` — consumes ImageBrief (downstream, don't modify)
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/test_orchestrator_brief.py -v` → PASS
-  - [ ] brief_generator called after listing+review+qa analyzers in orchestrator
+  - [x] `pytest tests/test_orchestrator_brief.py -v` → PASS
+  - [x] brief_generator called after listing+review+qa analyzers in orchestrator
 
   **QA Scenarios**:
 
@@ -655,7 +655,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/orchestrator.py`, `tests/test_orchestrator_brief.py`
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 9. E2E real run with project_id=7 (Sony WH-1000XM5)
+- [x] 9. E2E real run with project_id=7 (Sony WH-1000XM5)
 
      **What to do**:
   - Run the full pipeline end-to-end: `PYTHONPATH=. python -m pipeline.__main__ run --project-id 7`
@@ -683,9 +683,9 @@ Max Concurrent: 6 (Wave 1)
   - `data/pipeline.db` — SQLite database to inspect after run
 
   **Acceptance Criteria**:
-  - [ ] Pipeline completes without fatal errors
-  - [ ] All 6 analysis tables have data for project_id=7
-  - [ ] ImageBrief records exist for project_id=7
+  - [x] Pipeline completes without fatal errors
+  - [x] All 6 analysis tables have data for project_id=7
+  - [x] ImageBrief records exist for project_id=7
 
   **QA Scenarios**:
 
@@ -716,7 +716,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: NO (observation only, no code changes)
 
-- [ ] 10. Full regression — all existing + new tests pass
+- [x] 10. Full regression — all existing + new tests pass
 
   **What to do**:
   - Run `pytest tests/ -v` and verify ALL tests pass (existing 134 + new tests from T1-T8)
@@ -742,8 +742,8 @@ Max Concurrent: 6 (Wave 1)
   - Previous baseline: 134 tests pass
 
   **Acceptance Criteria**:
-  - [ ] `pytest tests/ -v` → ALL PASS, 0 failures
-  - [ ] Total test count ≥ 150
+  - [x] `pytest tests/ -v` → ALL PASS, 0 failures
+  - [x] Total test count ≥ 150
 
   **QA Scenarios**:
 
@@ -763,7 +763,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: any files that needed fixing
   - Pre-commit: `pytest tests/ -v`
 
-- [ ] 11. Install obra/superpowers framework (OpenCode plugin)
+- [x] 11. Install obra/superpowers framework (OpenCode plugin)
 
   **What to do**:
   - Edit `~/.config/opencode/opencode.json` to add `"superpowers@git+https://github.com/obra/superpowers.git"` to the `plugin` array
@@ -791,9 +791,9 @@ Max Concurrent: 6 (Wave 1)
   - Framework is pure Markdown skill files, zero code dependencies
 
   **Acceptance Criteria**:
-  - [ ] `opencode.json` contains superpowers plugin entry
-  - [ ] OpenCode recognizes TDD skill (available in skill list)
-  - [ ] No existing plugins removed or broken
+  - [x] `opencode.json` contains superpowers plugin entry
+  - [x] OpenCode recognizes TDD skill (available in skill list)
+  - [x] No existing plugins removed or broken
 
   **QA Scenarios**:
 
@@ -810,7 +810,7 @@ Max Concurrent: 6 (Wave 1)
 
   **Commit**: NO (config file outside project repo)
 
-- [ ] 12. Rewrite qa_gate.py → Goal-Driven LLM QA loop
+- [x] 12. Rewrite qa_gate.py → Goal-Driven LLM QA loop
 
   **What to do**:
   - **Phase A — Replace 6 hardcoded checks with single LLM call**:
@@ -865,13 +865,13 @@ Max Concurrent: 6 (Wave 1)
   - Gemini API: `google.generativeai` — same pattern as listing_analyzer.py
 
   **Acceptance Criteria**:
-  - [ ] `llm_qa_evaluate()` returns structured QAResult with pass/fail, score, issues, reasoning
-  - [ ] `run_qa_checks()` calls LLM instead of 6 hardcoded checks
-  - [ ] `run_qa_checks_legacy()` preserved and callable
-  - [ ] `step_qa()` retries failed slots up to 2 times with LLM feedback
-  - [ ] After max retries, pipeline continues (doesn't crash)
-  - [ ] New tests: ≥ 5 tests covering LLM QA + retry logic
-  - [ ] `pytest tests/ -k qa` → all pass
+  - [x] `llm_qa_evaluate()` returns structured QAResult with pass/fail, score, issues, reasoning
+  - [x] `run_qa_checks()` calls LLM instead of 6 hardcoded checks
+  - [x] `run_qa_checks_legacy()` preserved and callable
+  - [x] `step_qa()` retries failed slots up to 2 times with LLM feedback
+  - [x] After max retries, pipeline continues (doesn't crash)
+  - [x] New tests: ≥ 5 tests covering LLM QA + retry logic
+  - [x] `pytest tests/ -k qa` → all pass
 
   **QA Scenarios**:
 
@@ -917,7 +917,7 @@ Max Concurrent: 6 (Wave 1)
   - Files: `pipeline/layers/qa_gate.py`, `pipeline/orchestrator.py`, `tests/test_qa_gate.py`
   - Pre-commit: `pytest tests/ -k qa -v`
 
-- [ ] 13. Orchestrator step_analyze parallelization (ThreadPoolExecutor)
+- [x] 13. Orchestrator step_analyze parallelization (ThreadPoolExecutor)
 
   **What to do**:
   - **Phase A — Parallel data fetching in step_analyze**:
@@ -967,14 +967,14 @@ Max Concurrent: 6 (Wave 1)
   - Python docs: `concurrent.futures` — ThreadPoolExecutor usage pattern
 
   **Acceptance Criteria**:
-  - [ ] `step_analyze()` uses ThreadPoolExecutor for data fetching and analyzer calls
-  - [ ] All DB writes happen in main thread only
-  - [ ] `PARALLEL_ANALYZE` config flag exists, defaults to True
-  - [ ] Setting `PARALLEL_ANALYZE=False` falls back to sequential execution
-  - [ ] Partial failure: if one analyzer throws, others still complete and save
-  - [ ] New tests: ≥ 4 tests covering parallel execution + partial failure
-  - [ ] `pytest tests/ -k parallel -v` → all pass
-  - [ ] Wall-clock time for step_analyze measurably reduced (logged)
+  - [x] `step_analyze()` uses ThreadPoolExecutor for data fetching and analyzer calls
+  - [x] All DB writes happen in main thread only
+  - [x] `PARALLEL_ANALYZE` config flag exists, defaults to True
+  - [x] Setting `PARALLEL_ANALYZE=False` falls back to sequential execution
+  - [x] Partial failure: if one analyzer throws, others still complete and save
+  - [x] New tests: ≥ 4 tests covering parallel execution + partial failure
+  - [x] `pytest tests/ -k parallel -v` → all pass
+  - [x] Wall-clock time for step_analyze measurably reduced (logged)
 
   **QA Scenarios**:
 
@@ -1030,19 +1030,19 @@ Max Concurrent: 6 (Wave 1)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Present consolidated results to user and get explicit "okay" before completing.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
       Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
       Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
       Run `pytest tests/ -v`. Review all changed files for: empty catches, bare except, unused imports, print statements in prod code. Check AI slop: excessive comments, over-abstraction, generic names. Verify all new modules follow listing_analyzer.py pattern.
       Output: `Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
       Start from clean state. Run `PYTHONPATH=. python -m pipeline.__main__ run --project-id 7`. Verify all DB tables have data for project_id=7. Check pipeline.log for errors/warnings. Capture output.
       Output: `Pipeline [PASS/FAIL] | DB Tables [N/N populated] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
       For each task: read "What to do", read actual diff (git diff). Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance (slot_planner untouched, no signature changes, no new orchestrator steps).
       Output: `Tasks [N/N compliant] | Scope [CLEAN/N issues] | VERDICT`
 
@@ -1095,13 +1095,13 @@ grep superpowers ~/.config/opencode/opencode.json  # Expected: match found
 
 ### Final Checklist
 
-- [ ] All "Must Have" present
-- [ ] All "Must NOT Have" absent
-- [ ] All tests pass (134 existing + new ≥ 160 total)
-- [ ] project_id=7 full pipeline run completes
-- [ ] All 5 new DB tables populated for project_id=7
-- [ ] QA gate uses LLM evaluation (not hardcoded checks)
-- [ ] QA retry loop works (max 2 retries per slot)
-- [ ] step_analyze runs analyzers in parallel (ThreadPoolExecutor)
-- [ ] PARALLEL_ANALYZE=False falls back to sequential
-- [ ] obra/superpowers plugin installed in opencode.json
+- [x] All "Must Have" present
+- [x] All "Must NOT Have" absent
+- [x] All tests pass (134 existing + new ≥ 160 total)
+- [x] project_id=7 full pipeline run completes
+- [x] All 5 new DB tables populated for project_id=7
+- [x] QA gate uses LLM evaluation (not hardcoded checks)
+- [x] QA retry loop works (max 2 retries per slot)
+- [x] step_analyze runs analyzers in parallel (ThreadPoolExecutor)
+- [x] PARALLEL_ANALYZE=False falls back to sequential
+- [x] obra/superpowers plugin installed in opencode.json

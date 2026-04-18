@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import List
 
@@ -6,6 +7,8 @@ from pipeline.models.image_brief import ImageBrief
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.review_cluster import ReviewCluster
 from pipeline.models.qa_entry import QAEntry
+
+log = logging.getLogger(__name__)
 
 _GEMINI_MODEL = "gemini-2.0-flash"
 
@@ -59,7 +62,7 @@ def generate_brief(
     review_clusters: List[ReviewCluster],
     qa_entries: List[QAEntry],
     session=None,
-) -> ImageBrief:
+) -> list[ImageBrief]:
     clusters_text = "\n".join(
         f"- {c.cluster_label} ({c.sentiment}, {c.count} reviews)"
         for c in review_clusters
@@ -82,14 +85,30 @@ def generate_brief(
     except Exception:
         pass
 
-    brief = ImageBrief(
-        project_id=project_id,
-        slot_index=0,
-        brief_json=brief_json,
-    )
+    parsed_slots: list = []
+    try:
+        data = json.loads(brief_json)
+        parsed_slots = data.get("slots", [])
+    except Exception:
+        pass
+
+    if not parsed_slots:
+        log.warning("generate_brief: 0 slots returned for project %s", project_id)
+        return []
+
+    briefs: list[ImageBrief] = []
+    for i, slot_data in enumerate(parsed_slots):
+        b = ImageBrief(
+            project_id=project_id,
+            slot_index=i,
+            brief_json=json.dumps(slot_data),
+            source_analysis_ids=json.dumps([]),
+        )
+        briefs.append(b)
 
     if session is not None:
-        session.add(brief)
+        for b in briefs:
+            session.add(b)
         session.commit()
 
-    return brief
+    return briefs

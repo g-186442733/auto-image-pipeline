@@ -98,7 +98,7 @@ def db_session():
 class TestGenerateBrief:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
-    def test_returns_image_brief(self, mock_gemini, db_session):
+    def test_returns_list_of_image_briefs(self, mock_gemini, db_session):
         from pipeline.layers.brief_generator import generate_brief
 
         mock_gemini.return_value = FAKE_BRIEF_JSON
@@ -109,7 +109,8 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        assert isinstance(result, ImageBrief)
+        assert isinstance(result, list)
+        assert all(isinstance(b, ImageBrief) for b in result)
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
@@ -124,11 +125,11 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        assert result.project_id == SAMPLE_PROJECT_ID
+        assert result[0].project_id == SAMPLE_PROJECT_ID
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
-    def test_brief_json_contains_slots(self, mock_gemini, db_session):
+    def test_returns_one_brief_per_slot(self, mock_gemini, db_session):
         from pipeline.layers.brief_generator import generate_brief
 
         mock_gemini.return_value = FAKE_BRIEF_JSON
@@ -139,9 +140,9 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        parsed = json.loads(result.brief_json)
-        assert "slots" in parsed
-        assert len(parsed["slots"]) == 2
+        assert len(result) == 2
+        assert result[0].slot_index == 0
+        assert result[1].slot_index == 1
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
@@ -157,8 +158,8 @@ class TestGenerateBrief:
             session=db_session,
         )
         briefs = db_session.query(ImageBrief).all()
-        assert len(briefs) == 1
-        assert briefs[0].project_id == SAMPLE_PROJECT_ID
+        assert len(briefs) == 2
+        assert all(b.project_id == SAMPLE_PROJECT_ID for b in briefs)
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
@@ -173,9 +174,8 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        assert isinstance(result, ImageBrief)
-        parsed = json.loads(result.brief_json)
-        assert "slots" in parsed
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": ""})
     def test_no_api_key_returns_default_brief(self, db_session):
@@ -188,9 +188,8 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        assert isinstance(result, ImageBrief)
-        parsed = json.loads(result.brief_json)
-        assert "slots" in parsed
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
@@ -205,9 +204,8 @@ class TestGenerateBrief:
             _make_qa_entries(),
             session=db_session,
         )
-        assert isinstance(result, ImageBrief)
-        parsed = json.loads(result.brief_json)
-        assert "slots" in parsed
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")

@@ -1,8 +1,7 @@
 {
-  "active_plan": null,
-  "started_at": "2026-04-18T13:00:00.000Z",
-  "completed_at": "2026-04-18T23:59:00.000Z",
-  "plan_name": "l2-integration",
-  "status": "completed",
-  "summary": "L2 full integration: T1-T13 all done, 192/192 tests green, F1-F4 reviews complete, commit c68a6d7"
+  "active_plan": "/Users/axureboutique/Projects/auto-image-pipeline/.sisyphus/plans/l4-closed-loop.md",
+  "started_at": "2026-04-19T00:00:00.000Z",
+  "session_ids": ["ses_264ee2fedffeUqhNjfiF5h1FaG"],
+  "plan_name": "l4-closed-loop",
+  "status": "in_progress"
 }

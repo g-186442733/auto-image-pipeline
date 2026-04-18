@@ -14,6 +14,7 @@ from flask import (
     session,
     jsonify,
 )
+from werkzeug.utils import secure_filename
 
 from pipeline.models.base import get_session, create_all
 from pipeline.models.project import Project
@@ -190,5 +191,36 @@ def create_app():
     def project_status(project_id):
         status = _run_status.get(project_id, {"state": "idle", "message": ""})
         return jsonify(status)
+
+    @app.route("/api/projects/<int:project_id>/upload", methods=["POST"])
+    def upload_file(project_id):
+        ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+        MAX_SIZE = 10 * 1024 * 1024
+
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if not file.filename:
+            return jsonify({"error": "No file selected"}), 400
+
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        if ext not in ALLOWED_EXTENSIONS:
+            return jsonify({"error": f"File type '{ext}' not allowed"}), 400
+
+        file_data = file.read()
+        if len(file_data) > MAX_SIZE:
+            return jsonify({"error": "File exceeds 10MB limit"}), 413
+        file.seek(0)
+
+        upload_dir = os.path.join("uploads", str(project_id))
+        os.makedirs(upload_dir, exist_ok=True)
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(file_data)
+
+        return jsonify({"path": filepath})
 
     return app

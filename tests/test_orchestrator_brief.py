@@ -125,7 +125,10 @@ def test_brief_failure_does_not_crash(
 
 
 @patch("pipeline.orchestrator.analyze_competitor_listing", return_value={})
-@patch("pipeline.layers.brief_generator._call_gemini", return_value='{"slots":[]}')
+@patch(
+    "pipeline.layers.brief_generator._call_gemini",
+    return_value='{"slots":[{"slot_index":0,"concept":"fallback","copy_overlay":"","visual_style":"standard"}]}',
+)
 @patch("pipeline.layers.amazon_data.fetch_qa", side_effect=Exception("qa fail"))
 @patch(
     "pipeline.layers.amazon_data.fetch_reviews", side_effect=Exception("review fail")

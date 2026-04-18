@@ -67,9 +67,11 @@ def generate_slot_plan(
             .count()
         )
         if bench_count == 0:
-            raise ValueError(
-                f"E_PLANNER_001: No AmazonBenchmark rows for project {project_id}"
+            logger.warning(
+                "E_PLANNER_001: No AmazonBenchmark rows for project %d — returning empty slot plan",
+                project_id,
             )
+            return []
 
         briefs: dict[int, ImageBrief] = {
             b.slot_index: b

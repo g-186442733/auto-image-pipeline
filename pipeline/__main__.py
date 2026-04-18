@@ -5,8 +5,10 @@ from __future__ import annotations
 import sys
 
 import click
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 
-from pipeline.models.base import get_session
+from pipeline.models.base import get_session, get_engine
 from pipeline.layers.brief_generator import generate_brief
 from pipeline.layers.delivery import build_delivery_package
 from pipeline.layers.feedback_loop import export_conclusions
@@ -25,6 +27,21 @@ from pipeline.orchestrator import (
 )
 
 
+def _migrate_schema() -> None:
+    engine = get_engine()
+    alters = [
+        "ALTER TABLE aplus_contents ADD COLUMN layout TEXT",
+        "ALTER TABLE tag_assignments ADD COLUMN tag_layer TEXT NOT NULL DEFAULT 'intent'",
+    ]
+    with engine.connect() as conn:
+        for stmt in alters:
+            try:
+                conn.execute(text(stmt))
+                conn.commit()
+            except OperationalError:
+                pass
+
+
 @click.group()
 @click.version_option(version="0.1.0")
 def cli():
@@ -37,6 +54,7 @@ def init(brief: str):
     """Create project from a brief JSON file."""
     try:
         project = step_init(brief)
+        _migrate_schema()
         click.echo(f"Project created: id={project.id} name={project.name}")
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)

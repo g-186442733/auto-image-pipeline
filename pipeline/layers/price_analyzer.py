@@ -11,8 +11,10 @@ def _get_price(b) -> float:
 
 
 def analyze_price(
-    asin: str, keepa_data: dict, category_benchmarks: list
+    asin: str, keepa_data: dict | None, category_benchmarks: list | None
 ) -> PriceAnalysis:
+    keepa_data = keepa_data or {}
+    category_benchmarks = category_benchmarks or []
     current_price = keepa_data.get("price", 0) or 0
     benchmark_prices = [_get_price(b) for b in category_benchmarks if _get_price(b)]
 

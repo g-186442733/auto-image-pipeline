@@ -178,9 +178,11 @@ class TestGenerateBrief:
             s.close()
 
         brief = generate_brief(project_id, comp, clusters, qa)
-        assert isinstance(brief, ImageBrief)
-        assert brief.project_id == project_id
-        parsed = json.loads(brief.brief_json)
+        assert isinstance(brief, list)
+        assert len(brief) >= 1
+        assert isinstance(brief[0], ImageBrief)
+        assert brief[0].project_id == project_id
+        parsed = json.loads(brief[0].brief_json)
         assert isinstance(parsed, dict)
 
 
@@ -248,7 +250,8 @@ class TestDegradedFullChain:
                 s.close()
 
             brief = generate_brief(pid, comp, clusters, qa)
-            assert isinstance(brief, ImageBrief)
+            assert isinstance(brief, list)
+            assert len(brief) >= 1
 
             # 2. Slot plan
             plans = generate_slot_plan(pid)
