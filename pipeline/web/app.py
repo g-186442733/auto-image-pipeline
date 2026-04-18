@@ -632,4 +632,66 @@ def create_app():
 
         return render_template("revision_guide.html", table=REVISION_TABLE)
 
+    @app.route("/project/<int:project_id>/prompts")
+    def prompt_list(project_id):
+        from pipeline.models.prompt_asset import PromptAsset
+
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            assets = (
+                db.query(PromptAsset)
+                .filter_by(project_id=project_id)
+                .order_by(PromptAsset.slot_index)
+                .all()
+            )
+            return render_template("prompt_list.html", project=project, assets=assets)
+        finally:
+            db.close()
+
+    @app.route(
+        "/project/<int:project_id>/prompts/<slot_name>",
+        methods=["GET", "POST"],
+    )
+    def prompt_editor(project_id, slot_name):
+        from pipeline.models.prompt_asset import PromptAsset
+        from pipeline.layers.prompt_manager import (
+            update_prompt_text,
+            _slot_name_to_index,
+        )
+
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+
+            slot_index = _slot_name_to_index(slot_name)
+            if slot_index is None:
+                return "Invalid slot name", 404
+
+            asset = (
+                db.query(PromptAsset)
+                .filter_by(project_id=project_id, slot_index=slot_index)
+                .first()
+            )
+            if asset is None:
+                return "Prompt asset not found", 404
+
+            if request.method == "POST":
+                new_text = request.form.get("prompt_text", "")
+                update_prompt_text(db, project_id, slot_name, new_text)
+                return redirect(url_for("prompt_list", project_id=project_id))
+
+            return render_template(
+                "prompt_editor.html",
+                project=project,
+                asset=asset,
+                slot_name=slot_name,
+            )
+        finally:
+            db.close()
+
     return app

@@ -1221,3 +1221,50 @@ button[type="submit"]:active {
   gap: 0.5rem;
   align-items: center;
 }
+
+/* --- Prompt Editor (Task 13) --- */
+.prompt-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+.prompt-list-table th,
+.prompt-list-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  text-align: left;
+}
+.prompt-list-table th {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-muted, #666);
+}
+.prompt-preview {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--color-text, #333);
+}
+.prompt-edit-form {
+  max-width: 720px;
+  margin: 1.5rem 0;
+}
+.prompt-edit-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.prompt-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #d0d0d0);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.prompt-edit-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}

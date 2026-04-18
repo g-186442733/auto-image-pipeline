@@ -15,10 +15,46 @@ logger = setup_logger("aip.prompt_manager")
 __all__ = [
     "create_prompt_asset",
     "update_prompt_asset",
+    "update_prompt_text",
     "get_prompt_asset",
     "list_prompt_assets",
     "seed_default_templates",
 ]
+
+
+def _slot_name_to_index(slot_name: str) -> int | None:
+    if not slot_name.startswith("slot_"):
+        return None
+    try:
+        idx = int(slot_name[5:])
+    except ValueError:
+        return None
+    return idx if 1 <= idx <= 8 else None
+
+
+def update_prompt_text(session, project_id: int, slot_name: str, new_text: str) -> bool:
+    slot_index = _slot_name_to_index(slot_name)
+    if slot_index is None:
+        return False
+
+    asset = (
+        session.query(PromptAsset)
+        .filter_by(project_id=project_id, slot_index=slot_index)
+        .first()
+    )
+    if asset is None:
+        return False
+
+    asset.prompt_text = new_text
+    asset.version = (asset.version or 1) + 1
+    session.commit()
+    logger.info(
+        "update_prompt_text project=%s slot=%s new_version=%s",
+        project_id,
+        slot_name,
+        asset.version,
+    )
+    return True
 
 
 def create_prompt_asset(

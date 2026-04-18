@@ -1,0 +1,51 @@
+{% extends "base.html" %} {% block title %}Prompt 列表 — {{ project.name }}{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <span>Prompts</span>
+</div>
+
+<div class="page-header">
+  <h1>Prompts — {{ project.name }}</h1>
+  <a
+    href="{{ url_for('project_detail', project_id=project.id) }}"
+    class="btn btn-outline"
+    >← 返回项目</a
+  >
+</div>
+
+<table class="prompt-list-table">
+  <thead>
+    <tr>
+      <th>Slot</th>
+      <th>Prompt 文本</th>
+      <th>版本</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for asset in assets %}
+    <tr>
+      <td>slot_{{ asset.slot_index }}</td>
+      <td class="prompt-preview">
+        {{ asset.prompt_text[:80] }}{% if asset.prompt_text|length > 80 %}…{%
+        endif %}
+      </td>
+      <td>v{{ asset.version }}</td>
+      <td>
+        <a
+          href="{{ url_for('prompt_editor', project_id=project.id, slot_name='slot_' ~ asset.slot_index) }}"
+          class="btn btn-sm"
+          >编辑</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

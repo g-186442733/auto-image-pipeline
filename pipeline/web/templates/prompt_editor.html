@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block title %}编辑 Prompt {{ slot_name }} — {{
+project.name }}{% endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <a href="{{ url_for('prompt_list', project_id=project.id) }}">Prompts</a>
+  <span class="sep">/</span>
+  <span>{{ slot_name }}</span>
+</div>
+
+<div class="page-header">
+  <h1>编辑 Prompt — {{ slot_name }}</h1>
+  <a
+    href="{{ url_for('prompt_list', project_id=project.id) }}"
+    class="btn btn-outline"
+    >← 返回列表</a
+  >
+</div>
+
+<form
+  method="POST"
+  action="{{ url_for('prompt_editor', project_id=project.id, slot_name=slot_name) }}"
+  class="prompt-edit-form"
+>
+  <label for="prompt_text">Prompt 文本 (v{{ asset.version }})</label>
+  <textarea
+    id="prompt_text"
+    name="prompt_text"
+    rows="10"
+    class="prompt-textarea"
+  >
+{{ asset.prompt_text }}</textarea
+  >
+  <div class="prompt-edit-actions">
+    <button type="submit" class="btn btn-primary">保存</button>
+    <a
+      href="{{ url_for('prompt_list', project_id=project.id) }}"
+      class="btn btn-outline"
+      >取消</a
+    >
+  </div>
+</form>
+{% endblock %}
