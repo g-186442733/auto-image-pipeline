@@ -31,6 +31,7 @@ from pipeline.models.consistency_profile import ConsistencyProfile
 from pipeline.models.client_feedback import ClientFeedback
 from pipeline.models.delivery_version import DeliveryVersion
 from pipeline.models.asin_ranking import ASINRanking
+from pipeline.models.image_snapshot import ImageSnapshot
 
 # Global run status tracker: {project_id: {"state": "idle"|"running"|"done"|"error", "message": str}}
 _run_status: dict[int, dict] = {}
@@ -707,6 +708,25 @@ def create_app():
             rankings = get_ranking_summary(db, project_id)
             return render_template(
                 "ranking_history.html", project=project, rankings=rankings
+            )
+        finally:
+            db.close()
+
+    @app.route("/project/<int:project_id>/changes")
+    def change_history(project_id):
+        db = get_session()
+        try:
+            project = db.get(Project, project_id)
+            if project is None:
+                return "Project not found", 404
+            snapshots = (
+                db.query(ImageSnapshot)
+                .filter_by(project_id=project_id)
+                .order_by(ImageSnapshot.captured_at.desc())
+                .all()
+            )
+            return render_template(
+                "change_history.html", project=project, snapshots=snapshots
             )
         finally:
             db.close()

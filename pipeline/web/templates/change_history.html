@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Image Changes — Project {{ project.id }}</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>Image Change History — {{ project.name }}</h1>
+    <p><a href="/project/{{ project.id }}">← Back to Project</a></p>
+
+    {% if snapshots %}
+    <table>
+      <thead>
+        <tr>
+          <th>ASIN</th>
+          <th>Slot</th>
+          <th>Image Hash</th>
+          <th>Image URL</th>
+          <th>Captured At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in snapshots %}
+        <tr>
+          <td>{{ s.asin }}</td>
+          <td>{{ s.slot_position }}</td>
+          <td>{{ s.image_hash[:12] }}…</td>
+          <td>{{ s.image_url }}</td>
+          <td>{{ s.captured_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No image snapshots yet.</p>
+    {% endif %}
+  </body>
+</html>
