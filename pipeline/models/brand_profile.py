@@ -20,6 +20,7 @@ class BrandProfile(Base):
     material_texture = Column(Text, nullable=True)
     competitor_positioning = Column(Text, nullable=True)
     brand_story = Column(Text, nullable=True)
+    guidelines = Column(Text, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

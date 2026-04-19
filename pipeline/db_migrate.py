@@ -5,6 +5,7 @@ MIGRATIONS = [
     ("prompt_assets", "is_recommended", "BOOLEAN DEFAULT 0"),
     ("delivery_versions", "auto_delivered", "BOOLEAN DEFAULT 0"),
     ("delivery_versions", "client_signed_at", "DATETIME DEFAULT NULL"),
+    ("brand_profile_cards", "guidelines", "TEXT DEFAULT NULL"),
 ]
 
 
