@@ -75,7 +75,7 @@ def _get(url: str, params: dict) -> dict:
     return resp.json()
 
 
-def fetch_category_top(category: str, market: str = "US", top_n: int = 20) -> list:
+def fetch_category_top(category: str, market: str = "US", top_n: int = 50) -> list:
     """Fetch top N competitors in a category via Keepa API.
 
     Returns list[AmazonBenchmark] ORM instances (NOT committed to DB yet — caller commits).
@@ -165,6 +165,18 @@ def fetch_asin_detail(asin: str) -> dict:
             bsr_rank = rank_list[-1]
         category_path = first_cat
 
+    # imagesCSV → 主图 URL
+    images_csv: str = p.get("imagesCSV") or ""
+    codes = [c.strip() for c in images_csv.split(",") if c.strip()]
+    main_image_url: Optional[str] = None
+    if codes:
+        code = codes[0]
+        main_image_url = f"https://images-na.ssl-images-amazon.com/images/I/{code if code.endswith('.jpg') else code + '.jpg'}"
+
+    # features → bullet_points (JSON 数组)
+    features: list[str] = p.get("features") or []
+    description_val: Optional[str] = p.get("description")
+
     return {
         "title": p.get("title"),
         "price": price,
@@ -172,6 +184,9 @@ def fetch_asin_detail(asin: str) -> dict:
         "review_count": p.get("reviewCount"),
         "rating": p.get("rating"),
         "category_path": category_path,
+        "main_image_url": main_image_url,
+        "bullet_points": features,
+        "description": description_val,
     }
 
 

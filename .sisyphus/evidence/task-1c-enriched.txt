@@ -1,0 +1,12 @@
+Task 1c: CompetitorListing enriched with 5 new fields
+New columns: price (Float), rating (Float), review_count (Integer), main_image_url (String), category_rank (Integer)
+Existing columns retained: title, bullet_points, description
+db_migrate.py: 5 new idempotent ALTER TABLE entries added
+fetch_asin_detail: now returns main_image_url, bullet_points, description
+listing_analyzer: populates all new fields from keepa_data
+orchestrator: upserts all enriched fields
+Test TestCompetitorListingEnrichedFields::test_all_new_fields_persist PASSED
+Test TestCompetitorListingEnrichedFields::test_bullet_points_stored_as_json_array PASSED
+Test TestFetchAsinDetailEnriched::test_returns_all_enriched_fields PASSED
+Test TestFetchAsinDetailEnriched::test_missing_fields_graceful PASSED
+498 passed

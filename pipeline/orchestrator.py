@@ -118,11 +118,19 @@ def step_analyze(project_id: int) -> dict:
             )
             if existing_cl:
                 existing_cl.title = asin_detail.get("title")
+                existing_cl.price = asin_detail.get("price")
+                existing_cl.rating = asin_detail.get("rating")
+                existing_cl.review_count = asin_detail.get("review_count")
+                existing_cl.category_rank = asin_detail.get("bsr_rank")
             else:
                 cl = CompetitorListing(
                     project_id=project_id,
                     asin=proj.asin,
                     title=asin_detail.get("title"),
+                    price=asin_detail.get("price"),
+                    rating=asin_detail.get("rating"),
+                    review_count=asin_detail.get("review_count"),
+                    category_rank=asin_detail.get("bsr_rank"),
                 )
                 session.add(cl)
             session.commit()

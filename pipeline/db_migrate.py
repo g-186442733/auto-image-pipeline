@@ -6,6 +6,11 @@ MIGRATIONS = [
     ("delivery_versions", "auto_delivered", "BOOLEAN DEFAULT 0"),
     ("delivery_versions", "client_signed_at", "DATETIME DEFAULT NULL"),
     ("brand_profile_cards", "guidelines", "TEXT DEFAULT NULL"),
+    ("competitor_listings", "price", "FLOAT DEFAULT NULL"),
+    ("competitor_listings", "rating", "FLOAT DEFAULT NULL"),
+    ("competitor_listings", "review_count", "INTEGER DEFAULT NULL"),
+    ("competitor_listings", "main_image_url", "VARCHAR(512) DEFAULT NULL"),
+    ("competitor_listings", "category_rank", "INTEGER DEFAULT NULL"),
 ]
 
 
