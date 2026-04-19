@@ -46,6 +46,7 @@ def calculate_performance_score(ctr: float, cvr: float) -> float:
 
 def apply_attribution(session, data: list[dict]) -> int:
     from pipeline.models.prompt_asset import PromptAsset
+    from pipeline.layers.knowledge_base import promote_to_knowledge
     from sqlalchemy import text
 
     count = 0
@@ -55,6 +56,7 @@ def apply_attribution(session, data: list[dict]) -> int:
         if asset is None:
             continue
         score = calculate_performance_score(row["ctr"], row["cvr"])
+        is_rec = score >= RECOMMEND_THRESHOLD
         session.execute(
             text(
                 "UPDATE prompt_assets SET performance_score = :score, "
@@ -62,10 +64,13 @@ def apply_attribution(session, data: list[dict]) -> int:
             ),
             {
                 "score": score,
-                "rec": 1 if score >= RECOMMEND_THRESHOLD else 0,
+                "rec": 1 if is_rec else 0,
                 "id": asset_id,
             },
         )
+        if is_rec:
+            session.refresh(asset)
+            promote_to_knowledge(asset, session)
         count += 1
     session.commit()
     return count

@@ -68,12 +68,29 @@ def generate_brief(
         for c in review_clusters
     )
     qa_text = "\n".join(f"- Q: {q.question} A: {q.answer}" for q in qa_entries)
-    prompt = _BRIEF_PROMPT.format(
-        title=competitor_listing.title or "",
-        bullets=competitor_listing.bullet_points or "",
-        selling_points=competitor_listing.selling_points_map or "",
-        clusters_text=clusters_text,
-        qa_text=qa_text,
+
+    knowledge_text = ""
+    if session is not None:
+        try:
+            from pipeline.layers.knowledge_base import search_entries
+
+            kb_entries = search_entries(session, "", category="prompt_pattern", limit=5)
+            if kb_entries:
+                knowledge_text = "\n\nKnowledge Base Insights:\n" + "\n".join(
+                    f"- {e.title}: {e.content}" for e in kb_entries
+                )
+        except Exception:
+            pass
+
+    prompt = (
+        _BRIEF_PROMPT.format(
+            title=competitor_listing.title or "",
+            bullets=competitor_listing.bullet_points or "",
+            selling_points=competitor_listing.selling_points_map or "",
+            clusters_text=clusters_text,
+            qa_text=qa_text,
+        )
+        + knowledge_text
     )
 
     brief_json = _DEFAULT_BRIEF

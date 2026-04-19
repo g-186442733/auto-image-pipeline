@@ -83,11 +83,24 @@ def generate_slot_plan(
 
         session.query(SlotPlan).filter(SlotPlan.project_id == project_id).delete()
 
+        knowledge_hints: list[str] = []
+        try:
+            from pipeline.layers.knowledge_base import get_popular_entries
+
+            popular = get_popular_entries(session, category="style_rule", limit=5)
+            knowledge_hints = [e.content for e in popular if e.content]
+        except Exception:
+            pass
+
         plans: list[SlotPlan] = []
         for slot_index in range(1, 9):
             brief = briefs.get(slot_index)
             brief_tags = _tags_from_brief(brief) if brief else None
             intent, layout, style, color = brief_tags or _SLOT_DEFAULTS[slot_index]
+
+            hint_suffix = ""
+            if knowledge_hints:
+                hint_suffix = " | KB: " + "; ".join(knowledge_hints[:3])
 
             plan = SlotPlan(
                 project_id=project_id,
@@ -96,7 +109,7 @@ def generate_slot_plan(
                 layout_tag=layout,
                 style_tag=style,
                 color_tag=color,
-                description=SLOT_MAPPING[slot_index],
+                description=SLOT_MAPPING[slot_index] + hint_suffix,
             )
             session.add(plan)
             plans.append(plan)

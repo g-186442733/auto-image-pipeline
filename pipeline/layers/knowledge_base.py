@@ -4,6 +4,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from pipeline.models.knowledge_entry import KnowledgeEntry, VALID_CATEGORIES
+from pipeline.models.prompt_asset import PromptAsset
 
 
 def add_entry(
@@ -69,3 +70,22 @@ def increment_usage(session: Session, entry_id: int) -> KnowledgeEntry | None:
     session.commit()
     session.refresh(entry)
     return entry
+
+
+def promote_to_knowledge(prompt_asset: PromptAsset, session: Session) -> KnowledgeEntry:
+    title = f"prompt_asset#{prompt_asset.id}"
+    existing = (
+        session.query(KnowledgeEntry).filter(KnowledgeEntry.title == title).first()
+    )
+    if existing is not None:
+        return existing
+
+    tags = prompt_asset.model_name or ""
+    return add_entry(
+        session,
+        source_project_id=prompt_asset.project_id,
+        category="prompt_pattern",
+        title=title,
+        content=prompt_asset.prompt_text,
+        tags=tags,
+    )
