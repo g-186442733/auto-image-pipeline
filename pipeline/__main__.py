@@ -221,5 +221,15 @@ def feedback(project_id: int):
         sys.exit(1)
 
 
+@cli.command()
+@click.option("--port", default=5000, type=int, help="Port to run the web server on.")
+@click.option("--debug", is_flag=True, default=False, help="Enable debug mode.")
+def web(port: int, debug: bool):
+    """Launch the web dashboard."""
+    from pipeline.web.app import app
+
+    app.run(host="0.0.0.0", port=port, debug=debug)
+
+
 if __name__ == "__main__":
     cli()
