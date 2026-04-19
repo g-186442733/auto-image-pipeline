@@ -30,6 +30,7 @@ __all__ = [
     "check_visual_anchor",
     "check_reference_chain",
     "check_consistency",
+    "compute_gate5_score",
 ]
 
 logger = setup_logger("aip.qa_gate")
@@ -163,6 +164,8 @@ def _get_genai():
 
 def _call_gemini(prompt: str, image_path: str | None = None) -> str:
     """Call Gemini with optional image. Returns raw text or empty string on failure."""
+    import base64
+
     api_key = os.getenv("GOOGLE_API_KEY", "")
     if not api_key:
         return ""
@@ -173,12 +176,23 @@ def _call_gemini(prompt: str, image_path: str | None = None) -> str:
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel(_GEMINI_MODEL)
-        parts: list = [prompt]
+        parts: list = [{"text": prompt}]
         if image_path and os.path.isfile(image_path):
             with open(image_path, "rb") as f:
                 img_data = f.read()
-            parts.append({"mime_type": _get_mime_type(image_path), "data": img_data})
+            parts.append(
+                {
+                    "inline_data": {
+                        "mime_type": _get_mime_type(image_path),
+                        "data": base64.b64encode(img_data).decode("utf-8"),
+                    }
+                }
+            )
         response = model.generate_content(parts)
+        # Safely access text: check candidates exist and aren't blocked
+        if not response.candidates:
+            logger.warning("Gemini returned no candidates (possibly blocked)")
+            return ""
         return response.text
     except Exception as exc:
         logger.warning("Gemini call failed: %s", exc)
@@ -561,14 +575,127 @@ def check_consistency(project_id: int, image_path: str) -> dict:
     return {"status": "PASS", "gate": "consistency", "details": "OK"}
 
 
+def compute_gate5_score(
+    tag_layers: list[str] | None = None,
+    brand_profile: dict | None = None,
+    image_tags: list[str] | None = None,
+    width: int | None = None,
+    height: int | None = None,
+) -> tuple[float, dict]:
+    """Gate 5 LLM 评分公式。
+
+    score = 0.4 * tag_coverage_norm + 0.4 * brand_consistency + 0.2 * resolution_pass
+
+    - tag_coverage_norm: 已有标签层数 / 5（5层: INTENT/ROLE/COLOR/LAYOUT/STYLE）
+    - brand_consistency: brand_profile 与 image_tags 匹配度，无数据时默认 0.5
+    - resolution_pass: 分辨率 ≥ 1024x1024 则 1.0，否则 0.0；无数据时默认 1.0
+
+    返回 (score, details_dict)。
+    """
+    # --- tag_coverage_norm ---
+    _ALL_LAYERS = {"INTENT", "ROLE", "COLOR", "LAYOUT", "STYLE"}
+    if tag_layers:
+        present = {t.upper() for t in tag_layers} & _ALL_LAYERS
+        tag_coverage_norm = len(present) / 5.0
+    else:
+        tag_coverage_norm = 0.0
+
+    # --- brand_consistency ---
+    if brand_profile and image_tags:
+        # 计算 brand_profile 中颜色/风格关键词与 image_tags 的重叠度
+        brand_keywords: set[str] = set()
+        for v in brand_profile.values():
+            if isinstance(v, str):
+                brand_keywords.update(w.lower() for w in v.split())
+            elif isinstance(v, list):
+                for item in v:
+                    brand_keywords.update(w.lower() for w in str(item).split())
+        if brand_keywords:
+            img_kw = {t.lower() for t in image_tags}
+            matches = len(brand_keywords & img_kw)
+            brand_consistency = min(1.0, matches / len(brand_keywords))
+        else:
+            brand_consistency = 0.5
+    else:
+        brand_consistency = 0.5
+
+    # --- resolution_pass ---
+    if width is not None and height is not None:
+        resolution_pass = 1.0 if (width >= 1024 and height >= 1024) else 0.0
+    else:
+        resolution_pass = 1.0
+
+    score = 0.4 * tag_coverage_norm + 0.4 * brand_consistency + 0.2 * resolution_pass
+    details = {
+        "tag_coverage_norm": round(tag_coverage_norm, 4),
+        "brand_consistency": round(brand_consistency, 4),
+        "resolution_pass": resolution_pass,
+        "score": round(score, 4),
+    }
+    return score, details
+
+
+def _collect_gate5_inputs(project_id: int, image_path: str) -> dict:
+    """从数据库收集 Gate 5 所需的输入数据。"""
+    from pipeline.models.tag_assignment import TagAssignment
+    from pipeline.models.project import Project
+
+    session = get_session()
+    try:
+        # 收集标签层
+        tags = (
+            session.query(TagAssignment)
+            .filter_by(entity_type="project", entity_id=project_id)
+            .all()
+        )
+        tag_layers = list({t.tag_layer for t in tags}) if tags else None
+        image_tags = [t.tag_code for t in tags] if tags else None
+
+        # 收集 brand_profile
+        project = session.get(Project, project_id)
+        brand_profile = None
+        if project and project.notes:
+            try:
+                brand_profile = json.loads(project.notes)
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        # 收集分辨率
+        width, height = None, None
+        if image_path and os.path.isfile(image_path):
+            try:
+                w, h = _read_image_dimensions(image_path)
+                width, height = w, h
+            except Exception:
+                logger.warning("Failed to read image dimensions", exc_info=True)
+
+        return {
+            "tag_layers": tag_layers,
+            "brand_profile": brand_profile,
+            "image_tags": image_tags,
+            "width": width,
+            "height": height,
+        }
+    finally:
+        session.close()
+
+
 def run_qa_gate(project_id: int, image_path: str) -> dict:
     """Run all 5 QA gates. Any FAIL -> overall FAIL."""
     gate_1 = check_compliance(project_id, image_path)
     gate_2 = check_visual_anchor(project_id, image_path)
     gate_3 = check_reference_chain(project_id, image_path)
     gate_4 = check_consistency(project_id, image_path)
-    # Gate 5: wrap existing LLM QA as a gate (best-effort, no LLM call in gate)
-    gate_5 = {"status": "PASS", "gate": "llm_qa", "details": "Skipped (no asset)"}
+
+    # Gate 5: LLM 评分公式
+    try:
+        inputs = _collect_gate5_inputs(project_id, image_path)
+        score, details = compute_gate5_score(**inputs)
+        status = "PASS" if score >= 0.6 else "FAIL"
+        gate_5 = {"status": status, "gate": "llm_qa", "details": details}
+    except Exception as exc:
+        logger.warning("Gate 5 evaluation failed: %s", exc)
+        gate_5 = {"status": "PASS", "gate": "llm_qa", "details": f"Error: {exc}"}
 
     gates = {
         "gate_1": gate_1,

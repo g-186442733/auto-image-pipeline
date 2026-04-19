@@ -10,6 +10,7 @@ from pipeline.layers.amazon_data import (
     fetch_qa,
     fetch_category_top,
     fetch_asin_detail,
+    KeepaDataError,
 )
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models import Base, get_engine, get_session
@@ -23,69 +24,62 @@ class TestFetchReviewsFallback:
     def test_returns_list_on_missing_key(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_reviews("B000TEST01")
-        assert isinstance(result, list)
-        assert len(result) >= 5
+            with pytest.raises(KeepaDataError):
+                fetch_reviews("B000TEST01")
 
     def test_review_keys_present(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_reviews("B000TEST01")
-        for item in result:
-            assert REQUIRED_REVIEW_KEYS <= set(item.keys())
+            with pytest.raises(KeepaDataError):
+                fetch_reviews("B000TEST01")
 
     def test_never_returns_empty(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_reviews("B000TEST01")
-        assert result
+            with pytest.raises(KeepaDataError):
+                fetch_reviews("B000TEST01")
 
 
 class TestFetchQaFallback:
     def test_returns_list_on_missing_key(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_qa("B000TEST01")
-        assert isinstance(result, list)
-        assert len(result) >= 5
+            with pytest.raises(KeepaDataError):
+                fetch_qa("B000TEST01")
 
     def test_qa_keys_present(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_qa("B000TEST01")
-        for item in result:
-            assert REQUIRED_QA_KEYS <= set(item.keys())
+            with pytest.raises(KeepaDataError):
+                fetch_qa("B000TEST01")
 
     def test_never_returns_empty(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_qa("B000TEST01")
-        assert result
+            with pytest.raises(KeepaDataError):
+                fetch_qa("B000TEST01")
 
 
 class TestFetchReviewsShape:
     def test_rating_is_numeric(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_reviews("B000TEST01")
-        for item in result:
-            assert isinstance(item["rating"], (int, float))
+            with pytest.raises(KeepaDataError):
+                fetch_reviews("B000TEST01")
 
     def test_verified_purchase_is_bool(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_reviews("B000TEST01")
-        for item in result:
-            assert isinstance(item["verified_purchase"], bool)
+            with pytest.raises(KeepaDataError):
+                fetch_reviews("B000TEST01")
 
 
 class TestFetchQaShape:
     def test_votes_is_int(self):
         with patch("pipeline.layers.amazon_data.config") as mock_cfg:
             mock_cfg.keepa_api_key = ""
-            result = fetch_qa("B000TEST01")
-        for item in result:
-            assert isinstance(item["votes"], int)
+            with pytest.raises(KeepaDataError):
+                fetch_qa("B000TEST01")
 
 
 class TestTopNDefault:
@@ -212,5 +206,5 @@ class TestFetchCategoryTopHandlesFewerThan50:
             patch("pipeline.layers.amazon_data._get", return_value=mock_response),
             patch("pipeline.layers.amazon_data.time"),
         ):
-            result = fetch_category_top("Electronics", top_n=50)
+            result = fetch_category_top("172541", top_n=50)
         assert len(result) == 3

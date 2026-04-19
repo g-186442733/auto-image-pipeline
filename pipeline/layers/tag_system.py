@@ -147,7 +147,7 @@ def _call_llm_for_scenes(project_id: int) -> list[str]:
         if isinstance(tags, list):
             return [t for t in tags if isinstance(t, str) and t.startswith("SCENE_")]
     except Exception:
-        pass
+        logger.warning("Scene tag generation failed", exc_info=True)
     return []
 
 

@@ -81,7 +81,11 @@ def generate_brief(
                     f"- {e.title}: {e.content}" for e in kb_entries
                 )
         except Exception:
-            pass
+            log.warning(
+                "KB search failed for project %s, skipping enrichment",
+                project_id,
+                exc_info=True,
+            )
 
     prompt = (
         _BRIEF_PROMPT.format(
@@ -102,23 +106,28 @@ def generate_brief(
                 if cb_section:
                     prompt += "\n" + cb_section
         except Exception:
-            pass
+            log.warning(
+                "CustomerBrief query failed for project %s, skipping",
+                project_id,
+                exc_info=True,
+            )
 
-    brief_json = _DEFAULT_BRIEF
-    try:
-        raw = _call_gemini(prompt)
-        parsed = json.loads(raw)
-        if isinstance(parsed, dict) and "slots" in parsed:
-            brief_json = raw
-    except Exception:
-        pass
+    raw = _call_gemini(prompt)
+    parsed = json.loads(raw)
+    if not (isinstance(parsed, dict) and "slots" in parsed):
+        raise ValueError(
+            f"Gemini returned unexpected structure for project {project_id}"
+        )
+    brief_json = raw
 
     parsed_slots: list = []
     try:
         data = json.loads(brief_json)
         parsed_slots = data.get("slots", [])
-    except Exception:
-        pass
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Gemini returned invalid JSON for project {project_id}: {e}"
+        ) from e
 
     if not parsed_slots:
         log.warning("generate_brief: 0 slots returned for project %s", project_id)

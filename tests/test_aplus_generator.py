@@ -157,32 +157,30 @@ class TestGenerateAplusStoryboard:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.aplus_generator._call_gemini")
     def test_gemini_failure_returns_defaults(self, mock_gemini, db_session):
-        """LLM 失败时应返回默认7条记录。"""
+        """LLM 失败时应 raise。"""
         from pipeline.layers.aplus_generator import generate_aplus_storyboard
 
         mock_gemini.side_effect = Exception("API error")
-        result = generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
-        assert len(result) == 7
-        types = [r.module_type for r in result]
-        assert sorted(types) == sorted(MODULE_TYPES)
+        with pytest.raises(Exception):
+            generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": ""})
     def test_no_api_key_returns_defaults(self, db_session):
-        """无 API key 时应返回默认7条记录。"""
+        """无 API key 时应 raise。"""
         from pipeline.layers.aplus_generator import generate_aplus_storyboard
 
-        result = generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
-        assert len(result) == 7
+        with pytest.raises(Exception):
+            generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.aplus_generator._call_gemini")
     def test_invalid_json_returns_defaults(self, mock_gemini, db_session):
-        """无效 JSON 响应时应返回默认记录。"""
+        """无效 JSON 响应时应 raise。"""
         from pipeline.layers.aplus_generator import generate_aplus_storyboard
 
         mock_gemini.return_value = "not valid json {{{{"
-        result = generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
-        assert len(result) == 7
+        with pytest.raises(Exception):
+            generate_aplus_storyboard(SAMPLE_PROJECT_ID, session=db_session)
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.aplus_generator._call_gemini")

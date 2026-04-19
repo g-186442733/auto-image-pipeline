@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import zipfile
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -10,16 +11,75 @@ from PIL import Image as PILImage
 from sqlalchemy.orm import Session
 
 from pipeline.models.base import get_session
+from pipeline.models.delivery_version import DeliveryVersion
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.qa_record import QARecord
 
 __all__ = [
+    "DeliveryLayer",
     "build_delivery_package",
     "generate_preview_html",
     "generate_delivery_notes",
     "generate_version_log",
     "generate_spec_check",
 ]
+
+
+class DeliveryLayer:
+    """ZIP打包交付、交付状态管理。"""
+
+    def __init__(self, session: Optional[Session] = None):
+        self._owns_session = session is None
+        self.session = session or get_session()
+
+    def close(self):
+        if self._owns_session:
+            self.session.close()
+
+    def package_zip(self, project_id: int, output_dir: str = "data/exports/") -> str:
+        """将项目相关图片/资产打包为 ZIP 文件，存入 output_dir。"""
+        os.makedirs(output_dir, exist_ok=True)
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        zip_name = f"{project_id}_{timestamp}.zip"
+        zip_path = os.path.join(output_dir, zip_name)
+
+        assets = (
+            self.session.query(PromptAsset)
+            .filter(PromptAsset.project_id == project_id)
+            .all()
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for asset in assets:
+                if asset.image_path and os.path.exists(asset.image_path):
+                    arcname = os.path.basename(asset.image_path)
+                    zf.write(asset.image_path, arcname)
+
+        return zip_path
+
+    def mark_delivered(self, delivery_version_id: int) -> None:
+        """将指定交付版本标记为已交付。"""
+        dv = self.session.get(DeliveryVersion, delivery_version_id)
+        if dv is None:
+            raise ValueError(f"DeliveryVersion {delivery_version_id} not found")
+        dv.auto_delivered = True
+        dv.client_signed_at = datetime.now(timezone.utc)
+        dv.delivered_at = datetime.now(timezone.utc)
+        self.session.commit()
+
+    def get_status(self, delivery_version_id: int) -> dict:
+        """返回交付版本状态信息。"""
+        dv = self.session.get(DeliveryVersion, delivery_version_id)
+        if dv is None:
+            raise ValueError(f"DeliveryVersion {delivery_version_id} not found")
+        if dv.auto_delivered:
+            return {
+                "status": "delivered",
+                "delivered_at": dv.delivered_at or dv.client_signed_at,
+            }
+        return {"status": "pending", "delivered_at": None}
+
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
 
@@ -242,12 +302,9 @@ def build_delivery_package(
         generate_version_log(project_id, output_dir, session=session)
         generate_spec_check(project_id, output_dir)
 
-        try:
-            from pipeline.layers.version_manager import create_version
+        from pipeline.layers.version_manager import create_version
 
-            create_version(session, project_id, "initial", "first delivery", output_dir)
-        except Exception:
-            pass
+        create_version(session, project_id, "initial", "first delivery", output_dir)
 
         return delivery_dir
     finally:

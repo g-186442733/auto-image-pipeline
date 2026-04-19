@@ -26,6 +26,11 @@ __all__ = [
 
 logger = setup_logger("aip.amazon_data")
 
+
+class KeepaDataError(Exception):
+    """Raised when Keepa API fails to return usable data."""
+
+
 KEEPA_BASE = "https://api.keepa.com"
 
 MARKET_DOMAIN: dict[str, int] = {
@@ -86,6 +91,13 @@ def fetch_category_top(category: str, market: str = "US", top_n: int = 50) -> li
     key = _api_key()
     domain = _domain(market)
     top_n = min(int(top_n), _MAX_TOP_N)
+
+    if not str(category).strip().isdigit():
+        raise ValueError(
+            f"E_AMAZON_005: Category must be a numeric Keepa category ID (e.g. '172541'), "
+            f"not a text name (got: '{category}'). "
+            f"Look up the numeric ID at https://www.keepa.com/#!categorytree"
+        )
 
     url = f"{KEEPA_BASE}/bestsellers"
     params = {
@@ -228,37 +240,7 @@ def scrape_listing_images(asin: str) -> list[str]:
     return image_urls
 
 
-def _mock_reviews(asin: str) -> list[dict]:
-    return [
-        {
-            "title": f"Great product #{i}",
-            "body": f"Mock review body for {asin} #{i}.",
-            "rating": 5 - (i % 3),
-            "date": f"2025-01-{10 + i:02d}",
-            "verified_purchase": i % 2 == 0,
-        }
-        for i in range(5)
-    ]
-
-
-def _mock_qa(asin: str) -> list[dict]:
-    return [
-        {
-            "question": f"Does {asin} support feature #{i}?",
-            "answer": f"Yes, it supports feature #{i}.",
-            "votes": 10 - i,
-        }
-        for i in range(5)
-    ]
-
-
 def fetch_reviews(asin: str, market: str = "us") -> list[dict]:
-    """Fetch product reviews for *asin* via Keepa ``reviews=1`` endpoint.
-
-    Returns list[dict] with keys: title, body, rating, date, verified_purchase.
-    On ANY failure (missing key, network, rate-limit) returns mock data and logs a warning.
-    Never raises. Never returns an empty list.
-    """
     try:
         key = _api_key()
         domain = _domain(market)
@@ -268,18 +250,17 @@ def fetch_reviews(asin: str, market: str = "us") -> list[dict]:
             {"key": key, "domain": domain, "asin": asin, "reviews": 1},
         )
     except (ValueError, httpx.HTTPError) as exc:
-        logger.warning("fetch_reviews fallback for %s: %s", asin, exc)
-        return _mock_reviews(asin)
+        raise KeepaDataError(
+            f"Keepa API failed for ASIN {asin}: reviews unavailable"
+        ) from exc
 
     products: list[dict] = data.get("products") or []
     if not products:
-        logger.warning("fetch_reviews: no product data for %s – using mock", asin)
-        return _mock_reviews(asin)
+        raise KeepaDataError(f"Keepa API returned no product data for ASIN {asin}")
 
     raw_reviews: list[dict] = products[0].get("reviews") or []
     if not raw_reviews:
-        logger.warning("fetch_reviews: no reviews returned for %s – using mock", asin)
-        return _mock_reviews(asin)
+        raise KeepaDataError(f"Keepa API returned no reviews for ASIN {asin}")
 
     results: list[dict] = []
     for r in raw_reviews:
@@ -293,17 +274,13 @@ def fetch_reviews(asin: str, market: str = "us") -> list[dict]:
             }
         )
 
+    if not results:
+        raise KeepaDataError(f"Keepa API returned empty reviews for ASIN {asin}")
     logger.info("fetch_reviews: asin=%s count=%d", asin, len(results))
-    return results or _mock_reviews(asin)
+    return results
 
 
 def fetch_qa(asin: str, market: str = "us") -> list[dict]:
-    """Fetch Q&A pairs for *asin* via Keepa ``qa=1`` endpoint.
-
-    Returns list[dict] with keys: question, answer, votes.
-    On ANY failure (missing key, network, rate-limit) returns mock data and logs a warning.
-    Never raises. Never returns an empty list.
-    """
     try:
         key = _api_key()
         domain = _domain(market)
@@ -313,18 +290,17 @@ def fetch_qa(asin: str, market: str = "us") -> list[dict]:
             {"key": key, "domain": domain, "asin": asin, "qa": 1},
         )
     except (ValueError, httpx.HTTPError) as exc:
-        logger.warning("fetch_qa fallback for %s: %s", asin, exc)
-        return _mock_qa(asin)
+        raise KeepaDataError(
+            f"Keepa API failed for ASIN {asin}: Q&A unavailable"
+        ) from exc
 
     products: list[dict] = data.get("products") or []
     if not products:
-        logger.warning("fetch_qa: no product data for %s – using mock", asin)
-        return _mock_qa(asin)
+        raise KeepaDataError(f"Keepa API returned no product data for ASIN {asin}")
 
     raw_qa: list[dict] = products[0].get("questions") or []
     if not raw_qa:
-        logger.warning("fetch_qa: no Q&A returned for %s – using mock", asin)
-        return _mock_qa(asin)
+        raise KeepaDataError(f"Keepa API returned no Q&A for ASIN {asin}")
 
     results: list[dict] = []
     for q in raw_qa:
@@ -336,5 +312,7 @@ def fetch_qa(asin: str, market: str = "us") -> list[dict]:
             }
         )
 
+    if not results:
+        raise KeepaDataError(f"Keepa API returned empty Q&A for ASIN {asin}")
     logger.info("fetch_qa: asin=%s count=%d", asin, len(results))
-    return results or _mock_qa(asin)
+    return results

@@ -168,29 +168,27 @@ class TestGenerateBrief:
         from pipeline.layers.brief_generator import generate_brief
 
         mock_gemini.side_effect = Exception("API error")
-        result = generate_brief(
-            SAMPLE_PROJECT_ID,
-            _make_listing(),
-            _make_clusters(),
-            _make_qa_entries(),
-            session=db_session,
-        )
-        assert isinstance(result, list)
-        assert len(result) == 1
+        with pytest.raises(Exception):
+            generate_brief(
+                SAMPLE_PROJECT_ID,
+                _make_listing(),
+                _make_clusters(),
+                _make_qa_entries(),
+                session=db_session,
+            )
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": ""})
     def test_no_api_key_returns_default_brief(self, db_session):
         from pipeline.layers.brief_generator import generate_brief
 
-        result = generate_brief(
-            SAMPLE_PROJECT_ID,
-            _make_listing(),
-            _make_clusters(),
-            _make_qa_entries(),
-            session=db_session,
-        )
-        assert isinstance(result, list)
-        assert len(result) == 1
+        with pytest.raises(Exception):
+            generate_brief(
+                SAMPLE_PROJECT_ID,
+                _make_listing(),
+                _make_clusters(),
+                _make_qa_entries(),
+                session=db_session,
+            )
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")
@@ -198,15 +196,14 @@ class TestGenerateBrief:
         from pipeline.layers.brief_generator import generate_brief
 
         mock_gemini.return_value = "not valid json {{{{"
-        result = generate_brief(
-            SAMPLE_PROJECT_ID,
-            _make_listing(),
-            _make_clusters(),
-            _make_qa_entries(),
-            session=db_session,
-        )
-        assert isinstance(result, list)
-        assert len(result) == 1
+        with pytest.raises(Exception):
+            generate_brief(
+                SAMPLE_PROJECT_ID,
+                _make_listing(),
+                _make_clusters(),
+                _make_qa_entries(),
+                session=db_session,
+            )
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
     @patch("pipeline.layers.brief_generator._call_gemini")

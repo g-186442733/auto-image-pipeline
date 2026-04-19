@@ -101,16 +101,20 @@ def generate_aplus_storyboard(
 ) -> list[APlusContent]:
     prompt = _APLUS_PROMPT.format(project_id=project_id)
 
-    modules_data = _DEFAULT_MODULES
-    try:
-        raw = _call_gemini(prompt)
-        parsed = json.loads(raw)
-        if isinstance(parsed, dict) and "modules" in parsed:
-            candidate = parsed["modules"]
-            if isinstance(candidate, list) and len(candidate) == 7:
-                modules_data = candidate
-    except Exception:
-        pass
+    raw = _call_gemini(prompt)
+    parsed = json.loads(raw)
+    if isinstance(parsed, dict) and "modules" in parsed:
+        candidate = parsed["modules"]
+        if isinstance(candidate, list) and len(candidate) == 7:
+            modules_data = candidate
+        else:
+            raise ValueError(
+                f"Gemini returned unexpected modules structure for project {project_id}"
+            )
+    else:
+        raise ValueError(
+            f"Gemini returned unexpected structure for project {project_id}"
+        )
 
     records: list[APlusContent] = []
     for i, mod in enumerate(modules_data):

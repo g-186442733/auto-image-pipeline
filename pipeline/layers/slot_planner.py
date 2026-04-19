@@ -90,7 +90,7 @@ def generate_slot_plan(
             popular = get_popular_entries(session, category="style_rule", limit=5)
             knowledge_hints = [e.content for e in popular if e.content]
         except Exception:
-            pass
+            logger.warning("Failed to load knowledge hints", exc_info=True)
 
         plans: list[SlotPlan] = []
         for slot_index in range(1, 9):

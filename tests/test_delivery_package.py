@@ -139,15 +139,17 @@ class TestCreateDeliveryPackage:
 
         def query_side_effect(model):
             mock_q = MagicMock()
-            if model.__tablename__ == "prompt_assets":
+            tablename = getattr(model, "__tablename__", None)
+            if tablename == "prompt_assets":
                 mock_q.filter.return_value.order_by.return_value.all.return_value = [
                     asset
                 ]
-            elif model.__tablename__ == "qa_records":
+            elif tablename == "qa_records":
                 mock_q.filter.return_value.all.return_value = [qa]
             else:
                 mock_q.filter.return_value.order_by.return_value.all.return_value = []
                 mock_q.filter.return_value.all.return_value = []
+                mock_q.with_entities.return_value.filter.return_value.order_by.return_value.first.return_value = None
             return mock_q
 
         mock_session.query.side_effect = query_side_effect

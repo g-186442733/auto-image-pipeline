@@ -208,6 +208,7 @@ class TestAnalyzeResultPassthrough:
                 mock.patch(
                     "pipeline.orchestrator.step_report", side_effect=_mock_report
                 ),
+                mock.patch("pipeline.orchestrator.step_aplus", return_value=[]),
             ):
                 from pipeline.orchestrator import run_full_pipeline
 
