@@ -12,6 +12,7 @@ from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.review_cluster import ReviewCluster
 from pipeline.models.qa_entry import QAEntry
 from pipeline.models.image_brief import ImageBrief
+from pipeline.models.customer_brief import CustomerBrief
 
 
 SAMPLE_PROJECT_ID = 42
@@ -251,3 +252,80 @@ class TestCallGeminiBrief:
 
         result = _call_gemini("anything")
         assert result == "{}"
+
+
+class TestCustomerBriefInjection:
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
+    @patch("pipeline.layers.brief_generator._call_gemini")
+    def test_three_filled_fields_appear_in_prompt(self, mock_gemini, db_session):
+        from pipeline.layers.brief_generator import generate_brief
+
+        mock_gemini.return_value = FAKE_BRIEF_JSON
+        cb = CustomerBrief(
+            project_id=SAMPLE_PROJECT_ID,
+            brand_voice="Bold and modern",
+            target_audience="Gen Z",
+            product_usp="Eco-friendly",
+        )
+        db_session.add(cb)
+        db_session.commit()
+
+        generate_brief(
+            SAMPLE_PROJECT_ID,
+            _make_listing(),
+            _make_clusters(),
+            _make_qa_entries(),
+            session=db_session,
+        )
+
+        prompt = mock_gemini.call_args[0][0]
+        assert "--- Customer Brief ---" in prompt
+        assert "Brand Voice: Bold and modern" in prompt
+        assert "Target Audience: Gen Z" in prompt
+        assert "Product USP: Eco-friendly" in prompt
+        assert "Budget Range" not in prompt
+        assert "Timeline" not in prompt
+        assert "Special Instructions" not in prompt
+        assert "Visual Preferences" not in prompt
+        assert "Competitor References" not in prompt
+        assert "Campaign Goal" not in prompt
+        assert "Reference Images" not in prompt
+
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
+    @patch("pipeline.layers.brief_generator._call_gemini")
+    def test_no_customer_brief_still_works(self, mock_gemini, db_session):
+        from pipeline.layers.brief_generator import generate_brief
+
+        mock_gemini.return_value = FAKE_BRIEF_JSON
+        result = generate_brief(
+            SAMPLE_PROJECT_ID,
+            _make_listing(),
+            _make_clusters(),
+            _make_qa_entries(),
+            session=db_session,
+        )
+        assert isinstance(result, list)
+        assert len(result) == 2
+        prompt = mock_gemini.call_args[0][0]
+        assert "--- Customer Brief ---" not in prompt
+
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"})
+    @patch("pipeline.layers.brief_generator._call_gemini")
+    def test_all_null_fields_no_section(self, mock_gemini, db_session):
+        from pipeline.layers.brief_generator import generate_brief
+
+        mock_gemini.return_value = FAKE_BRIEF_JSON
+        cb = CustomerBrief(project_id=SAMPLE_PROJECT_ID)
+        db_session.add(cb)
+        db_session.commit()
+
+        generate_brief(
+            SAMPLE_PROJECT_ID,
+            _make_listing(),
+            _make_clusters(),
+            _make_qa_entries(),
+            session=db_session,
+        )
+
+        prompt = mock_gemini.call_args[0][0]
+        assert "--- Customer Brief ---" not in prompt

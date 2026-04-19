@@ -7,6 +7,7 @@ from pipeline.models.image_brief import ImageBrief
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.review_cluster import ReviewCluster
 from pipeline.models.qa_entry import QAEntry
+from pipeline.models.customer_brief import CustomerBrief
 
 log = logging.getLogger(__name__)
 
@@ -92,6 +93,16 @@ def generate_brief(
         )
         + knowledge_text
     )
+
+    if session is not None:
+        try:
+            cb = session.query(CustomerBrief).filter_by(project_id=project_id).first()
+            if cb is not None:
+                cb_section = cb.to_prompt_section()
+                if cb_section:
+                    prompt += "\n" + cb_section
+        except Exception:
+            pass
 
     brief_json = _DEFAULT_BRIEF
     try:
