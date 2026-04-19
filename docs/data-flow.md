@@ -547,4 +547,84 @@ prompt_assets 更新（id = 201）：
 
 ---
 
+---
+
+## L4/L5 飞轮闭环数据流
+
+L4 阶段在原有五层架构之上，新增基础设施迁移（db_migrate）、置信度路由（confidence_routing）、知识匿名化（knowledge_anonymizer）、A/B 归因（ab_attribution）、趋势预测（trend_engine）和全自动飞轮（flywheel）六个横切模块，形成完整的自优化闭环。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant DM as db_migrate
+    participant QD as 质检交付层（qa_gate）
+    participant CR as confidence_routing
+    participant AB as ab_attribution
+    participant TE as trend_engine
+    participant KA as knowledge_anonymizer
+    participant FW as flywheel
+    participant DB as SQLite pipeline.db
+
+    Note over DM: 系统启动时执行（幂等）
+    DM->>DB: 补齐 image_slots / ab_test_results / competitor_listings / image_briefs 缺失列
+    DM-->>DM: 返回 {applied: [...], skipped: [...]}
+
+    Note over QD,CR: 质检完成后路由
+    QD->>CR: 传入 QARecord（含 score 字段）
+    CR-->>QD: 路由决策（HIGH≥80→自动通过 / MID→快审 / LOW<50→完整QA）
+
+    Note over AB: A/B 回流归因
+    AB->>AB: import_performance_data(file_path) → list[dict]
+    AB->>AB: calculate_performance_score(ctr, cvr) = 0.6×CTR + 0.4×CVR
+    AB->>DB: apply_attribution(session, data) → 更新 prompt_assets.performance_score
+
+    Note over TE: Keepa 趋势预测
+    TE->>TE: analyze_trend(asin, keepa_data)
+    TE-->>DB: 预测结果（predicted_trend / confidence）供 Prompt 组装引擎消费
+
+    Note over KA: 知识沉淀前脱敏
+    KA->>KA: anonymize_knowledge(entry, brand_list)
+    KA-->>DB: 脱敏后 KnowledgeEntry 写入知识库（品牌名→[BRAND] / 订单号→[ORDER_ID] / 路径→[PATH]）
+
+    Note over FW: 飞轮触发（受 FLYWHEEL_ENABLED 控制）
+    FW->>DB: 读取最新 QARecord.score
+    alt score < 阈值 且 FLYWHEEL_ENABLED=true
+        FW->>DB: 写入新 DeliveryVersion（triggered=True）
+        FW-->>QD: 触发重生成流程
+    else score ≥ 阈值 或 飞轮未启用
+        FW-->>FW: 返回 {triggered: False, reason: "..."}
+    end
+    FW->>FW: check_flywheel_status() → {enabled, threshold, mode}
+```
+
+### L4/L5 新增数据表与写入时机
+
+| 数据表                | 写入模块            | 触发时机                   | 关键字段                                |
+| --------------------- | ------------------- | -------------------------- | --------------------------------------- |
+| `image_slots`         | db_migrate / 出图层 | 系统启动迁移 / AI 出图完成 | image_path, qa_status, prompt_text      |
+| `ab_test_results`     | ab_attribution      | A/B 数据文件导入时         | project_id, slot_index, variant, score  |
+| `competitor_listings` | listing_analyzer    | 竞品 Listing 分析完成时    | asin, bullet_points, selling_points_map |
+| `image_briefs`        | brief_generator     | Gemini Brief 生成完成时    | project_id, slot_index=0, brief_json    |
+
+### 飞轮闭环核心指标流
+
+```
+A/B 实验数据（CTR + CVR）
+    │
+    ▼
+ab_attribution.calculate_performance_score()
+    → performance_score = 0.6 × CTR + 0.4 × CVR
+    │
+    ▼
+prompt_assets.performance_score 更新
+    │
+    ├── ≥ 0.75 → is_recommended = True（推荐模板，下一 SKU 优先调用）
+    │
+    └── < 阈值 → flywheel.run_flywheel() 触发重生成
+                    → 新 DeliveryVersion 写库
+                    → 重走出图 + QA 流程
+```
+
+---
+
 _文档由 AI 辅助生成，最终由工程负责人审核确认。如有出入，以代码实现为准。_

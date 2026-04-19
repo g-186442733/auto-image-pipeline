@@ -1,8 +1,8 @@
-# Delivery Notes — TWS Earphone Launch
+# Delivery Notes — E2E Test Product
 
 - **Project ID**: 10
-- **ASIN**: B0TWS00001
-- **Category**: TWS earphone
+- **ASIN**: B000TEST01
+- **Category**: Home
 
 ## Customer Brief
 
@@ -10,8 +10,8 @@
 
 ## Notes
 
-Premium TWS earphone product listing, 8 images for Amazon A+ content
+
 
 ## Generated
 
-2026-04-18 19:34 UTC
+2026-04-19 14:59 UTC

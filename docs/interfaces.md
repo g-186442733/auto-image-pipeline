@@ -924,6 +924,161 @@ GET  /project/<id>/report # 项目报告 (JSON)
 
 ---
 
+## L4/L5 新增模块接口
+
+以下模块为 L4-T1 到 L4-T6 新增，对应基础设施层与飞轮闭环扩展。接口签名以代码实现为准。
+
+### db_migrate — 幂等数据库迁移
+
+```python
+# pipeline/db_migrate.py
+def run_migrations(engine) -> dict:
+    """幂等执行数据库迁移，补齐缺失列。
+
+    MIGRATIONS 列表（硬编码4项）：
+        - image_slots 表（image_path, qa_status, prompt_text, created_at）
+        - ab_test_results 表（project_id, slot_index, variant, score, created_at）
+        - competitor_listings 表（asin, project_id, title, bullet_points, selling_points_map, created_at）
+        - image_briefs 表（project_id, slot_index, brief_json, created_at）
+
+    Returns:
+        dict: {"applied": [...], "skipped": [...]}  各列迁移结果
+    """
+```
+
+### ab_attribution — A/B 归因引擎
+
+```python
+# pipeline/layers/ab_attribution.py
+def import_performance_data(file_path: str, format: str = "csv") -> list[dict]:
+    """从文件导入 A/B 性能数据。
+
+    Args:
+        file_path: 数据文件路径
+        format: 文件格式，默认 "csv"
+
+    Returns:
+        list[dict]: 每行数据的字典列表
+    """
+
+def calculate_performance_score(ctr: float, cvr: float) -> float:
+    """计算加权 performance_score。
+
+    公式：0.6 × CTR + 0.4 × CVR
+
+    Returns:
+        float: 归一化效果分
+    """
+
+def apply_attribution(session, data: list[dict]) -> int:
+    """将归因结果写入 PromptAsset.performance_score。
+
+    Args:
+        session: SQLAlchemy Session
+        data: import_performance_data 返回的数据列表
+
+    Returns:
+        int: 成功处理的条数
+    """
+```
+
+### trend_engine — 趋势预测引擎
+
+```python
+# pipeline/layers/trend_engine.py
+def analyze_trend(asin: str, keepa_data: dict) -> dict:
+    """对单个 ASIN 进行线性趋势预测（纯 Python，无外部依赖）。
+
+    Args:
+        asin: 目标 ASIN
+        keepa_data: Keepa API 返回的原始数据字典
+
+    Returns:
+        dict:
+            predicted_trend (str): "up" | "down" | "stable" | "insufficient_data"
+            confidence (float): 置信度 0.0-1.0（数据点 < 7 时为 0.0）
+            data_points (int): 实际使用的数据点数量
+
+    Notes:
+        数据点 < 7 时返回 predicted_trend="insufficient_data", confidence=0.0
+    """
+```
+
+### flywheel — 全自动飞轮
+
+```python
+# pipeline/flywheel.py
+def run_flywheel(
+    project_id: int,
+    session,
+    config=None,
+    qa_score: float | None = None,
+    qa_score_fn=None,
+) -> dict:
+    """执行飞轮闭环：QA 分低于阈值时触发重生成。
+
+    Args:
+        project_id: 目标项目 ID
+        session: SQLAlchemy Session
+        config: Config 实例（可选，None 时读取环境变量）
+        qa_score: 直接传入 QA 分数（与 qa_score_fn 二选一）
+        qa_score_fn: 返回 float 的可调用对象（优先级低于 qa_score）
+
+    Returns:
+        dict:
+            triggered (bool): 是否触发重生成
+            reason (str): 触发或跳过的原因说明
+            new_version (int | None): 新生成版本号（未触发时为 None）
+
+    Notes:
+        FLYWHEEL_ENABLED 环境变量为 "false" 时直接返回 triggered=False
+    """
+
+def check_flywheel_status(config=None) -> dict:
+    """查询飞轮系统当前状态。
+
+    Returns:
+        dict:
+            enabled (bool): 飞轮是否启用
+            threshold (float): 当前 QA 分阈值
+            mode (str): 运行模式描述
+    """
+```
+
+### knowledge_anonymizer — 知识匿名化
+
+```python
+# pipeline/layers/knowledge_anonymizer.py
+from dataclasses import dataclass
+
+@dataclass
+class KnowledgeEntry:
+    id: str
+    content: str
+    metadata: dict
+
+def anonymize_knowledge(entry: KnowledgeEntry, brand_list: list[str]) -> KnowledgeEntry:
+    """对知识条目进行匿名化处理，移除敏感标识符。
+
+    脱敏规则：
+        - 品牌名（brand_list 中的词）→ "[BRAND]"
+        - 订单号模式（大写字母+数字串）→ "[ORDER_ID]"
+        - 文件路径（含 / 或 \\\\）→ "[PATH]"
+
+    Args:
+        entry: 待匿名化的知识条目
+        brand_list: 需要替换的品牌名列表（大小写不敏感）
+
+    Returns:
+        KnowledgeEntry: 匿名化后的新条目（原对象不被修改）
+
+    Notes:
+        批量处理靠外部循环调用，模块无 batch_anonymize 函数
+    """
+```
+
+---
+
 ## 辅助类型
 
 ### BrandProfile

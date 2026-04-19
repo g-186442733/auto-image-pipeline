@@ -1,9 +1,9 @@
 # 系统架构文档
 
 > **项目**：Auto Image Pipeline — 跨境电商自动化主图生产系统  
-> **版本**：L2 MVP  
-> **更新**：2026-04-17  
-> **状态**：Wave 1 已完成（T1-T4），Wave 2-3 建设中
+> **版本**：L5  
+> **更新**：2026-04-19  
+> **状态**：L4/L5 建设完成
 
 ---
 
@@ -40,42 +40,48 @@ flowchart TD
 
 下表列出全部 16 个任务模块，覆盖 Wave 1 到 Wave 4。当前 L2 阶段完成 T1-T4，其余模块按 Wave 计划推进。
 
-| 模块名 | 对应任务 | 职责 | 输入 | 输出 | 依赖 |
-|--------|----------|------|------|------|------|
-| 项目脚手架 | T1 | 初始化目录结构、依赖管理、CI 配置 | 无 | 可运行的项目骨架 | 无 |
-| 标签体系常量 | T2 | 定义三层标签分类法：INTENT_TAGS(6)、ROLE_TAGS(7)、SLOT_MAPPING(8) 及视觉标签 | 无 | `pipeline/constants/tags.py` | T1 |
-| SQLite ORM | T3 | 定义所有数据表（Project、BrandProfile、AmazonBenchmark、PromptAsset、SlotPlan、QARecord、ABTest、TagAssignment），管理数据库会话 | 无 | `pipeline/models/*.py`，SQLite 数据库文件 | T1, T2 |
-| 配置管理 | T4 | 以 dataclass 封装所有环境变量和运行时参数，支持 `.env` 加载 | 环境变量 / `.env` 文件 | `Config` 单例 | T1 |
-| 客户输入层 | T5 | 接收客户提交的品牌信息、产品参数、参考图，写入 Project 和 BrandProfile 表 | 表单数据 / CLI 参数 | Project 记录，BrandProfile 记录 | T3, T4 |
-| Amazon数据采集 | T6 | 通过 Keepa API 抓取竞品 ASIN 数据（价格、评分、图片），写入 AmazonBenchmark 表 | ASIN 列表，Keepa API Key | AmazonBenchmark 记录集 | T3, T4 |
-| 竞品Vision分析 | T7 | 调用 GPT-4o Vision 对竞品主图进行视觉元素解析，提取配色、构图、卖点布局等特征 | 竞品图片 URL，GPT-4o API Key | 结构化 Vision 报告（JSON），写入 AmazonBenchmark.vision_analysis | T6 |
-| Prompt CRUD | T8 | 提供 Prompt 资产的增删改查接口，管理 Prompt 版本和标签关联 | Prompt 文本，Tag 集合 | PromptAsset 记录，TagAssignment 记录 | T2, T3 |
-| Prompt组装引擎 | T9 | 根据品牌画像、竞品分析结果、标签选择，动态组装最终 Prompt | BrandProfile，Vision报告，Tag选择 | 完整 Prompt 字符串 | T7, T8 |
-| Slot Plan生成器 | T10 | 根据产品类目和卖点矩阵，规划一组主图的 Slot 分配方案（主图/场景图/白底图等） | Project记录，竞品基准 | SlotPlan 记录集 | T5, T6, T9 |
-| AI出图抽象层 | T11 | 统一封装多个 AI 出图后端（Flux、Midjourney、ComfyUI），对上层暴露相同接口 | Prompt，Slot配置，后端选择 | 图片文件，生成元数据 | T9, T10 |
-| QA Gate | T12 | 执行 5 道质检门：合规前置门、Visual Anchor门、Reference Chain门、Consistency System门、QA Gate门；写入 QARecord | 生成图片，SlotPlan，品牌规范 | QARecord，通过/拒绝决策，问题标注 | T10, T11 |
-| 数据回流 | T13 | 收集 A/B 测试结果和投放效果数据，写入 ABTest 表，触发 Prompt 资产的效果归因更新 | 投放数据，A/B 实验结果 | ABTest 记录，PromptAsset 效果分 | T3, T12 |
-| CLI + Pipeline编排 | T14 | 提供命令行入口，串联各层模块，支持按 Stage 单步执行或全流程运行 | CLI 参数 | 执行日志，各层产物 | T5-T13 |
-| Flask Web UI | T15 | 提供可视化操作界面：项目管理、Prompt 编辑、QA 审核、数据看板 | HTTP 请求 | HTML 页面，JSON API 响应 | T14 |
-| TWS端到端验证 | T16 | 真实 SKU 全链路冒烟测试，验证从客户输入到图片交付的完整流程 | 测试 SKU 数据集 | 测试报告，覆盖率指标 | T15 |
+| 模块名               | 对应任务 | 职责                                                                                                                             | 输入                              | 输出                                                             | 依赖           |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------- | -------------- |
+| 项目脚手架           | T1       | 初始化目录结构、依赖管理、CI 配置                                                                                                | 无                                | 可运行的项目骨架                                                 | 无             |
+| 标签体系常量         | T2       | 定义三层标签分类法：INTENT_TAGS(6)、ROLE_TAGS(7)、SLOT_MAPPING(8) 及视觉标签                                                     | 无                                | `pipeline/constants/tags.py`                                     | T1             |
+| SQLite ORM           | T3       | 定义所有数据表（Project、BrandProfile、AmazonBenchmark、PromptAsset、SlotPlan、QARecord、ABTest、TagAssignment），管理数据库会话 | 无                                | `pipeline/models/*.py`，SQLite 数据库文件                        | T1, T2         |
+| 配置管理             | T4       | 以 dataclass 封装所有环境变量和运行时参数，支持 `.env` 加载                                                                      | 环境变量 / `.env` 文件            | `Config` 单例                                                    | T1             |
+| 客户输入层           | T5       | 接收客户提交的品牌信息、产品参数、参考图，写入 Project 和 BrandProfile 表                                                        | 表单数据 / CLI 参数               | Project 记录，BrandProfile 记录                                  | T3, T4         |
+| Amazon数据采集       | T6       | 通过 Keepa API 抓取竞品 ASIN 数据（价格、评分、图片），写入 AmazonBenchmark 表                                                   | ASIN 列表，Keepa API Key          | AmazonBenchmark 记录集                                           | T3, T4         |
+| 竞品Vision分析       | T7       | 调用 GPT-4o Vision 对竞品主图进行视觉元素解析，提取配色、构图、卖点布局等特征                                                    | 竞品图片 URL，GPT-4o API Key      | 结构化 Vision 报告（JSON），写入 AmazonBenchmark.vision_analysis | T6             |
+| Prompt CRUD          | T8       | 提供 Prompt 资产的增删改查接口，管理 Prompt 版本和标签关联                                                                       | Prompt 文本，Tag 集合             | PromptAsset 记录，TagAssignment 记录                             | T2, T3         |
+| Prompt组装引擎       | T9       | 根据品牌画像、竞品分析结果、标签选择，动态组装最终 Prompt                                                                        | BrandProfile，Vision报告，Tag选择 | 完整 Prompt 字符串                                               | T7, T8         |
+| Slot Plan生成器      | T10      | 根据产品类目和卖点矩阵，规划一组主图的 Slot 分配方案（主图/场景图/白底图等）                                                     | Project记录，竞品基准             | SlotPlan 记录集                                                  | T5, T6, T9     |
+| AI出图抽象层         | T11      | 统一封装多个 AI 出图后端（Flux、Midjourney、ComfyUI），对上层暴露相同接口                                                        | Prompt，Slot配置，后端选择        | 图片文件，生成元数据                                             | T9, T10        |
+| QA Gate              | T12      | 执行 5 道质检门：合规前置门、Visual Anchor门、Reference Chain门、Consistency System门、QA Gate门；写入 QARecord                  | 生成图片，SlotPlan，品牌规范      | QARecord，通过/拒绝决策，问题标注                                | T10, T11       |
+| 数据回流             | T13      | 收集 A/B 测试结果和投放效果数据，写入 ABTest 表，触发 Prompt 资产的效果归因更新                                                  | 投放数据，A/B 实验结果            | ABTest 记录，PromptAsset 效果分                                  | T3, T12        |
+| CLI + Pipeline编排   | T14      | 提供命令行入口，串联各层模块，支持按 Stage 单步执行或全流程运行                                                                  | CLI 参数                          | 执行日志，各层产物                                               | T5-T13         |
+| Flask Web UI         | T15      | 提供可视化操作界面：项目管理、Prompt 编辑、QA 审核、数据看板                                                                     | HTTP 请求                         | HTML 页面，JSON API 响应                                         | T14            |
+| TWS端到端验证        | T16      | 真实 SKU 全链路冒烟测试，验证从客户输入到图片交付的完整流程                                                                      | 测试 SKU 数据集                   | 测试报告，覆盖率指标                                             | T15            |
+| db_migrate           | L4-T1    | 幂等数据库迁移工具，自动补齐缺失列（image_slots/ab_test_results/competitor_listings/review_clusters/qa_entries/image_briefs）    | engine（SQLAlchemy）              | 迁移报告（dict）                                                 | ORM models     |
+| confidence_routing   | L4-T2    | 置信度分段路由：HIGH（≥80）→ 自动通过 / MID（50-79）→ 快审 / LOW（<50）→ 完整 QA                                                 | QARecord                          | 路由决策字符串                                                   | step_qa        |
+| knowledge_anonymizer | L4-T3    | 品类知识匿名化，移除品牌名/订单号/文件路径等敏感标识，保留语义                                                                   | KnowledgeEntry + brand_list       | 匿名化后的 KnowledgeEntry                                        | knowledge_base |
+| ab_attribution       | L4-T4    | A/B 测试归因引擎：导入 CTR/CVR 数据，加权计算 performance_score（0.6×CTR + 0.4×CVR），写入 PromptAsset                           | ABTest 记录 / CSV 文件            | PromptAsset.performance_score 更新，处理条数                     | PromptAsset    |
+| trend_engine         | L4-T5    | 趋势预测引擎（纯 Python 线性回归，数据点 ≥7 时预测，否则返回 insufficient_data）                                                 | asin + keepa_data（dict）         | 趋势报告（predicted_trend / confidence / data_points）           | PromptAsset    |
+| flywheel             | L4-T6    | 全自动飞轮：QA 分低于阈值触发重生成，env flag（FLYWHEEL_ENABLED）控制开关，支持自定义 qa_score_fn                                | QA 分数 / project_id              | 新 DeliveryVersion（dict，含 triggered / reason / new_version）  | orchestrator   |
 
 ---
 
 ## 技术选型表
 
-| 组件 | 选择 | 理由 | 替代方案 |
-|------|------|------|----------|
-| 编程语言 | Python 3.11+ | 生态完整，AI SDK 覆盖率最高，团队熟悉 | Node.js（异步好但 AI 库弱），Go（性能好但 AI 生态差） |
-| 数据库 | SQLite | L2 阶段单机运行，零运维成本，schema 迁移简单，Alembic 支持完善 | PostgreSQL（L3+ 多实例时迁移），MySQL |
-| ORM | SQLAlchemy 2.x | 成熟稳定，支持 SQLite 和 PostgreSQL 无缝切换，配合 Alembic 做 migration | Tortoise ORM（异步），Peewee（轻量但功能弱） |
-| Web 框架 | Flask | 轻量，适合 L2 阶段内部工具，蓝图结构清晰，上手快 | FastAPI（L3 推荐，自带 OpenAPI），Django（太重） |
-| 竞品数据 | Keepa API | 提供亚马逊历史价格、销量、评分、图片等结构化数据，API 稳定 | 自建爬虫（维护成本高），Jungle Scout API（价格高） |
-| 竞品视觉分析 | GPT-4o Vision | 多模态能力强，能解析图片中的构图、配色、文字卖点，输出结构化 JSON | Claude 3.5 Sonnet Vision（备选），Gemini 1.5 Pro Vision |
-| AI 出图后端 | Flux / Midjourney / ComfyUI（抽象层统一调度） | 不锁定单一供应商，Flux 适合本地部署，MJ 质量高，ComfyUI 支持工作流定制 | DALL-E 3（质量稳定但定制性差），Stable Diffusion API |
-| 配置管理 | python-dotenv + dataclass | 零依赖，类型安全，IDE 补全友好 | Pydantic Settings（更严格的类型验证，L3 可迁移） |
-| 日志 | Python logging + structlog | 结构化日志便于后续接入可观测性系统 | loguru（简洁但扩展性弱） |
-| 测试 | pytest + pytest-cov | 生态标准，fixture 机制成熟 | unittest（冗余），nose2（不活跃） |
-| 依赖管理 | pip + requirements.txt / pyproject.toml | 当前阶段够用，无锁版本风险 | Poetry（L3 推荐），uv（更快） |
+| 组件         | 选择                                          | 理由                                                                    | 替代方案                                                |
+| ------------ | --------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| 编程语言     | Python 3.11+                                  | 生态完整，AI SDK 覆盖率最高，团队熟悉                                   | Node.js（异步好但 AI 库弱），Go（性能好但 AI 生态差）   |
+| 数据库       | SQLite                                        | L2 阶段单机运行，零运维成本，schema 迁移简单，Alembic 支持完善          | PostgreSQL（L3+ 多实例时迁移），MySQL                   |
+| ORM          | SQLAlchemy 2.x                                | 成熟稳定，支持 SQLite 和 PostgreSQL 无缝切换，配合 Alembic 做 migration | Tortoise ORM（异步），Peewee（轻量但功能弱）            |
+| Web 框架     | Flask                                         | 轻量，适合 L2 阶段内部工具，蓝图结构清晰，上手快                        | FastAPI（L3 推荐，自带 OpenAPI），Django（太重）        |
+| 竞品数据     | Keepa API                                     | 提供亚马逊历史价格、销量、评分、图片等结构化数据，API 稳定              | 自建爬虫（维护成本高），Jungle Scout API（价格高）      |
+| 竞品视觉分析 | GPT-4o Vision                                 | 多模态能力强，能解析图片中的构图、配色、文字卖点，输出结构化 JSON       | Claude 3.5 Sonnet Vision（备选），Gemini 1.5 Pro Vision |
+| AI 出图后端  | Flux / Midjourney / ComfyUI（抽象层统一调度） | 不锁定单一供应商，Flux 适合本地部署，MJ 质量高，ComfyUI 支持工作流定制  | DALL-E 3（质量稳定但定制性差），Stable Diffusion API    |
+| 配置管理     | python-dotenv + dataclass                     | 零依赖，类型安全，IDE 补全友好                                          | Pydantic Settings（更严格的类型验证，L3 可迁移）        |
+| 日志         | Python logging + structlog                    | 结构化日志便于后续接入可观测性系统                                      | loguru（简洁但扩展性弱）                                |
+| 测试         | pytest + pytest-cov                           | 生态标准，fixture 机制成熟                                              | unittest（冗余），nose2（不活跃）                       |
+| 依赖管理     | pip + requirements.txt / pyproject.toml       | 当前阶段够用，无锁版本风险                                              | Poetry（L3 推荐），uv（更快）                           |
 
 ---
 
@@ -213,13 +219,13 @@ auto-image-pipeline/                  # 项目根目录
 
 QA Gate（T12）串行执行 5 道检查，任意一道拒绝则图片进入人工审核队列：
 
-| 序号 | 门名称 | 检查内容 | 拦截动作 |
-|------|--------|----------|----------|
-| 1 | 合规前置门 | 图片内容合规性检查，排除违禁元素、虚假宣传 | 硬拒绝，记录违规类型 |
-| 2 | Visual Anchor 门 | 主视觉锚点是否突出（产品主体占比、焦点清晰度）| 标记为"焦点模糊"，建议重新生成 |
-| 3 | Reference Chain 门 | 生成图与参考图的视觉相关性（颜色、构图相似度）| 相似度低于阈值时拒绝 |
-| 4 | Consistency System 门 | 跨 Slot 的视觉一致性（字体、色调、品牌元素统一）| 标记不一致 Slot，触发局部重生成 |
-| 5 | QA Gate 门 | 综合评分门禁，整合前 4 道结果，输出最终通过/拒绝决策 | 写入 QARecord，驱动 Slot Plan 状态流转 |
+| 序号 | 门名称                | 检查内容                                             | 拦截动作                               |
+| ---- | --------------------- | ---------------------------------------------------- | -------------------------------------- |
+| 1    | 合规前置门            | 图片内容合规性检查，排除违禁元素、虚假宣传           | 硬拒绝，记录违规类型                   |
+| 2    | Visual Anchor 门      | 主视觉锚点是否突出（产品主体占比、焦点清晰度）       | 标记为"焦点模糊"，建议重新生成         |
+| 3    | Reference Chain 门    | 生成图与参考图的视觉相关性（颜色、构图相似度）       | 相似度低于阈值时拒绝                   |
+| 4    | Consistency System 门 | 跨 Slot 的视觉一致性（字体、色调、品牌元素统一）     | 标记不一致 Slot，触发局部重生成        |
+| 5    | QA Gate 门            | 综合评分门禁，整合前 4 道结果，输出最终通过/拒绝决策 | 写入 QARecord，驱动 Slot Plan 状态流转 |
 
 ---
 
@@ -261,4 +267,4 @@ QA Gate（T12）串行执行 5 道检查，任意一道拒绝则图片进入人�
 
 ---
 
-*文档由 AI 辅助生成，最终由工程负责人审核确认。如有出入，以代码实现为准。*
+_文档由 AI 辅助生成，最终由工程负责人审核确认。如有出入，以代码实现为准。_
