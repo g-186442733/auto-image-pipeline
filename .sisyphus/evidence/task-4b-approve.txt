@@ -1,0 +1,21 @@
+Task 4b: Approve/Reject - Evidence
+====================================
+Date: 2026-04-20
+
+Approve: POST /review/<id>/approve
+- Sets client_signed_at = datetime.now(timezone.utc)
+- Returns 302 redirect to /review
+- Returns 404 for non-existent IDs
+
+Reject: POST /review/<id>/reject
+- Prepends "[REJECTED] {reason}" to change_summary
+- Returns 302 redirect to /review
+- Returns 404 for non-existent IDs
+
+Tests: 6 passed (TestApproveReject)
+- test_approve_redirects
+- test_approve_sets_signed
+- test_approve_not_found
+- test_reject_redirects
+- test_reject_updates_record
+- test_reject_not_found

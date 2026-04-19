@@ -1268,3 +1268,99 @@ button[type="submit"]:active {
   display: flex;
   gap: 0.5rem;
 }
+
+/* Review Page */
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.review-table th,
+.review-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.review-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.inline-form {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+.btn-approve {
+  background: var(--success, #22c55e);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-reject {
+  background: var(--danger, #ef4444);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.reject-reason {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  width: 140px;
+}
+
+/* QA Dashboard */
+.qa-summary {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+.qa-stat {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 2rem;
+  text-align: center;
+}
+.qa-stat-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary, #2563eb);
+}
+.qa-stat-label {
+  font-size: 0.85rem;
+  color: var(--muted, #64748b);
+}
+.qa-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.qa-table th,
+.qa-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.badge-pass {
+  background: var(--success, #22c55e);
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+.badge-fail {
+  background: var(--danger, #ef4444);
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}

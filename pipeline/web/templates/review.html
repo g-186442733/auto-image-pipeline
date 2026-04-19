@@ -1,0 +1,52 @@
+{% extends "base.html" %} {% block title %}人工复核{% endblock %} {% block
+content %}
+<h1>人工复核</h1>
+{% if versions %}
+<table class="review-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>项目</th>
+      <th>版本</th>
+      <th>摘要</th>
+      <th>触发</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in versions %}
+    <tr>
+      <td>{{ v.id }}</td>
+      <td>{{ v._project_name }}</td>
+      <td>v{{ v.version_number }}</td>
+      <td>{{ v.change_summary }}</td>
+      <td>{{ v.trigger }}</td>
+      <td class="review-actions">
+        <form
+          method="post"
+          action="{{ url_for('review_approve', vid=v.id) }}"
+          class="inline-form"
+        >
+          <button type="submit" class="btn btn-approve">Approve</button>
+        </form>
+        <form
+          method="post"
+          action="{{ url_for('review_reject', vid=v.id) }}"
+          class="inline-form"
+        >
+          <input
+            type="text"
+            name="reason"
+            placeholder="驳回原因"
+            class="reject-reason"
+          />
+          <button type="submit" class="btn btn-reject">Reject</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state">暂无待审版本</p>
+{% endif %} {% endblock %}

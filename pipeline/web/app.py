@@ -751,4 +751,72 @@ def create_app():
         finally:
             db.close()
 
+    # ---- Review Page ----
+
+    @app.route("/review")
+    def review():
+        db = get_session()
+        try:
+            pending = (
+                db.query(DeliveryVersion)
+                .filter(DeliveryVersion.client_signed_at.is_(None))
+                .order_by(DeliveryVersion.created_at.desc())
+                .all()
+            )
+            for dv in pending:
+                proj = db.get(Project, dv.project_id)
+                dv._project_name = proj.name if proj else "Unknown"
+            return render_template("review.html", versions=pending)
+        finally:
+            db.close()
+
+    @app.route("/review/<int:vid>/approve", methods=["POST"])
+    def review_approve(vid):
+        from datetime import datetime, timezone
+
+        db = get_session()
+        try:
+            dv = db.get(DeliveryVersion, vid)
+            if not dv:
+                return "Not Found", 404
+            dv.client_signed_at = datetime.now(timezone.utc)
+            db.commit()
+            return redirect(url_for("review"))
+        finally:
+            db.close()
+
+    @app.route("/review/<int:vid>/reject", methods=["POST"])
+    def review_reject(vid):
+        db = get_session()
+        try:
+            dv = db.get(DeliveryVersion, vid)
+            if not dv:
+                return "Not Found", 404
+            reason = request.form.get("reason", "")
+            dv.change_summary = f"[REJECTED] {reason}\n{dv.change_summary or ''}"
+            db.commit()
+            return redirect(url_for("review"))
+        finally:
+            db.close()
+
+    # ---- QA Dashboard ----
+
+    @app.route("/qa-dashboard")
+    def qa_dashboard():
+        db = get_session()
+        try:
+            records = db.query(QARecord).order_by(QARecord.created_at.desc()).all()
+            total = len(records)
+            passed = sum(1 for r in records if r.passed)
+            pass_rate = round(passed / total * 100) if total else 0
+            return render_template(
+                "qa_dashboard.html",
+                records=records,
+                total=total,
+                passed=passed,
+                pass_rate=pass_rate,
+            )
+        finally:
+            db.close()
+
     return app
