@@ -12,6 +12,7 @@ MIGRATIONS = [
 def run_migrations(engine):
     inspector = inspect(engine)
     with engine.connect() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS brand_profiles"))
         for table_name, col_name, col_def in MIGRATIONS:
             try:
                 existing_cols = {c["name"] for c in inspector.get_columns(table_name)}

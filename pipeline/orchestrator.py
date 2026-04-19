@@ -586,7 +586,7 @@ def step_feedback(project_id: int, session=None) -> None:
     Skips silently if no BrandProfile exists for the project.
     """
     from pipeline.layers.feedback_loop import update_brand_profile_from_results
-    from pipeline.models.brand import BrandProfile
+    from pipeline.models.brand_profile import BrandProfile
 
     owns_session = False
     if session is None:

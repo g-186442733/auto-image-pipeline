@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from pipeline.models.base import Base
 from pipeline.models.project import Project
-from pipeline.models.brand import BrandProfile
+from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.ab_test_result import ABTestResult
 from pipeline.layers.feedback_loop import (
     record_ab_result,
@@ -31,7 +31,7 @@ def _seed_project(session, project_id=1):
 
 
 def _seed_brand(session, project_id=1):
-    session.add(BrandProfile(project_id=project_id, brand_name="TestBrand"))
+    session.add(BrandProfile(project_id=project_id))
     session.commit()
 
 

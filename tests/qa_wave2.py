@@ -99,13 +99,10 @@ except Exception as e:
 
 # T5-4: upsert_brand_profile
 try:
-    bp = upsert_brand_profile(
-        {"project_id": proj.id, "brand_name": "TestBrand", "tone": "premium"}
-    )
-    assert bp.brand_name == "TestBrand"
-    assert bp.tone == "premium"
+    bp = upsert_brand_profile({"project_id": proj.id, "brand_tone": "premium"})
+    assert bp.brand_tone == "premium"
     # update
-    bp2 = upsert_brand_profile({"project_id": proj.id, "brand_name": "TestBrand V2"})
+    bp2 = upsert_brand_profile({"project_id": proj.id, "brand_tone": "luxury"})
     assert bp2.id == bp.id  # same record updated
     ok("upsert_brand_profile create + update")
 except Exception as e:
@@ -113,7 +110,7 @@ except Exception as e:
 
 # T5-5: upsert_brand_profile bad project
 try:
-    upsert_brand_profile({"project_id": 99999, "brand_name": "Ghost"})
+    upsert_brand_profile({"project_id": 99999, "brand_tone": "Ghost"})
     fail("upsert_brand_profile bad project", "should have raised ValueError")
 except ValueError as e:
     assert "E_INPUT_003" in str(e)
@@ -429,7 +426,9 @@ try:
     sess = _gs()
     bp_obj = (
         sess.query(
-            __import__("pipeline.models.brand", fromlist=["BrandProfile"]).BrandProfile
+            __import__(
+                "pipeline.models.brand_profile", fromlist=["BrandProfile"]
+            ).BrandProfile
         )
         .filter_by(project_id=proj.id)
         .first()

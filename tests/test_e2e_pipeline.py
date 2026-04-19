@@ -29,7 +29,7 @@ from pipeline.models.base import Base, get_session  # noqa: E402
 # Import all models before create_all so their tables are registered
 from pipeline.models.ab_test_result import ABTestResult  # noqa: E402
 from pipeline.models.benchmark import AmazonBenchmark  # noqa: E402
-from pipeline.models.brand import BrandProfile  # noqa: E402
+from pipeline.models.brand_profile import BrandProfile  # noqa: E402
 from pipeline.models.competitor_listing import CompetitorListing  # noqa: E402
 from pipeline.models.image_brief import ImageBrief  # noqa: E402
 from pipeline.models.project import Project  # noqa: E402
@@ -125,10 +125,9 @@ def _seed_project(session) -> int:
     session.add(
         BrandProfile(
             project_id=pid,
-            brand_name="TestBrand",
-            color_palette="#FFFFFF,#000000",
-            font_family="Helvetica",
-            tone="professional",
+            brand_tone="professional",
+            color_system="#FFFFFF,#000000",
+            font_preference="Helvetica",
             guidelines="{}",
         )
     )

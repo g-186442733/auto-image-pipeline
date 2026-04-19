@@ -3,7 +3,7 @@ from typing import Optional
 
 from pipeline.models.base import get_session
 from pipeline.models.project import Project
-from pipeline.models.brand import BrandProfile
+from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.intake_checklist import IntakeChecklist
 from pipeline.utils.logger import setup_logger
 
@@ -68,7 +68,6 @@ def create_project(brief: dict, intake_checklist: Optional[dict] = None) -> Proj
 
 def upsert_brand_profile(data: dict) -> BrandProfile:
     project_id = data.get("project_id")
-    brand_name = data.get("brand_name")
 
     session = get_session()
     try:
@@ -83,16 +82,20 @@ def upsert_brand_profile(data: dict) -> BrandProfile:
         )
 
         optional_fields = (
-            "color_palette",
-            "font_family",
-            "tone",
-            "logo_path",
+            "brand_tone",
+            "color_system",
+            "font_preference",
+            "photo_style",
+            "model_type",
+            "scene_preference",
+            "composition_preference",
+            "material_texture",
+            "competitor_positioning",
+            "brand_story",
             "guidelines",
         )
 
         if profile is not None:
-            if brand_name is not None:
-                profile.brand_name = brand_name
             for field in optional_fields:
                 if field in data:
                     setattr(profile, field, data[field])
@@ -102,7 +105,6 @@ def upsert_brand_profile(data: dict) -> BrandProfile:
         else:
             profile = BrandProfile(
                 project_id=project_id,
-                brand_name=brand_name,
                 **{f: data[f] for f in optional_fields if f in data},
             )
             session.add(profile)

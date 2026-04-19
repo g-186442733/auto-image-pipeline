@@ -3,7 +3,6 @@ from sqlalchemy import create_engine, inspect, text
 import pipeline.models.base as base_mod
 import pipeline.models.tenant
 import pipeline.models.project
-import pipeline.models.brand
 import pipeline.models.brand_profile
 import pipeline.models.benchmark
 import pipeline.models.prompt_asset

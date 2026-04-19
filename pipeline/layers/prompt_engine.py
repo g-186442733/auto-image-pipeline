@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from pipeline.constants.tags import SLOT_MAPPING
 from pipeline.models.base import get_session
-from pipeline.models.brand import BrandProfile
+from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.image_brief import ImageBrief
 from pipeline.models.prompt_asset import PromptAsset
@@ -74,10 +74,10 @@ def assemble_prompt(
 
         if brand_profile is not None:
             brand_parts: list[str] = []
-            if brand_profile.tone:
-                brand_parts.append(f"Brand tone: {brand_profile.tone}")
-            if brand_profile.color_palette:
-                brand_parts.append(f"Brand colors: {brand_profile.color_palette}")
+            if brand_profile.brand_tone:
+                brand_parts.append(f"Brand tone: {brand_profile.brand_tone}")
+            if brand_profile.color_system:
+                brand_parts.append(f"Brand colors: {brand_profile.color_system}")
             if brand_profile.guidelines:
                 brand_parts.append(brand_profile.guidelines)
             if brand_parts:
@@ -166,10 +166,10 @@ def build_prompt(
 
         if brand:
             brand_parts = []
-            if brand.tone:
-                brand_parts.append(f"Brand tone: {brand.tone}")
-            if brand.color_palette:
-                brand_parts.append(f"Brand colors: {brand.color_palette}")
+            if brand.brand_tone:
+                brand_parts.append(f"Brand tone: {brand.brand_tone}")
+            if brand.color_system:
+                brand_parts.append(f"Brand colors: {brand.color_system}")
             if brand.guidelines:
                 brand_parts.append(brand.guidelines)
             if brand_parts:

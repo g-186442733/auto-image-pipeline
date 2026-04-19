@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from pipeline.models.base import Base
 from pipeline.models.image_brief import ImageBrief
-from pipeline.models.brand import BrandProfile
+from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
@@ -53,9 +53,8 @@ def _seed_brand(session, project_id=PROJECT_ID):
     session.add(
         BrandProfile(
             project_id=project_id,
-            brand_name="TestBrand",
-            tone="professional",
-            color_palette="#FF0000, #00FF00",
+            brand_tone="professional",
+            color_system="#FF0000, #00FF00",
             guidelines="Always use brand watermark.",
         )
     )

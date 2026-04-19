@@ -15,7 +15,7 @@ from pipeline.models.project import Project
 from pipeline.models.slot_plan import SlotPlan
 from pipeline.models.qa_record import QARecord
 from pipeline.models.prompt_asset import PromptAsset
-from pipeline.models.brand import BrandProfile
+from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.utils.logger import setup_logger
 

@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 from pipeline.models.base import Base
 from pipeline.models.brand_profile import BrandProfile as BrandProfileCard
-from pipeline.models.brand import BrandProfile
+
+# 合并后 BrandProfile 统一指向 brand_profile_cards
+BrandProfile = BrandProfileCard
 from pipeline.models.project import Project
 from pipeline.models.ab_test_result import ABTestResult
 from pipeline.db_migrate import run_migrations
@@ -62,12 +64,12 @@ def test_guidelines_roundtrip_brand_profile_cards(mem_session):
 
 
 def test_guidelines_roundtrip_brand_profiles(mem_session):
-    """brand_profiles 表 guidelines 字段可写入并读回。"""
+    """brand_profile_cards 表 guidelines 字段可写入并读回（合并后）。"""
     proj = Project(name="test-proj-2", category="test")
     mem_session.add(proj)
     mem_session.flush()
 
-    bp = BrandProfile(project_id=proj.id, brand_name="TestBrand", guidelines="品牌指南")
+    bp = BrandProfile(project_id=proj.id, guidelines="品牌指南")
     mem_session.add(bp)
     mem_session.commit()
 
@@ -84,7 +86,7 @@ def test_update_brand_profile_from_results_writes_guidelines(mem_session):
     mem_session.add(proj)
     mem_session.flush()
 
-    bp = BrandProfile(project_id=proj.id, brand_name="WB")
+    bp = BrandProfile(project_id=proj.id)
     mem_session.add(bp)
     mem_session.flush()
 
