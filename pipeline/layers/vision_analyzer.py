@@ -1,4 +1,4 @@
-"""Vision analysis layer using GPT-4o Vision API."""
+"""Vision analysis layer — supports OpenAI (default) and Gemini Vision providers."""
 
 import json
 import re
@@ -54,6 +54,36 @@ def analyze_image(image_url: str) -> dict:
     Raises ValueError("E_VISION_002: ...") if image URL inaccessible.
     Raises ValueError("E_VISION_003: ...") if API call fails.
     """
+    if config.vision_provider == "gemini":
+        return _analyze_image_gemini(image_url)
+    return _analyze_image_openai(image_url)
+
+
+def _analyze_image_gemini(image_url: str) -> dict:
+    import tempfile, urllib.request
+    from pipeline.adapters.gemini_vision_adapter import GeminiVisionAdapter
+
+    adapter = GeminiVisionAdapter()
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = tmp.name
+    urllib.request.urlretrieve(image_url, tmp_path)
+    raw = adapter.analyze(tmp_path, _SYSTEM_PROMPT)
+    analysis_text = raw.get("analysis", "")
+    try:
+        cleaned = analysis_text.strip()
+        m = re.match(r"^```(?:json)?\s*\n?(.*?)```\s*$", cleaned, re.DOTALL)
+        if m:
+            cleaned = m.group(1).strip()
+        result = json.loads(cleaned)
+    except json.JSONDecodeError:
+        logger.warning("Gemini vision JSON parse failed; returning default dict.")
+        return dict(_DEFAULT_RESULT)
+    final = dict(_DEFAULT_RESULT)
+    final.update({k: result[k] for k in _DEFAULT_RESULT if k in result})
+    return final
+
+
+def _analyze_image_openai(image_url: str) -> dict:
     if not config.openai_api_key:
         raise ValueError("E_VISION_001: openai_api_key is empty or not configured.")
 

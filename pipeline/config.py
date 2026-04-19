@@ -53,6 +53,9 @@ class Config:
             os.getenv("AIP_PARALLEL_ANALYZE", "1").lower() in ("1", "true", "yes")
         )
     )
+    vision_provider: str = field(
+        default_factory=lambda: os.getenv("VISION_PROVIDER", "openai")
+    )
     log_level: str = field(default_factory=lambda: os.getenv("AIP_LOG_LEVEL", "INFO"))
     flask_port: int = field(
         default_factory=lambda: int(os.getenv("AIP_FLASK_PORT", "5100"))
