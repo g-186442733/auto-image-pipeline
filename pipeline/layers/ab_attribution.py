@@ -51,7 +51,7 @@ def apply_attribution(session, data: list[dict]) -> int:
     count = 0
     for row in data:
         asset_id = row["prompt_asset_id"]
-        asset = session.query(PromptAsset).get(asset_id)
+        asset = session.get(PromptAsset, asset_id)
         if asset is None:
             continue
         score = calculate_performance_score(row["ctr"], row["cvr"])

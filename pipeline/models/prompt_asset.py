@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Float,
+    Boolean,
+    ForeignKey,
+    func,
+)
 from pipeline.models.base import Base
 
 
@@ -14,3 +24,5 @@ class PromptAsset(Base):
     version = Column(Integer, default=1)
     image_path = Column(String(500))
     created_at = Column(DateTime, server_default=func.now())
+    performance_score = Column(Float, nullable=True)
+    is_recommended = Column(Boolean, default=False)

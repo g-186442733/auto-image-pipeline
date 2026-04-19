@@ -24,3 +24,4 @@ class DeliveryVersion(Base):
     change_summary = Column(Text, default="")
     file_manifest = Column(Text, default="[]")
     auto_delivered = Column(Boolean, default=False)
+    client_signed_at = Column(DateTime, nullable=True)
