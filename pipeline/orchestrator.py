@@ -484,6 +484,15 @@ _QA_MAX_RETRIES = 2
 _QA_PASS_THRESHOLD = 70
 
 
+def _route_by_confidence(score: float) -> str:
+    if score >= 80:
+        return "pass"
+    elif score >= 50:
+        return "retry_alt_prompt"
+    else:
+        return "human_review"
+
+
 def step_qa(project_id: int, adapter_name: str = "mock") -> list:
     """Run QA checks with retry loop. Max 2 retries per slot (3 total attempts)."""
     session = get_session()
