@@ -1,0 +1,3610 @@
+........................................................................ [ 15%]
+................................................EEEEEFEEEEEEFF.......... [ 30%]
+...................................................F.FFFFFFFFFFFFFFFFFFF [ 45%]
+FFFFFFFFFFFFFFFF........................................................ [ 60%]
+........................................................................ [ 75%]
+........................................................................ [ 90%]
+................................................                         [100%]
+==================================== ERRORS ====================================
+_________ ERROR at setup of TestGenerateBrief.test_returns_image_brief _________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10a001310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture(scope="module")
+    def project_id():
+        s = get_session()
+        try:
+>           pid = _seed_project(s)
+                  ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+__________ ERROR at setup of TestSlotPlanner.test_returns_eight_plans __________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10a001310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture(scope="module")
+    def project_id():
+        s = get_session()
+        try:
+>           pid = _seed_project(s)
+                  ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+________ ERROR at setup of TestPromptEngine.test_build_prompt_slot_zero ________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10a001310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture(scope="module")
+    def project_id():
+        s = get_session()
+        try:
+>           pid = _seed_project(s)
+                  ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+_____ ERROR at setup of TestDelivery.test_build_delivery_creates_manifest ______
+
+self = <sqlalchemy.engine.base.Connection object at 0x10a001310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture(scope="module")
+    def project_id():
+        s = get_session()
+        try:
+>           pid = _seed_project(s)
+                  ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+__________ ERROR at setup of TestFeedbackLoop.test_record_and_export ___________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10a001310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture(scope="module")
+    def project_id():
+        s = get_session()
+        try:
+>           pid = _seed_project(s)
+                  ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109f0f740>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3c410>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+_______________ ERROR at setup of TestStepByStep.test_step_init ________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109195c70>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e31d0>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109d1ec40>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e31d0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109d1ec40>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e31d0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+______________ ERROR at setup of TestStepByStep.test_step_analyze ______________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109196210>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0c50>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1098f6340>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0c50>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1098f6340>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0c50>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+_______________ ERROR at setup of TestStepByStep.test_step_plan ________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x1091959a0>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3290>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109e00ec0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3290>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109e00ec0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3290>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+_____________ ERROR at setup of TestStepByStep.test_step_generate ______________
+
+self = <sqlalchemy.engine.base.Connection object at 0x1091975c0>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0350>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1091e1dc0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0350>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1091e1dc0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e0350>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+________________ ERROR at setup of TestStepByStep.test_step_qa _________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109e29310>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f950>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x10985ad40>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f950>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x10985ad40>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f950>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+______________ ERROR at setup of TestStepByStep.test_step_report _______________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109e28320>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x108f37710>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1092e16c0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x108f37710>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.fixture
+    def project():
+        """Create a project from the TWS brief fixture."""
+>       proj = step_init(BRIEF_PATH)
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x1092e16c0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x108f37710>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+=================================== FAILURES ===================================
+_______________ TestDegradedFullChain.test_full_chain_no_api_key _______________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109194230>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3dd0>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x10a142640>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3dd0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_e2e_pipeline.TestDegradedFullChain object at 0x1088b7390>
+
+    def test_full_chain_no_api_key(self):
+        old_key = os.environ.pop("GOOGLE_API_KEY", None)
+        try:
+            s = get_session()
+            try:
+>               pid = _seed_project(s)
+                      ^^^^^^^^^^^^^^^^
+
+tests/test_e2e_pipeline.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_pipeline.py:70: in _seed_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x10a142640>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x1097e3dd0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('E2E Test Product', 'B000TEST01', 'Home', 'active', None, None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+________________ TestFullPipeline.test_full_pipeline_completes _________________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109e28050>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3ff50>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109dc6ac0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3ff50>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_e2e_tws.TestFullPipeline object at 0x108954050>
+
+    def test_full_pipeline_completes(self):
+        """Full pipeline runs to 'completed' with mocked externals."""
+        call_count = {"analyze": 0}
+    
+        def _patched_analyze(project_id: int) -> dict:
+            """Mock step_analyze: insert benchmarks + return mock data."""
+            call_count["analyze"] += 1
+            _insert_benchmarks(project_id)
+            from pipeline.orchestrator import _update_status
+    
+            _update_status(project_id, "analyzed")
+            return {
+                "asin_detail": _mock_fetch_asin_detail("B0TWS00001"),
+                "category_top": _mock_fetch_category_top("TWS earphone"),
+                "competitor_analysis": _mock_analyze_competitor("B0TWS00001"),
+            }
+    
+        def _patched_generate(project_id: int, adapter_name: str = "mock") -> dict:
+            """Mock step_generate: insert PromptAssets + call real generate."""
+            _insert_prompt_assets(project_id)
+            # Now call the real generate logic
+            from pipeline.layers.prompt_engine import generate_slot_prompts
+            from pipeline.adapters.registry import get_adapter
+            from pipeline.orchestrator import _update_status
+    
+            prompts = generate_slot_prompts(project_id)
+            adapter = get_adapter(adapter_name)
+            results = {}
+            for slot_label, prompt_text in prompts.items():
+                result = adapter.generate(prompt_text)
+                results[slot_label] = result
+            _update_status(project_id, "generated")
+            return results
+    
+        _vision_resp = mock.MagicMock(
+            status_code=200,
+            json=lambda: {"choices": [{"message": {"content": '{"has_text": false}'}}]},
+        )
+        with (
+            mock.patch(
+                "pipeline.orchestrator.step_analyze", side_effect=_patched_analyze
+            ),
+            mock.patch(
+                "pipeline.orchestrator.step_generate", side_effect=_patched_generate
+            ),
+            mock.patch("pipeline.layers.qa_gate.httpx.post", return_value=_vision_resp),
+        ):
+>           result = run_full_pipeline(BRIEF_PATH, adapter_name="mock")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:614: in run_full_pipeline
+    project = step_init(brief_path)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109dc6ac0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3ff50>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+___________ TestFullPipeline.test_full_pipeline_db_records_complete ____________
+
+self = <sqlalchemy.engine.base.Connection object at 0x109e29130>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f050>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x109f1b350>
+parameters = [('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109cd61c0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f050>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: NOT NULL constraint failed: projects.tenant_id
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_e2e_tws.TestFullPipeline object at 0x108954190>
+
+    def test_full_pipeline_db_records_complete(self):
+        """Verify every stage produces expected DB artifacts."""
+    
+        def _patched_analyze(project_id: int) -> dict:
+            _insert_benchmarks(project_id)
+            from pipeline.orchestrator import _update_status
+    
+            _update_status(project_id, "analyzed")
+            return {"asin_detail": {}, "category_top": [], "competitor_analysis": []}
+    
+        def _patched_generate(project_id: int, adapter_name: str = "mock") -> dict:
+            _insert_prompt_assets(project_id)
+            from pipeline.layers.prompt_engine import generate_slot_prompts
+            from pipeline.adapters.registry import get_adapter
+            from pipeline.orchestrator import _update_status
+    
+            prompts = generate_slot_prompts(project_id)
+            adapter = get_adapter(adapter_name)
+            results = {}
+            for label, text in prompts.items():
+                results[label] = adapter.generate(text)
+            _update_status(project_id, "generated")
+            return results
+    
+        _vision_resp = mock.MagicMock(
+            status_code=200,
+            json=lambda: {"choices": [{"message": {"content": '{"has_text": false}'}}]},
+        )
+        with (
+            mock.patch(
+                "pipeline.orchestrator.step_analyze", side_effect=_patched_analyze
+            ),
+            mock.patch(
+                "pipeline.orchestrator.step_generate", side_effect=_patched_generate
+            ),
+            mock.patch("pipeline.layers.qa_gate.httpx.post", return_value=_vision_resp),
+        ):
+>           result = run_full_pipeline(BRIEF_PATH, adapter_name="mock")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_e2e_tws.py:400: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pipeline/orchestrator.py:614: in run_full_pipeline
+    project = step_init(brief_path)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/orchestrator.py:55: in step_init
+    project = create_project(brief)
+              ^^^^^^^^^^^^^^^^^^^^^
+pipeline/layers/input_layer.py:46: in create_project
+    session.flush()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x109aef6f0>
+cursor = <sqlite3.Cursor object at 0x109cd61c0>
+statement = 'INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at'
+parameters = ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x109f3f050>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: projects.tenant_id
+E       [SQL: INSERT INTO projects (name, asin, category, status, notes, customer_brief) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, updated_at]
+E       [parameters: ('TWS Earphone Launch', 'B0TWS00001', 'TWS earphone', 'draft', 'Premium TWS earphone product listing, 8 images for Amazon A+ content', None)]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: IntegrityError
+___________________________ test_tenant_in_init_all ____________________________
+
+    def test_tenant_in_init_all():
+        import pipeline.models as m
+>       assert "Tenant" in m.__all__
+E       AssertionError: assert 'Tenant' in ['Base', 'get_engine', 'get_session', 'create_all', 'Project', 'BrandProfile', ...]
+E        +  where ['Base', 'get_engine', 'get_session', 'create_all', 'Project', 'BrandProfile', ...] = <module 'pipeline.models' from '/Users/axureboutique/Projects/auto-image-pipeline/pipeline/models/__init__.py'>.__all__
+
+tests/test_l5_migration.py:63: AssertionError
+__________________________ test_project_has_tenant_id __________________________
+
+    def test_project_has_tenant_id():
+        from pipeline.models.project import Project
+>       assert hasattr(Project, "tenant_id"), "Project missing tenant_id"
+E       AssertionError: Project missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.project.Project'>, 'tenant_id')
+
+tests/test_l5_migration.py:81: AssertionError
+_______________________ test_brand_profile_has_tenant_id _______________________
+
+    def test_brand_profile_has_tenant_id():
+        from pipeline.models.brand import BrandProfile
+>       assert hasattr(BrandProfile, "tenant_id"), "BrandProfile missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:86: AssertionError
+____________________ test_brand_profile_card_has_tenant_id _____________________
+
+    def test_brand_profile_card_has_tenant_id():
+        from pipeline.models.brand_profile import BrandProfile as BPC
+>       assert hasattr(BPC, "tenant_id"), "brand_profile_cards missing tenant_id"
+E       AssertionError: brand_profile_cards missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:91: AssertionError
+________________________ test_brand_profile_new_fields _________________________
+
+    def test_brand_profile_new_fields():
+        from pipeline.models.brand_profile import BrandProfile as BPC
+>       assert hasattr(BPC, "lora_type"), "BrandProfile missing lora_type"
+E       AssertionError: BrandProfile missing lora_type
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'lora_type')
+
+tests/test_l5_migration.py:96: AssertionError
+_______________________ test_delivery_version_new_fields _______________________
+
+    def test_delivery_version_new_fields():
+        from pipeline.models.delivery_version import DeliveryVersion
+>       assert hasattr(DeliveryVersion, "auto_delivered"), "DeliveryVersion missing auto_delivered"
+E       AssertionError: DeliveryVersion missing auto_delivered
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.delivery_version.DeliveryVersion'>, 'auto_delivered')
+
+tests/test_l5_migration.py:102: AssertionError
+____ test_model_has_tenant_id[pipeline.models.ab_test_result:ABTestResult] _____
+
+spec = 'pipeline.models.ab_test_result:ABTestResult'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ABTestResult missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.ab_test_result.ABTestResult'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___________ test_model_has_tenant_id[pipeline.models.ab_test:ABTest] ___________
+
+spec = 'pipeline.models.ab_test:ABTest'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ABTest missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.ab_test.ABTest'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.aplus_content:APlusContent] _____
+
+spec = 'pipeline.models.aplus_content:APlusContent'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: APlusContent missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.aplus_content.APlusContent'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+______ test_model_has_tenant_id[pipeline.models.asin_ranking:ASINRanking] ______
+
+spec = 'pipeline.models.asin_ranking:ASINRanking'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ASINRanking missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.asin_ranking.ASINRanking'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.benchmark:AmazonBenchmark] ______
+
+spec = 'pipeline.models.benchmark:AmazonBenchmark'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: AmazonBenchmark missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.benchmark.AmazonBenchmark'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.brand_profile:BrandProfile] _____
+
+spec = 'pipeline.models.brand_profile:BrandProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.brand:BrandProfile] _________
+
+spec = 'pipeline.models.brand:BrandProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___ test_model_has_tenant_id[pipeline.models.client_feedback:ClientFeedback] ___
+
+spec = 'pipeline.models.client_feedback:ClientFeedback'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ClientFeedback missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.client_feedback.ClientFeedback'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_ test_model_has_tenant_id[pipeline.models.competitor_listing:CompetitorListing] _
+
+spec = 'pipeline.models.competitor_listing:CompetitorListing'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: CompetitorListing missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.competitor_listing.CompetitorListing'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_ test_model_has_tenant_id[pipeline.models.consistency_profile:ConsistencyProfile] _
+
+spec = 'pipeline.models.consistency_profile:ConsistencyProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ConsistencyProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.consistency_profile.ConsistencyProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__ test_model_has_tenant_id[pipeline.models.delivery_version:DeliveryVersion] __
+
+spec = 'pipeline.models.delivery_version:DeliveryVersion'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: DeliveryVersion missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.delivery_version.DeliveryVersion'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_______ test_model_has_tenant_id[pipeline.models.image_brief:ImageBrief] _______
+
+spec = 'pipeline.models.image_brief:ImageBrief'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ImageBrief missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.image_brief.ImageBrief'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.image_snapshot:ImageSnapshot] ____
+
+spec = 'pipeline.models.image_snapshot:ImageSnapshot'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ImageSnapshot missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.image_snapshot.ImageSnapshot'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__ test_model_has_tenant_id[pipeline.models.intake_checklist:IntakeChecklist] __
+
+spec = 'pipeline.models.intake_checklist:IntakeChecklist'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: IntakeChecklist missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.intake_checklist.IntakeChecklist'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___ test_model_has_tenant_id[pipeline.models.knowledge_entry:KnowledgeEntry] ___
+
+spec = 'pipeline.models.knowledge_entry:KnowledgeEntry'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: KnowledgeEntry missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.knowledge_entry.KnowledgeEntry'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.price_analysis:PriceAnalysis] ____
+
+spec = 'pipeline.models.price_analysis:PriceAnalysis'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PriceAnalysis missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.price_analysis.PriceAnalysis'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__________ test_model_has_tenant_id[pipeline.models.project:Project] ___________
+
+spec = 'pipeline.models.project:Project'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: Project missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.project.Project'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.promo_analysis:PromoAnalysis] ____
+
+spec = 'pipeline.models.promo_analysis:PromoAnalysis'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PromoAnalysis missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.promo_analysis.PromoAnalysis'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+______ test_model_has_tenant_id[pipeline.models.prompt_asset:PromptAsset] ______
+
+spec = 'pipeline.models.prompt_asset:PromptAsset'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PromptAsset missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.prompt_asset.PromptAsset'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__________ test_model_has_tenant_id[pipeline.models.qa_entry:QAEntry] __________
+
+spec = 'pipeline.models.qa_entry:QAEntry'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: QAEntry missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.qa_entry.QAEntry'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.qa_record:QARecord] _________
+
+spec = 'pipeline.models.qa_record:QARecord'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: QARecord missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.qa_record.QARecord'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.reference_pack:ReferencePack] ____
+
+spec = 'pipeline.models.reference_pack:ReferencePack'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ReferencePack missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.reference_pack.ReferencePack'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.review_cluster:ReviewCluster] ____
+
+spec = 'pipeline.models.review_cluster:ReviewCluster'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ReviewCluster missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.review_cluster.ReviewCluster'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.slot_plan:SlotPlan] _________
+
+spec = 'pipeline.models.slot_plan:SlotPlan'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: SlotPlan missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.slot_plan.SlotPlan'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.tag_assignment:TagAssignment] ____
+
+spec = 'pipeline.models.tag_assignment:TagAssignment'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: TagAssignment missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.tag_assignment.TagAssignment'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_______________________ test_tags_a_plan_func_constants ________________________
+
+    def test_tags_a_plan_func_constants():
+>       from pipeline.constants.tags import (
+            FUNC_HERO, FUNC_BENEFIT, FUNC_LIFESTYLE,
+            FUNC_DETAIL, FUNC_SOCIAL, FUNC_SIZE,
+        )
+E       ImportError: cannot import name 'FUNC_HERO' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:145: ImportError
+______________________ test_tags_a_plan_intent_constants _______________________
+
+    def test_tags_a_plan_intent_constants():
+>       from pipeline.constants.tags import INT_01, INT_02, INT_03, INT_04, INT_05, INT_06
+E       ImportError: cannot import name 'INT_01' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:158: ImportError
+_______________________ test_tags_a_plan_role_constants ________________________
+
+    def test_tags_a_plan_role_constants():
+>       from pipeline.constants.tags import ROLE_01, ROLE_02, ROLE_03, ROLE_04, ROLE_05, ROLE_06, ROLE_07
+E       ImportError: cannot import name 'ROLE_01' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:164: ImportError
+_________________________ test_tags_slot_index_mapping _________________________
+
+    def test_tags_slot_index_mapping():
+>       from pipeline.constants.tags import SLOT_INDEX_MAPPING
+E       ImportError: cannot import name 'SLOT_INDEX_MAPPING' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:170: ImportError
+___________________ test_tags_deprecated_aliases_still_work ____________________
+
+    def test_tags_deprecated_aliases_still_work():
+>       from pipeline.constants.tags import FUNC_HERO, FUNC_BENEFIT
+E       ImportError: cannot import name 'FUNC_HERO' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:177: ImportError
+=============================== warnings summary ===============================
+tests/test_aplus_content.py: 9 warnings
+tests/test_aplus_generator.py: 154 warnings
+tests/test_schema_l4.py: 20 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks
+tests/test_orchestrator_brief.py::test_brief_generated_after_analyzers
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (1,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_failure_does_not_crash
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (2,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_with_partial_upstream_failure
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (3,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (4,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (5,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_analyze_qa_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (7,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_entry_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (8,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (9,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_analyze_reviews_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (10,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_cluster_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (11,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (12,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_true_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (13,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_false_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (14,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_sets_status_analyzed
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (15,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_phase1_both_fetchers_called
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (16,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_vision_phase3_parallel
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (18,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_returns_time_series
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_empty_history
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/ranking_tracker.py:20: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_ranking_tracker.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    r.tracked_at = datetime.utcnow() - timedelta(days=60)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_e2e_pipeline.py::TestDegradedFullChain::test_full_chain_no_api_key
+FAILED tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_completes
+FAILED tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_db_records_complete
+FAILED tests/test_l5_migration.py::test_tenant_in_init_all - AssertionError: ...
+FAILED tests/test_l5_migration.py::test_project_has_tenant_id - AssertionErro...
+FAILED tests/test_l5_migration.py::test_brand_profile_has_tenant_id - Asserti...
+FAILED tests/test_l5_migration.py::test_brand_profile_card_has_tenant_id - As...
+FAILED tests/test_l5_migration.py::test_brand_profile_new_fields - AssertionE...
+FAILED tests/test_l5_migration.py::test_delivery_version_new_fields - Asserti...
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.ab_test_result:ABTestResult]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.ab_test:ABTest]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.aplus_content:APlusContent]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.asin_ranking:ASINRanking]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.benchmark:AmazonBenchmark]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.brand_profile:BrandProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.brand:BrandProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.client_feedback:ClientFeedback]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.competitor_listing:CompetitorListing]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.consistency_profile:ConsistencyProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.delivery_version:DeliveryVersion]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.image_brief:ImageBrief]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.image_snapshot:ImageSnapshot]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.intake_checklist:IntakeChecklist]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.knowledge_entry:KnowledgeEntry]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.price_analysis:PriceAnalysis]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.project:Project]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.promo_analysis:PromoAnalysis]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.prompt_asset:PromptAsset]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.qa_entry:QAEntry]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.qa_record:QARecord]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.reference_pack:ReferencePack]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.review_cluster:ReviewCluster]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.slot_plan:SlotPlan]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.tag_assignment:TagAssignment]
+FAILED tests/test_l5_migration.py::test_tags_a_plan_func_constants - ImportEr...
+FAILED tests/test_l5_migration.py::test_tags_a_plan_intent_constants - Import...
+FAILED tests/test_l5_migration.py::test_tags_a_plan_role_constants - ImportEr...
+FAILED tests/test_l5_migration.py::test_tags_slot_index_mapping - ImportError...
+FAILED tests/test_l5_migration.py::test_tags_deprecated_aliases_still_work - ...
+ERROR tests/test_e2e_pipeline.py::TestGenerateBrief::test_returns_image_brief
+ERROR tests/test_e2e_pipeline.py::TestSlotPlanner::test_returns_eight_plans
+ERROR tests/test_e2e_pipeline.py::TestPromptEngine::test_build_prompt_slot_zero
+ERROR tests/test_e2e_pipeline.py::TestDelivery::test_build_delivery_creates_manifest
+ERROR tests/test_e2e_pipeline.py::TestFeedbackLoop::test_record_and_export - ...
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_init - sqlalchemy.exc....
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_analyze - sqlalchemy.e...
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_plan - sqlalchemy.exc....
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_generate - sqlalchemy....
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_qa - sqlalchemy.exc.In...
+ERROR tests/test_e2e_tws.py::TestStepByStep::test_step_report - sqlalchemy.ex...
+39 failed, 430 passed, 210 warnings, 11 errors in 28.60s
