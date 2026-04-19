@@ -575,6 +575,8 @@ def step_deliver(project_id: int) -> str | None:
         )
         return None
     logger.info("Delivery package built for project %d: %s", project_id, delivery_path)
+    if getattr(config, "flywheel_enabled", False):
+        from pipeline.flywheel import run_flywheel  # noqa: F811
     return delivery_path
 
 

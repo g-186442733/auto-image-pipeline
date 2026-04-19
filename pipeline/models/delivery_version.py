@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Boolean,
+    ForeignKey,
+    func,
+)
 
 from pipeline.models.base import Base
 
@@ -14,3 +23,4 @@ class DeliveryVersion(Base):
     trigger = Column(String(20), nullable=False, default="initial")
     change_summary = Column(Text, default="")
     file_manifest = Column(Text, default="[]")
+    auto_delivered = Column(Boolean, default=False)

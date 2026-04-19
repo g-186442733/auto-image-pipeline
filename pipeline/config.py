@@ -57,6 +57,22 @@ class Config:
     flask_port: int = field(
         default_factory=lambda: int(os.getenv("AIP_FLASK_PORT", "5100"))
     )
+    # 飞轮配置（默认关闭）
+    flywheel_enabled: bool = field(
+        default_factory=lambda: (
+            os.getenv("AIP_FLYWHEEL_ENABLED", "false").lower() == "true"
+        )
+    )
+    flywheel_auto_deliver: bool = field(
+        default_factory=lambda: (
+            os.getenv("AIP_FLYWHEEL_AUTO_DELIVER", "false").lower() == "true"
+        )
+    )
+    flywheel_confidence_threshold: float = field(
+        default_factory=lambda: float(
+            os.getenv("AIP_FLYWHEEL_CONFIDENCE_THRESHOLD", "85")
+        )
+    )
 
 
 config = Config()
