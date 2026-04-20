@@ -2,7 +2,20 @@
 block content %}
 <div class="page-header">
   <h1>项目列表</h1>
-  <a href="{{ url_for('project_new') }}" class="btn btn-primary">+ 新建项目</a>
+  <div
+    class="page-header-actions"
+    style="display: flex; align-items: center; gap: 0.75rem"
+  >
+    <select id="customerFilter" class="customer-filter">
+      <option value="">全部客户</option>
+      {% for t in tenants %}
+      <option value="{{ t.name }}">{{ t.name }}</option>
+      {% endfor %}
+    </select>
+    <a href="{{ url_for('customer_input_new') }}" class="btn btn-primary"
+      >+ 新建项目</a
+    >
+  </div>
 </div>
 {% if projects %}
 <div class="table-wrap">
@@ -13,13 +26,14 @@ block content %}
         <th>项目名称</th>
         <th>ASIN</th>
         <th>品类</th>
+        <th>客户</th>
         <th>状态</th>
         <th>更新时间</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="projectTableBody">
       {% for p in projects %}
-      <tr>
+      <tr data-customer="{{ p.tenant.name if p.tenant else '' }}">
         <td class="mono">{{ p.id }}</td>
         <td>
           <a href="{{ url_for('project_detail', project_id=p.id) }}"
@@ -28,13 +42,16 @@ block content %}
         </td>
         <td class="mono">{{ p.asin or '—' }}</td>
         <td>{{ p.category or '—' }}</td>
+        <td>{{ p.tenant.name if p.tenant else '—' }}</td>
         <td>
           <span class="badge badge-{{ p.status }}">
             {%- if p.status == 'draft' -%}草稿 {%- elif p.status ==
-            'in_progress' -%}进行中 {%- elif p.status == 'review' -%}待审核 {%-
+            'initialized' -%}初始化 {%- elif p.status == 'planned' -%}已规划 {%-
+            elif p.status == 'in_progress' -%}进行中 {%- elif p.status ==
+            'generated' -%}已出图 {%- elif p.status == 'review' -%}待审核 {%-
             elif p.status == 'done' or p.status == 'completed' -%}已完成 {%-
-            elif p.status == 'initialized' -%}初始化 {%- else -%}{{ p.status }}
-            {%- endif -%}
+            elif p.status == 'failed' -%}失败 {%- else -%}{{ p.status }} {%-
+            endif -%}
           </span>
         </td>
         <td class="mono">
@@ -45,6 +62,21 @@ block content %}
     </tbody>
   </table>
 </div>
+<script>
+  document
+    .getElementById("customerFilter")
+    .addEventListener("change", function () {
+      var val = this.value;
+      var rows = document.querySelectorAll("#projectTableBody tr");
+      rows.forEach(function (row) {
+        if (!val || row.getAttribute("data-customer") === val) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
+</script>
 {% else %}
 <div class="empty-state">
   <svg
@@ -61,6 +93,6 @@ block content %}
     />
   </svg>
   <p>还没有任何项目</p>
-  <a href="{{ url_for('project_new') }}">立即创建第一个项目 →</a>
+  <a href="{{ url_for('customer_input_new') }}">立即创建第一个项目 →</a>
 </div>
 {% endif %} {% endblock %}
