@@ -1,11 +1,25 @@
 {% extends "base.html" %} {% block title %}人工复核{% endblock %} {% block
 content %}
-<h1>人工复核</h1>
+<div class="page-header">
+  <h1>人工复核</h1>
+  <div
+    class="page-header-actions"
+    style="display: flex; align-items: center; gap: 0.75rem"
+  >
+    <select id="customerFilter" class="customer-filter">
+      <option value="">全部客户</option>
+      {% for t in tenants %}
+      <option value="{{ t.name }}">{{ t.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
 {% if versions %}
 <table class="review-table">
   <thead>
     <tr>
       <th>ID</th>
+      <th>客户</th>
       <th>项目</th>
       <th>版本</th>
       <th>摘要</th>
@@ -13,10 +27,11 @@ content %}
       <th>操作</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody id="reviewTableBody">
     {% for v in versions %}
-    <tr>
+    <tr data-customer="{{ v._customer_name }}">
       <td>{{ v.id }}</td>
+      <td class="customer-tag">{{ v._customer_name or '—' }}</td>
       <td>{{ v._project_name }}</td>
       <td>v{{ v.version_number }}</td>
       <td>{{ v.change_summary }}</td>
@@ -49,4 +64,20 @@ content %}
 </table>
 {% else %}
 <p class="empty-state">暂无待审版本</p>
-{% endif %} {% endblock %}
+{% endif %}
+<script>
+  document
+    .getElementById("customerFilter")
+    .addEventListener("change", function () {
+      var val = this.value;
+      var rows = document.querySelectorAll("#reviewTableBody tr");
+      rows.forEach(function (row) {
+        if (!val || row.getAttribute("data-customer") === val) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
+</script>
+{% endblock %}

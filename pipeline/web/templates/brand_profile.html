@@ -12,6 +12,9 @@ endblock %} {% block content %}
 
 <div class="page-header">
   <h1>品牌画像 — {{ project.name }}</h1>
+  {% if project.tenant %}
+  <span class="customer-tag">{{ project.tenant.name }}</span>
+  {% endif %}
   <a
     href="{{ url_for('project_detail', project_id=project.id) }}"
     class="btn btn-outline"
