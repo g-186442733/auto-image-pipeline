@@ -1,0 +1,58 @@
+{% extends "base.html" %} {% block title %}客户管理 — 主图工厂{% endblock %} {%
+block content %}
+<div class="page-header">
+  <h1>客户管理</h1>
+</div>
+
+<div class="customer-add-form">
+  <form method="POST" action="{{ url_for('customers_new') }}">
+    <input
+      type="text"
+      name="name"
+      placeholder="客户名称"
+      required
+      class="form-input"
+    />
+    <input
+      type="text"
+      name="slug"
+      placeholder="Slug（英文标识）"
+      required
+      pattern="[a-z0-9_-]+"
+      title="仅允许小写字母、数字、下划线和连字符"
+      class="form-input"
+    />
+    <button type="submit" class="btn btn-primary">+ 新增客户</button>
+  </form>
+</div>
+
+{% if tenants %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>名称</th>
+        <th>Slug</th>
+        <th>项目数</th>
+        <th>创建时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tenants %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td class="mono">{{ t.slug }}</td>
+        <td>{{ counts.get(t.id, 0) }}</td>
+        <td class="mono">
+          {{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>暂无客户，请使用上方表单添加。</p>
+</div>
+{% endif %} {% endblock %}
