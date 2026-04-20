@@ -1,0 +1,174 @@
+..........................................                               [100%]/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109259120>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1092a0e50>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109379300>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109463b50>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109461300>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109460c70>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10925b4c0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1090ab6a0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1092a0d60>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1094a89a0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1090ab4c0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1096be2f0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1096bfe20>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109709b70>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10970b970>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10970b5b0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10974f010>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1097a0b80>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1097a2980>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1097a2b60>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1097d64d0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1097d62f0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1098105e0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109811e40>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109811f30>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10984ec50>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10984eb60>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1098827a0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1098bc310>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1098bde40>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+=============================== warnings summary ===============================
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1090aba60>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10925af20>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109440a90>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109440d60>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109442890>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109460400>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_update_negative_prompt
+  /opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/weakref.py:326: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109463e20>
+    return self.data[ref(key)]
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_unknown_field_ignored
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/coercions.py:314: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1094624d0>
+    def expect(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestUpdatePromptAsset::test_multiple_fields_at_once
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/coercions.py:314: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109460e50>
+    def expect(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestGetPromptAsset::test_get_by_id_with_version
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/compiler.py:7400: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109461030>
+    def visit_VARCHAR(self, type_: sqltypes.String, **kw: Any) -> str:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestGetPromptAsset::test_get_by_id_with_version
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/compiler.py:7400: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109460310>
+    def visit_VARCHAR(self, type_: sqltypes.String, **kw: Any) -> str:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_prompt_manager_coverage.py::TestGetPromptAsset::test_get_by_name_with_version
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/compiler.py:7474: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1092a32e0>
+    def visit_string(self, type_: sqltypes.String, **kw: Any) -> str:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.3-final-0 _______________
+
+Name                                Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------
+pipeline/layers/prompt_manager.py     117      0   100%
+-----------------------------------------------------------------
+TOTAL                                 117      0   100%
+42 passed, 12 warnings in 0.40s

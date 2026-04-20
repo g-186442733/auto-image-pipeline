@@ -1,0 +1,14 @@
+23:58:12 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+23:58:12 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+23:58:12 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+23:58:12 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+Usage: python -m pipeline web [OPTIONS]
+
+  Launch the web dashboard.
+
+Options:
+  --port INTEGER  Port to run the web server on.
+  --debug         Enable debug mode.
+  --help          Show this message and exit.
+..                                                                       [100%]
+2 passed in 0.53s

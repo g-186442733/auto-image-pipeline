@@ -1,0 +1,10 @@
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/decision_routes.py:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/tag_review_routes.py:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/hypothesis_routes.py:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__init__.py:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__pycache__/hypothesis_routes.cpython-314.pyc:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__pycache__/tag_review_routes.cpython-314.pyc:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__pycache__/__init__.cpython-314.pyc:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__pycache__/project_routes.cpython-314.pyc:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/__pycache__/decision_routes.cpython-314.pyc:0
+/Users/axureboutique/Projects/auto-image-pipeline/pipeline/web/routes/project_routes.py:0

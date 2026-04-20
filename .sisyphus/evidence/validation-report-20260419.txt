@@ -1,0 +1,26 @@
+=== doc-code-consistency 验证报告 ===
+生成时间: 2026-04-19 22:18:22
+
+--- [1] 测试基线 ---
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+456 passed, 211 warnings in 34.88s
+
+--- [2] architecture.md 无 Flux/MJ/ComfyUI ---
+matches:        0 (expected: 0)
+
+--- [3] docs/ 无 Alembic（ADR 除外）---
+matches:        0 (expected: 0)
+
+--- [4] performance_score / is_recommended 仅在 L5 规划上下文 ---
+docs/architecture.md:218:- `performance_score`（效果分 = `0.6×CTR + 0.4×CVR`）自动计算与存储
+docs/architecture.md:219:- `is_recommended` 字段：效果分 ≥ 0.75 时自动标记推荐模板
+docs/data-flow.md:321:> performance_score = 0.6 × CTR_normalized + 0.4 × CVR_normalized
+docs/data-flow.md:324:> 效果分高于阈值（默认 0.75）的资产将自动标记 `is_recommended = True`，成为下一个同类 SKU 的 Prompt 组装起点。权重可通过配置调整。
+
+--- [5] ab_tests 字段验证 ---
+19
+字段数: (expected: 6)
+
+--- [6] ADR Alembic 说明（合理保留）---
+4
+ADR-009 Alembic 引用数（架构决策记录，正常保留）

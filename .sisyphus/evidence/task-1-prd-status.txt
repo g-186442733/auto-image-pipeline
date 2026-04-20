@@ -1,0 +1,5 @@
+| 自动 QA Loop（QA Gate + 自动重出）  | ✅ L4 已实现 | `qa_gate.py` 581行实现5道门；`orchestrator.py:488` 自动重出最多3次 |
+| 置信度评分驱动决策                  | ✅ L4 已实现 | `confidence_routing.py` 实现；ConfidenceRouter 驱动自动/人工分流   |
+| 品牌 LoRA 训练流水线                | ✅ L4 已实现 | `lora_trainer.py` 完整流水线；训练→测试→集成 Pipeline 已就绪       |
+| 品类知识引擎（跨客户匿名化）        | ✅ L4 已实现 | `knowledge_anonymizer.py` 实现跨客户脱敏归纳；置信度打分体系完成   |
+| 反馈数据自动回流                    | ✅ L4 已实现 | `feedback_loop.update_brand_profile_from_results()` 已实现         |

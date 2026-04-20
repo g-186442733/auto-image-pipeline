@@ -1,0 +1,12 @@
+........................./Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/coverage/inorout.py:561: CoverageWarning: Module pipeline/layers/confidence_routing was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-module-not-imported
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/coverage/control.py:958: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-no-data-collected
+  self._warn("No data was collected.", slug="no-data-collected")
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/pytest_cov/plugin.py:366: CovReportWarning: Failed to generate report: No data to report.
+
+  warnings.warn(CovReportWarning(message), stacklevel=1)
+
+WARNING: Failed to generate report: No data to report.
+
+                                                                         [100%]
+25 passed in 0.07s

@@ -1,0 +1,21 @@
+........................................................................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 23%]
+..........................F
+=================================== FAILURES ===================================
+____________________ TestProjectRoutes.test_project_new_get ____________________
+
+self = <test_e2e_web_app.TestProjectRoutes object at 0x10c030a50>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_project_new_get(self, client):
+        resp = client.get("/project/new")
+>       assert resp.status_code == 302
+E       assert 200 == 302
+E        +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+
+tests/test_e2e_web_app.py:118: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_e2e_web_app.py::TestProjectRoutes::test_project_new_get - a...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 242 passed in 21.53s

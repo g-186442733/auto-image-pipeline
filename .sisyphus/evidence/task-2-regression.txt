@@ -1,0 +1,621 @@
+........................................................................ [ 14%]
+........................................................................ [ 28%]
+...............................................................F.FFFF.FF [ 43%]
+FFFFFFFFFFFFFFFFFFFFFFFFFFFF............................................ [ 57%]
+........................................................................ [ 71%]
+........................................................................ [ 86%]
+.....................................................................    [100%]
+=================================== FAILURES ===================================
+___________________________ test_tenant_in_init_all ____________________________
+
+    def test_tenant_in_init_all():
+        import pipeline.models as m
+>       assert "Tenant" in m.__all__
+E       AssertionError: assert 'Tenant' in ['Base', 'get_engine', 'get_session', 'create_all', 'Project', 'BrandProfile', ...]
+E        +  where ['Base', 'get_engine', 'get_session', 'create_all', 'Project', 'BrandProfile', ...] = <module 'pipeline.models' from '/Users/axureboutique/Projects/auto-image-pipeline/pipeline/models/__init__.py'>.__all__
+
+tests/test_l5_migration.py:63: AssertionError
+__________________________ test_project_has_tenant_id __________________________
+
+    def test_project_has_tenant_id():
+        from pipeline.models.project import Project
+>       assert hasattr(Project, "tenant_id"), "Project missing tenant_id"
+E       AssertionError: Project missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.project.Project'>, 'tenant_id')
+
+tests/test_l5_migration.py:81: AssertionError
+_______________________ test_brand_profile_has_tenant_id _______________________
+
+    def test_brand_profile_has_tenant_id():
+        from pipeline.models.brand import BrandProfile
+>       assert hasattr(BrandProfile, "tenant_id"), "BrandProfile missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:86: AssertionError
+____________________ test_brand_profile_card_has_tenant_id _____________________
+
+    def test_brand_profile_card_has_tenant_id():
+        from pipeline.models.brand_profile import BrandProfile as BPC
+>       assert hasattr(BPC, "tenant_id"), "brand_profile_cards missing tenant_id"
+E       AssertionError: brand_profile_cards missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:91: AssertionError
+________________________ test_brand_profile_new_fields _________________________
+
+    def test_brand_profile_new_fields():
+        from pipeline.models.brand_profile import BrandProfile as BPC
+>       assert hasattr(BPC, "lora_type"), "BrandProfile missing lora_type"
+E       AssertionError: BrandProfile missing lora_type
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'lora_type')
+
+tests/test_l5_migration.py:96: AssertionError
+____ test_model_has_tenant_id[pipeline.models.ab_test_result:ABTestResult] _____
+
+spec = 'pipeline.models.ab_test_result:ABTestResult'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ABTestResult missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.ab_test_result.ABTestResult'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___________ test_model_has_tenant_id[pipeline.models.ab_test:ABTest] ___________
+
+spec = 'pipeline.models.ab_test:ABTest'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ABTest missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.ab_test.ABTest'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.aplus_content:APlusContent] _____
+
+spec = 'pipeline.models.aplus_content:APlusContent'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: APlusContent missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.aplus_content.APlusContent'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+______ test_model_has_tenant_id[pipeline.models.asin_ranking:ASINRanking] ______
+
+spec = 'pipeline.models.asin_ranking:ASINRanking'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ASINRanking missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.asin_ranking.ASINRanking'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.benchmark:AmazonBenchmark] ______
+
+spec = 'pipeline.models.benchmark:AmazonBenchmark'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: AmazonBenchmark missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.benchmark.AmazonBenchmark'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_____ test_model_has_tenant_id[pipeline.models.brand_profile:BrandProfile] _____
+
+spec = 'pipeline.models.brand_profile:BrandProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand_profile.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.brand:BrandProfile] _________
+
+spec = 'pipeline.models.brand:BrandProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: BrandProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.brand.BrandProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___ test_model_has_tenant_id[pipeline.models.client_feedback:ClientFeedback] ___
+
+spec = 'pipeline.models.client_feedback:ClientFeedback'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ClientFeedback missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.client_feedback.ClientFeedback'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_ test_model_has_tenant_id[pipeline.models.competitor_listing:CompetitorListing] _
+
+spec = 'pipeline.models.competitor_listing:CompetitorListing'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: CompetitorListing missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.competitor_listing.CompetitorListing'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_ test_model_has_tenant_id[pipeline.models.consistency_profile:ConsistencyProfile] _
+
+spec = 'pipeline.models.consistency_profile:ConsistencyProfile'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ConsistencyProfile missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.consistency_profile.ConsistencyProfile'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__ test_model_has_tenant_id[pipeline.models.delivery_version:DeliveryVersion] __
+
+spec = 'pipeline.models.delivery_version:DeliveryVersion'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: DeliveryVersion missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.delivery_version.DeliveryVersion'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_______ test_model_has_tenant_id[pipeline.models.image_brief:ImageBrief] _______
+
+spec = 'pipeline.models.image_brief:ImageBrief'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ImageBrief missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.image_brief.ImageBrief'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.image_snapshot:ImageSnapshot] ____
+
+spec = 'pipeline.models.image_snapshot:ImageSnapshot'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ImageSnapshot missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.image_snapshot.ImageSnapshot'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__ test_model_has_tenant_id[pipeline.models.intake_checklist:IntakeChecklist] __
+
+spec = 'pipeline.models.intake_checklist:IntakeChecklist'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: IntakeChecklist missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.intake_checklist.IntakeChecklist'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+___ test_model_has_tenant_id[pipeline.models.knowledge_entry:KnowledgeEntry] ___
+
+spec = 'pipeline.models.knowledge_entry:KnowledgeEntry'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: KnowledgeEntry missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.knowledge_entry.KnowledgeEntry'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.price_analysis:PriceAnalysis] ____
+
+spec = 'pipeline.models.price_analysis:PriceAnalysis'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PriceAnalysis missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.price_analysis.PriceAnalysis'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__________ test_model_has_tenant_id[pipeline.models.project:Project] ___________
+
+spec = 'pipeline.models.project:Project'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: Project missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.project.Project'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.promo_analysis:PromoAnalysis] ____
+
+spec = 'pipeline.models.promo_analysis:PromoAnalysis'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PromoAnalysis missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.promo_analysis.PromoAnalysis'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+______ test_model_has_tenant_id[pipeline.models.prompt_asset:PromptAsset] ______
+
+spec = 'pipeline.models.prompt_asset:PromptAsset'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: PromptAsset missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.prompt_asset.PromptAsset'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+__________ test_model_has_tenant_id[pipeline.models.qa_entry:QAEntry] __________
+
+spec = 'pipeline.models.qa_entry:QAEntry'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: QAEntry missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.qa_entry.QAEntry'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.qa_record:QARecord] _________
+
+spec = 'pipeline.models.qa_record:QARecord'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: QARecord missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.qa_record.QARecord'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.reference_pack:ReferencePack] ____
+
+spec = 'pipeline.models.reference_pack:ReferencePack'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ReferencePack missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.reference_pack.ReferencePack'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.review_cluster:ReviewCluster] ____
+
+spec = 'pipeline.models.review_cluster:ReviewCluster'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: ReviewCluster missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.review_cluster.ReviewCluster'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_________ test_model_has_tenant_id[pipeline.models.slot_plan:SlotPlan] _________
+
+spec = 'pipeline.models.slot_plan:SlotPlan'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: SlotPlan missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.slot_plan.SlotPlan'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+____ test_model_has_tenant_id[pipeline.models.tag_assignment:TagAssignment] ____
+
+spec = 'pipeline.models.tag_assignment:TagAssignment'
+
+    @pytest.mark.parametrize("spec", TABLES_WITH_TENANT_ID)
+    def test_model_has_tenant_id(spec):
+        module_path, cls_name = spec.split(":")
+        import importlib
+        mod = importlib.import_module(module_path)
+        cls = getattr(mod, cls_name)
+>       assert hasattr(cls, "tenant_id"), f"{cls_name} missing tenant_id"
+E       AssertionError: TagAssignment missing tenant_id
+E       assert False
+E        +  where False = hasattr(<class 'pipeline.models.tag_assignment.TagAssignment'>, 'tenant_id')
+
+tests/test_l5_migration.py:141: AssertionError
+_______________________ test_tags_a_plan_func_constants ________________________
+
+    def test_tags_a_plan_func_constants():
+>       from pipeline.constants.tags import (
+            FUNC_HERO, FUNC_BENEFIT, FUNC_LIFESTYLE,
+            FUNC_DETAIL, FUNC_SOCIAL, FUNC_SIZE,
+        )
+E       ImportError: cannot import name 'FUNC_HERO' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:145: ImportError
+______________________ test_tags_a_plan_intent_constants _______________________
+
+    def test_tags_a_plan_intent_constants():
+>       from pipeline.constants.tags import INT_01, INT_02, INT_03, INT_04, INT_05, INT_06
+E       ImportError: cannot import name 'INT_01' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:158: ImportError
+_______________________ test_tags_a_plan_role_constants ________________________
+
+    def test_tags_a_plan_role_constants():
+>       from pipeline.constants.tags import ROLE_01, ROLE_02, ROLE_03, ROLE_04, ROLE_05, ROLE_06, ROLE_07
+E       ImportError: cannot import name 'ROLE_01' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:164: ImportError
+_________________________ test_tags_slot_index_mapping _________________________
+
+    def test_tags_slot_index_mapping():
+>       from pipeline.constants.tags import SLOT_INDEX_MAPPING
+E       ImportError: cannot import name 'SLOT_INDEX_MAPPING' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:170: ImportError
+___________________ test_tags_deprecated_aliases_still_work ____________________
+
+    def test_tags_deprecated_aliases_still_work():
+>       from pipeline.constants.tags import FUNC_HERO, FUNC_BENEFIT
+E       ImportError: cannot import name 'FUNC_HERO' from 'pipeline.constants.tags' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/constants/tags.py)
+
+tests/test_l5_migration.py:177: ImportError
+=============================== warnings summary ===============================
+tests/test_aplus_content.py: 9 warnings
+tests/test_aplus_generator.py: 154 warnings
+tests/test_schema_l4.py: 20 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks
+tests/test_orchestrator_brief.py::test_brief_generated_after_analyzers
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (1,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_failure_does_not_crash
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (2,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_with_partial_upstream_failure
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (3,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (4,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (5,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_analyze_qa_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (7,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_entry_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (8,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (9,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_analyze_reviews_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (10,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_cluster_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (11,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (12,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_true_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (13,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_false_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (14,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_sets_status_analyzed
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (15,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_phase1_both_fetchers_called
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (16,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_vision_phase3_parallel
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:212: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (18,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_returns_time_series
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_empty_history
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/ranking_tracker.py:20: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_ranking_tracker.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    r.tracked_at = datetime.utcnow() - timedelta(days=60)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_l5_migration.py::test_tenant_in_init_all - AssertionError: ...
+FAILED tests/test_l5_migration.py::test_project_has_tenant_id - AssertionErro...
+FAILED tests/test_l5_migration.py::test_brand_profile_has_tenant_id - Asserti...
+FAILED tests/test_l5_migration.py::test_brand_profile_card_has_tenant_id - As...
+FAILED tests/test_l5_migration.py::test_brand_profile_new_fields - AssertionE...
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.ab_test_result:ABTestResult]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.ab_test:ABTest]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.aplus_content:APlusContent]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.asin_ranking:ASINRanking]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.benchmark:AmazonBenchmark]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.brand_profile:BrandProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.brand:BrandProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.client_feedback:ClientFeedback]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.competitor_listing:CompetitorListing]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.consistency_profile:ConsistencyProfile]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.delivery_version:DeliveryVersion]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.image_brief:ImageBrief]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.image_snapshot:ImageSnapshot]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.intake_checklist:IntakeChecklist]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.knowledge_entry:KnowledgeEntry]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.price_analysis:PriceAnalysis]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.project:Project]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.promo_analysis:PromoAnalysis]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.prompt_asset:PromptAsset]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.qa_entry:QAEntry]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.qa_record:QARecord]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.reference_pack:ReferencePack]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.review_cluster:ReviewCluster]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.slot_plan:SlotPlan]
+FAILED tests/test_l5_migration.py::test_model_has_tenant_id[pipeline.models.tag_assignment:TagAssignment]
+FAILED tests/test_l5_migration.py::test_tags_a_plan_func_constants - ImportEr...
+FAILED tests/test_l5_migration.py::test_tags_a_plan_intent_constants - Import...
+FAILED tests/test_l5_migration.py::test_tags_a_plan_role_constants - ImportEr...
+FAILED tests/test_l5_migration.py::test_tags_slot_index_mapping - ImportError...
+FAILED tests/test_l5_migration.py::test_tags_deprecated_aliases_still_work - ...
+35 failed, 466 passed, 210 warnings in 20.55s

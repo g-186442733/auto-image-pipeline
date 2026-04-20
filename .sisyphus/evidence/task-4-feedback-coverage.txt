@@ -1,0 +1,39 @@
+............................                                             [100%]/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108e68400>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108ca87c0>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108d43970>
+  gc.collect()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+=============================== warnings summary ===============================
+tests/test_feedback_loop.py::test_export_conclusions_no_results
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/type_api.py:975: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108e6bd30>
+    def _dialect_info(self, dialect: Dialect) -> _TypeMemoDict:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_feedback_loop.py::test_export_conclusions_no_results
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/type_api.py:975: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108eab3d0>
+    def _dialect_info(self, dialect: Dialect) -> _TypeMemoDict:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_feedback_loop.py::test_export_conclusions_no_results
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/type_api.py:975: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108d417b0>
+    def _dialect_info(self, dialect: Dialect) -> _TypeMemoDict:
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.3-final-0 _______________
+
+Name                               Stmts   Miss  Cover   Missing
+----------------------------------------------------------------
+pipeline/layers/feedback_loop.py     163     18    89%   115-117, 265-266, 286-288, 291, 303-304, 348-350, 353, 363-364, 406
+----------------------------------------------------------------
+TOTAL                                163     18    89%
+28 passed, 3 warnings in 0.50s

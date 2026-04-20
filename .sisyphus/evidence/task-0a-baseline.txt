@@ -1,0 +1,8 @@
+## Wave 0a — Test Baseline Result
+Date: 2026-04-20
+Command: PYTHONPATH=. .venv/bin/pytest tests/ -q --ignore=tests/test_e2e_tws.py --ignore=tests/test_e2e_pipeline.py
+Result: 489 passed, 35 failed, 210 warnings
+
+NOTE: 35 failures are ALL from tests/test_l5_migration.py — tests written for
+near-term-gaps features NOT YET implemented (Tenant model, tenant_id, Tags constants).
+These are intentional red-tests from previous plan. The 489 baseline is INTACT.

@@ -1,0 +1,2 @@
+23:59:20 [INFO] aip.feedback_loop: Updated BrandProfile id=1 guidelines with best_variant=A
+WRITEBACK_OK best_variant=A

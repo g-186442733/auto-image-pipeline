@@ -1,7 +1,7 @@
 {
-  "active_plan": "/Users/axureboutique/Projects/auto-image-pipeline/.sisyphus/plans/l4-closed-loop.md",
-  "started_at": "2026-04-19T00:00:00.000Z",
-  "session_ids": ["ses_264ee2fedffeUqhNjfiF5h1FaG"],
-  "plan_name": "l4-closed-loop",
+  "active_plan": "/Users/axureboutique/Projects/auto-image-pipeline/.sisyphus/plans/single-admin-mode.md",
+  "started_at": "2026-04-20T08:59:06.291Z",
+  "session_ids": ["ses_2582396a1ffeLoZXw21XbaZ6ch"],
+  "plan_name": "single-admin-mode",
   "status": "in_progress"
 }
