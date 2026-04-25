@@ -9,10 +9,11 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from pipeline.constants.tags import SLOT_MAPPING
+from pipeline.constants.tags import SLOT_MAPPING, TAG_LOOKUP
 from pipeline.models.base import get_session
 from pipeline.models.brand_profile import BrandProfile
 from pipeline.models.competitor_listing import CompetitorListing
+from pipeline.layers.brand_profiler import get_brand_hierarchy
 from pipeline.models.image_brief import ImageBrief
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
@@ -22,6 +23,21 @@ logger = setup_logger("aip.prompt_engine")
 
 __all__ = ["assemble_prompt", "build_prompt", "generate_slot_prompts"]
 
+# 允许文字出现的 intent_tag 集合（信息图/对比图/包装图）
+_TEXT_ALLOWED_INTENTS = {"INT_INFOGRAPHIC", "INT_COMPARISON", "INT_PACKAGING"}
+
+
+def _text_constraint(intent_tag: str | None) -> str:
+    """根据 intent_tag 返回对应的文字约束句。
+
+    - INT_INFOGRAPHIC / INT_COMPARISON / INT_PACKAGING：允许文字，要求拼写正确
+    - 其他（主图/场景图/细节图）：严格禁止文字、水印、标注
+    """
+    if intent_tag and intent_tag in _TEXT_ALLOWED_INTENTS:
+        return "Ensure all text in the image is correctly spelled and legible."
+    return "Do not include any text, letters, numbers, words, labels, or watermarks in the image."
+
+
 REQUIRED_VARIABLE_KEYS = frozenset(
     ["composition", "subject", "environment", "camera", "tone", "constraints"]
 )
@@ -29,13 +45,25 @@ REQUIRED_VARIABLE_KEYS = frozenset(
 _jinja_env = Environment(loader=BaseLoader())
 
 
+def _tag_text(code: str | None) -> str:
+    if not code:
+        return ""
+    tag = TAG_LOOKUP.get(code)
+    if tag is None:
+        return code
+    return f"{tag.name_en}, {tag.description}"
+
+
 def assemble_prompt(
     prompt_asset_id: int,
     variables: dict,
     brand_profile: BrandProfile | None = None,
     reference_pack: dict | None = None,
+    intent_tag: str | None = None,
 ) -> str:
-    """Assemble a final prompt string.
+    """[备用路径，生产流程不调用此函数，入口为 generate_slot_prompts()]
+
+    Assemble a final prompt string.
 
     Renders PromptAsset.prompt_text as a Jinja2 template with *variables*,
     appends brand constraints (if provided), then appends negative_prompt.
@@ -99,12 +127,15 @@ def assemble_prompt(
         if asset.negative_prompt:
             parts.append(f"--no {asset.negative_prompt.strip()}")
 
+        parts.append(_text_constraint(intent_tag))
+
         return "\n".join(parts)
 
 
 def build_prompt(
     project_id: int, slot_index: int, session: Optional[Session] = None
 ) -> str:
+    """[备用路径，生产流程不调用此函数，入口为 generate_slot_prompts()]"""
     owns_session = session is None
     if owns_session:
         session = get_session()
@@ -130,11 +161,10 @@ def build_prompt(
         tags = brief_data.get("target_tags", {})
         concept = brief_data.get("concept", "")
 
-        brand = (
-            session.query(BrandProfile)
-            .filter(BrandProfile.project_id == project_id)
-            .first()
-        )
+        hierarchy = get_brand_hierarchy(project_id)
+        brand = hierarchy.get("brand")
+        customer = hierarchy.get("customer")
+        product = hierarchy.get("product")
 
         competitor = (
             session.query(CompetitorListing)
@@ -151,8 +181,8 @@ def build_prompt(
             parts.append(f"Concept: {concept}")
         if tags:
             parts.append(
-                f"Style: {tags.get('intent_tag', '')} {tags.get('layout_tag', '')} "
-                f"{tags.get('style_tag', '')} {tags.get('color_tag', '')}"
+                f"Style: {_tag_text(tags.get('intent_tag'))} {_tag_text(tags.get('layout_tag'))} "
+                f"{_tag_text(tags.get('style_tag'))} {_tag_text(tags.get('color_tag'))}"
             )
 
         if competitor:
@@ -175,6 +205,23 @@ def build_prompt(
             if brand_parts:
                 parts.append(" ".join(brand_parts))
 
+        if customer and customer.industry:
+            parts.append(f"Industry: {customer.industry}")
+
+        if product:
+            prod_parts = []
+            if product.product_name:
+                prod_parts.append(f"Product: {product.product_name}")
+            if product.product_category:
+                prod_parts.append(f"Category: {product.product_category}")
+            if product.visual_notes:
+                prod_parts.append(product.visual_notes)
+            if prod_parts:
+                parts.append(" ".join(prod_parts))
+
+        _intent_tag = tags.get("intent_tag")
+        parts.append(_text_constraint(_intent_tag))
+
         return "\n".join(parts)
     finally:
         if owns_session:
@@ -186,7 +233,9 @@ def _slot_label(slot_index: int) -> str:
     return desc.split("—")[0].strip() if "—" in desc else f"SLOT{slot_index}"
 
 
-def generate_slot_prompts(project_id: int) -> dict[str, str]:
+def generate_slot_prompts(
+    project_id: int, slot_indices: list[int] | None = None
+) -> dict[str, str]:
     """Generate prompts for every slot in a project's SlotPlan.
 
     Returns dict mapping slot label (MAIN/ALT1/...) to assembled prompt.
@@ -201,6 +250,9 @@ def generate_slot_prompts(project_id: int) -> dict[str, str]:
             .order_by(SlotPlan.slot_index)
             .all()
         )
+
+        if slot_indices is not None:
+            plans = [p for p in plans if p.slot_index in slot_indices]
 
         if not plans:
             raise ValueError(
@@ -228,18 +280,113 @@ def generate_slot_prompts(project_id: int) -> dict[str, str]:
                 )
                 continue
 
+            if asset.user_edited:
+                result[_slot_label(plan.slot_index)] = asset.prompt_text
+                continue
+
+            _comp = (
+                session.query(CompetitorListing)
+                .filter(CompetitorListing.project_id == project_id)
+                .first()
+            )
+            _comp_bullets = (_comp.bullet_points or "")[:300] if _comp else ""
+
             variables = {
-                "composition": plan.layout_tag or "",
-                "subject": plan.description or "",
-                "environment": "",
-                "camera": "",
-                "tone": plan.style_tag or "",
-                "constraints": plan.color_tag or "",
+                "composition": " ".join(
+                    filter(
+                        None, [_tag_text(plan.layout_tag), _tag_text(plan.angle_tag)]
+                    )
+                ),
+                "subject": " ".join(
+                    filter(
+                        None,
+                        [
+                            _tag_text(plan.intent_tag),
+                            plan.visual_focus or plan.description,
+                            getattr(plan, "subject_material", None),
+                        ],
+                    )
+                ),
+                "environment": " ".join(
+                    filter(
+                        None,
+                        [_tag_text(plan.lighting_tag), _tag_text(plan.background_tag)],
+                    )
+                ),
+                "camera": " ".join(
+                    filter(
+                        None,
+                        [_tag_text(plan.dof_tag), getattr(plan, "shot_type", None)],
+                    )
+                ),
+                "tone": " ".join(
+                    filter(
+                        None,
+                        [
+                            _tag_text(plan.style_tag),
+                            plan.key_message,
+                            getattr(plan, "overlay_text", None),
+                        ],
+                    )
+                )[:300],
+                "constraints": " ".join(
+                    filter(
+                        None,
+                        [
+                            _tag_text(plan.color_tag),
+                            plan.competitor_contrast,
+                            _comp_bullets,
+                        ],
+                    )
+                )[:300],
             }
+
+            _v_ordered = [
+                variables["subject"],
+                variables["composition"],
+                variables["environment"],
+                variables["camera"],
+                variables["tone"],
+                variables["constraints"],
+            ]
+            _prompt_core = ", ".join(p for p in _v_ordered if p and p.strip())
+
+            if asset.negative_prompt:
+                _prompt_core += f"\n--no {asset.negative_prompt.strip()}"
+
+            _prompt_core += f"\n{_text_constraint(plan.intent_tag)}"
 
             label = _slot_label(plan.slot_index)
             try:
-                result[label] = assemble_prompt(asset.id, variables)
+                prompt_text = _prompt_core
+                if plan.gen_params:
+                    from pipeline.config import config as _cfg
+
+                    _model = (_cfg.image_model or "").lower()
+                    if any(kw in _model for kw in ("midjourney", "mj-", "/mj")):
+                        prompt_text = prompt_text + " " + plan.gen_params
+                    else:
+                        _p = plan.gen_params
+                        _natural: list[str] = []
+                        import re as _re
+
+                        _ar = _re.search(r"--ar\s+([\d:]+)", _p)
+                        if _ar:
+                            _natural.append(f"aspect ratio {_ar.group(1)}")
+                        if "--style raw" in _p:
+                            _natural.append(
+                                "raw photographic style, no artistic filter"
+                            )
+                        _st = _re.search(r"--stylize\s+(\d+)", _p)
+                        if _st:
+                            _v = int(_st.group(1))
+                            if _v >= 600:
+                                _natural.append("highly stylized")
+                            elif _v >= 300:
+                                _natural.append("moderately stylized")
+                        if _natural:
+                            prompt_text = prompt_text + ", " + ", ".join(_natural)
+                result[label] = prompt_text
             except ValueError as exc:
                 logger.warning("Skipping slot %s: %s", plan.slot_index, exc)
 
