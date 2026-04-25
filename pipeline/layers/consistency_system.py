@@ -76,3 +76,13 @@ def validate_consistency(project_id: int):
     cp = get_consistency_profile(project_id)
     missing = [v for v in STYLE_VARIABLES if not getattr(cp, v, None)]
     return (len(missing) == 0, missing)
+
+
+def check_gate4(project_id: int) -> dict:
+    """Gate 4：consistency_profile 的5个风格字段全部非空才允许投递。
+
+    任一字段为空 → 返回 {"passed": False, "missing": [字段名列表]}
+    全部非空     → 返回 {"passed": True,  "missing": []}
+    """
+    passed, missing = validate_consistency(project_id)
+    return {"passed": passed, "missing": missing}
