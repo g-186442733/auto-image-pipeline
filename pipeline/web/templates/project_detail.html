@@ -1,264 +1,973 @@
 {% extends "base.html" %} {% block title %}{{ project.name }} — 主图工厂{%
 endblock %} {% block content %}
-<div class="breadcrumb">
-  <a href="{{ url_for('index') }}">项目列表</a>
-  <span class="sep">/</span>
-  <span>{{ project.name }}</span>
-</div>
-
-<div class="page-header">
-  <h1>{{ project.name }}</h1>
-  <div style="display: flex; align-items: center; gap: 0.75rem">
+<div class="data-toolbar">
+  <div class="page-toolbar-wrapper">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">项目列表</a>
+      <span class="sep">/</span>
+      <span>{{ project.name }}</span>
+    </div>
+    <div class="page-title-group">
+      <h1>{{ project.name }}</h1>
+      <span id="run-status-text" class="page-status-text"></span>
+      <span class="badge badge-{{ project.status }}">
+        {%- if project.status == 'draft' -%}草稿 {%- elif project.status ==
+        'initialized' -%}初始化 {%- elif project.status == 'planned' -%}已规划
+        {%- elif project.status == 'in_progress' -%}进行中 {%- elif
+        project.status == 'generated' -%}已出图 {%- elif project.status ==
+        'review' -%}待审核 {%- elif project.status == 'done' or project.status
+        == 'completed' -%}已完成 {%- elif project.status == 'failed' -%}失败
+        {%- elif project.status == 'qa_failed' -%}QA 未通过
+        {%- elif project.status == 'waiting_qa_review' -%}待 QA 审核
+        {%- elif project.status == 'running' -%}生成中
+        {%- elif project.status == 'error' -%}出错
+        {%- else -%}{{ project.status }} {%- endif -%}
+      </span>
+    </div>
+  </div>
+  <div class="data-actions">
+    <a href="/input/{{ project.id }}/edit" class="btn btn-outline"
+      >✏️ 编辑需求 Brief</a
+    >
     <button id="btn-run" class="btn btn-run" onclick="startPipeline()">
       🚀 跑流水线
     </button>
-    <span id="run-status-text"></span>
-    <span class="badge badge-{{ project.status }}">
-      {%- if project.status == 'draft' -%}草稿 {%- elif project.status ==
-      'in_progress' -%}进行中 {%- elif project.status == 'review' -%}待审核 {%-
-      elif project.status == 'done' -%}已完成 {%- else -%}{{ project.status }}
-      {%- endif -%}
-    </span>
   </div>
 </div>
 
-<div class="info-card">
+<div id="review-panel"></div>
+
+{% if has_low_confidence %}
+<div class="confidence-low-banner">
+  <span class="confidence-low-banner__icon">⚠️</span>
+  <span class="confidence-low-banner__text">
+    当前 Brief 基于竞品推断生成，准确性较低。建议
+    <a href="/input/{{ project.id }}/edit">补充产品需求 Brief</a>（卖点、差异化、目标人群、痛点）后重新跑流水线，可显著提升 Brief 质量。
+  </span>
+</div>
+{% endif %}
+
+<div class="content-panel">
   <div class="info-grid">
     <div class="info-item">
-      <label>ASIN</label>
-      <span class="mono">{{ project.asin or '—' }}</span>
+      <label class="info-item-label">竞争对手 ASIN</label>
+      <span class="info-item-value mono">{{ project.asin or '—' }}</span>
     </div>
     <div class="info-item">
-      <label>品类</label>
-      <span>{{ project.category or '—' }}</span>
+      <label class="info-item-label">品类</label>
+      <span class="info-item-value">{{ project.category or '—' }}</span>
     </div>
     <div class="info-item">
-      <label>创建时间</label>
-      <span class="mono"
+      <label class="info-item-label">创建时间</label>
+      <span class="info-item-value mono"
         >{{ project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at
         else '—' }}</span
       >
     </div>
     <div class="info-item">
-      <label>更新时间</label>
-      <span class="mono"
+      <label class="info-item-label">更新时间</label>
+      <span class="info-item-value mono"
         >{{ project.updated_at.strftime('%Y-%m-%d %H:%M') if project.updated_at
         else '—' }}</span
       >
     </div>
   </div>
   {% if project.notes %}
-  <div class="notes-block">{{ project.notes }}</div>
+  <div class="notes-block">
+    <label class="info-item-label">备注</label>
+    {{ project.notes }}
+  </div>
   {% endif %}
 </div>
 
-<h2>图位规划</h2>
+{% if brief_data %}
+<div class="content-panel">
+  <div class="section-header-row">
+    <h2 class="section-title section-title-inline">
+      <span class="section-title-primary">📝</span> 需求 Brief
+    </h2>
+    <a href="/input/{{ project.id }}/edit" class="btn btn-sm btn-outline"
+      >✏️ 编辑</a
+    >
+  </div>
+
+  {% if brief_data.get('product_name') or brief_data.get('asin') or
+  brief_data.get('product_category') or brief_data.get('key_selling_points') %}
+  <div class="brief-section-label">产品基本信息</div>
+  <div class="info-grid">
+    {% if brief_data.get('product_name') %}
+    <div class="info-item">
+      <label class="info-item-label">产品名称</label>
+      <span class="info-item-value">{{ brief_data.product_name }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('asin') %}
+    <div class="info-item">
+      <label class="info-item-label">竞争对手 ASIN</label>
+      <span class="info-item-value mono">{{ brief_data.asin }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('product_category') %}
+    <div class="info-item">
+      <label class="info-item-label">产品品类</label>
+      <span class="info-item-value">{{ brief_data.product_category }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('key_selling_points') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">核心卖点</label>
+      <span class="info-item-value">{{ brief_data.key_selling_points }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('target_age') or
+  brief_data.get('target_gender') or brief_data.get('lifestyle') or
+  brief_data.get('purchase_motivation') %}
+  <div class="brief-section-label">目标受众</div>
+  <div class="info-grid">
+    {% if brief_data.get('target_age') %}
+    <div class="info-item">
+      <label class="info-item-label">年龄段</label>
+      <span class="info-item-value">{{ brief_data.target_age }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('target_gender') %}
+    <div class="info-item">
+      <label class="info-item-label">性别偏向</label>
+      <span class="info-item-value">{{ brief_data.target_gender }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('lifestyle') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">生活方式</label>
+      <span class="info-item-value">{{ brief_data.lifestyle }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('purchase_motivation') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">购买动机</label>
+      <span class="info-item-value">{{ brief_data.purchase_motivation }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('competitor_asins') or
+  brief_data.get('differentiation') %}
+  <div class="brief-section-label">竞品分析</div>
+  <div class="info-grid">
+    {% if brief_data.get('competitor_asins') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">竞品 ASIN</label>
+      <span class="info-item-value mono"
+        >{{ brief_data.competitor_asins }}</span
+      >
+    </div>
+    {% endif %} {% if brief_data.get('differentiation') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">差异化优势</label>
+      <span class="info-item-value">{{ brief_data.differentiation }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('primary_color') or
+  brief_data.get('style_keywords') or brief_data.get('reference_urls') %}
+  <div class="brief-section-label">视觉偏好</div>
+  <div class="info-grid">
+    {% if brief_data.get('primary_color') %}
+    <div class="info-item">
+      <label class="info-item-label">主色调</label>
+      <span class="info-item-value">{{ brief_data.primary_color }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('style_keywords') %}
+    <div class="info-item">
+      <label class="info-item-label">风格关键词</label>
+      <span class="info-item-value">{{ brief_data.style_keywords }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('reference_urls') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">参考素材</label>
+      <span class="info-item-value">{{ brief_data.reference_urls }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('reference_image_paths') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">参考图片</label>
+      <div class="ref-images-preview">
+        {% for p in brief_data.reference_image_paths.split(',') %} {% if
+        p.strip() %}
+        <img
+          src="{{ url_for('serve_image', path=p.strip()) }}"
+          class="ref-thumb"
+        />
+        {% endif %} {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('budget_level') or brief_data.get('deadline')
+  %}
+  <div class="brief-section-label">预算与时间</div>
+  <div class="info-grid">
+    {% if brief_data.get('budget_level') %}
+    <div class="info-item">
+      <label class="info-item-label">预算档位</label>
+      <span class="info-item-value">{{ brief_data.budget_level }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('deadline') %}
+    <div class="info-item">
+      <label class="info-item-label">截止时间</label>
+      <span class="info-item-value">{{ brief_data.deadline }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('brand_history') or
+  brief_data.get('founding_idea') or brief_data.get('usp_core') or
+  brief_data.get('usp_proof') %}
+  <div class="brief-section-label">品牌故事 & 核心卖点</div>
+  <div class="info-grid">
+    {% if brief_data.get('brand_history') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">品牌历史</label>
+      <span class="info-item-value">{{ brief_data.brand_history }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('founding_idea') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">创立理念</label>
+      <span class="info-item-value">{{ brief_data.founding_idea }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('usp_core') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">USP 核心主张</label>
+      <span class="info-item-value">{{ brief_data.usp_core }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('usp_proof') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">USP 佐证</label>
+      <span class="info-item-value">{{ brief_data.usp_proof }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('pain_points') or
+  brief_data.get('usage_scenario') or brief_data.get('lifestyle_image') %}
+  <div class="brief-section-label">使用场景</div>
+  <div class="info-grid">
+    {% if brief_data.get('pain_points') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">痛点</label>
+      <span class="info-item-value">{{ brief_data.pain_points }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('usage_scenario') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">使用场景</label>
+      <span class="info-item-value">{{ brief_data.usage_scenario }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('lifestyle_image') %}
+    <div class="info-item info-item-full">
+      <label class="info-item-label">生活方式画面</label>
+      <span class="info-item-value">{{ brief_data.lifestyle_image }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %} {% if brief_data.get('season_relevance') or
+  brief_data.get('holiday_promo') %}
+  <div class="brief-section-label">季节 & 促销</div>
+  <div class="info-grid">
+    {% if brief_data.get('season_relevance') %}
+    <div class="info-item">
+      <label class="info-item-label">季节相关性</label>
+      <span class="info-item-value">{{ brief_data.season_relevance }}</span>
+    </div>
+    {% endif %} {% if brief_data.get('holiday_promo') %}
+    <div class="info-item">
+      <label class="info-item-label">节日促销</label>
+      <span class="info-item-value">{{ brief_data.holiday_promo }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if pipeline_runs %}
+<div class="run-selector-bar">
+  <label for="run-selector" class="run-selector-label">🕐 历史 Run：</label>
+  <select id="run-selector" class="run-selector-select" onchange="switchRun(this.value)">
+    <option value="">最新（全部）</option>
+    {% for run in pipeline_runs %}
+    <option value="{{ run.id }}" {% if selected_run_id == run.id %}selected{% endif %}>
+      Run #{{ run.id }} — {{ run.status }} — {{ run.started_at.strftime('%m/%d %H:%M') if run.started_at else '—' }}
+    </option>
+    {% endfor %}
+  </select>
+</div>
+{% endif %}
+
+<h2 class="section-title">
+  <span class="section-title-primary">📋</span> 图位规划
+  {% if project.category_path %}<span style="font-size:0.78em;font-weight:400;color:#6b7280;margin-left:10px;">{{ project.category_path }}</span>{% endif %}
+</h2>
 {% if slots %}
-<div class="table-wrap">
-  <table>
+<div class="data-table-wrap mb-2">
+  <table class="data-table">
     <thead>
       <tr>
-        <th>图位</th>
-        <th>意图</th>
-        <th>布局</th>
-        <th>风格</th>
-        <th>色彩</th>
-        <th>描述</th>
+        <th
+          class="th-w-80"
+          title="图片在商品主图中的编号位置，如 1 号图、2 号图"
+        >
+          图位
+        </th>
+        <th
+          class="th-w-120"
+          title="该图位的主要营销意图，如展示卖点、场景使用、对比说明"
+        >
+          意图
+        </th>
+        <th
+          class="th-w-120"
+          title="图片的构图方式，如单品居中、场景横构图、信息流竖版"
+        >
+          布局
+        </th>
+        <th
+          class="th-w-120"
+          title="视觉风格偏好，如简洁白底、生活化场景、科技感"
+        >
+          风格
+        </th>
+        <th class="th-w-120" title="主色调或配色方向，如白底、暖色调、品牌色">
+          色彩
+        </th>
+        <th title="AI 对该图位的综合创意说明，指导图片生成的具体内容">描述</th>
       </tr>
     </thead>
     <tbody>
       {% for s in slots %}
       <tr>
-        <td class="mono">{{ s.slot_index }}</td>
-        <td>{{ s.intent_tag or '—' }}</td>
+        <td class="mono font-semibold text-center">{{ s.slot_index }}</td>
+        <td><span class="badge badge-tag">{{ s.intent_tag or '—' }}</span></td>
         <td>{{ s.layout_tag or '—' }}</td>
         <td>{{ s.style_tag or '—' }}</td>
         <td>{{ s.color_tag or '—' }}</td>
-        <td class="cell-truncate">{{ s.description or '—' }}</td>
+         <td class="cell-desc" onclick="this.classList.toggle('expanded')">
+           <span class="desc-short">{{ s.description or '—' }}</span>
+           <span class="desc-full">{{ s.description or '—' }}</span>
+         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="empty-state">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="1.5"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-    />
-  </svg>
+<div class="data-empty mb-2">
+  <div class="data-empty-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+      />
+    </svg>
+  </div>
   <p>暂无图位规划</p>
 </div>
 {% endif %}
 
-<h2>Prompt 素材</h2>
+<h2 class="section-title">
+  <span class="section-title-primary">✨</span> Prompt 素材
+  <a href="/project/{{ project.id }}/deliver" class="btn btn-sm btn-outline section-title-action">📦 打包交付</a>
+</h2>
 {% if prompts %}
-<div class="card-grid">
+<div class="prompt-card-grid">
   {% for pa in prompts %}
-  <div class="card">
+  <div class="prompt-card">
     {% if pa.image_path %}
-    <img
-      src="{{ url_for('serve_image', path=pa.image_path) }}"
-      alt="图位 {{ pa.slot_index }}"
-    />
+    <div class="prompt-card-img-wrap">
+      <img
+        src="{{ url_for('serve_image', path=pa.image_path) }}"
+        alt="图位 {{ pa.slot_index }}"
+        class="prompt-card-img img-zoomable"
+        data-src="{{ url_for('serve_image', path=pa.image_path) }}"
+      />
+    </div>
     {% endif %}
-    <div class="card-body">
-      <strong>图位 {{ pa.slot_index }} · v{{ pa.version }}</strong>
-      <p class="card-text prompt-cell" data-full="{{ pa.prompt_text }}">
+    <div class="prompt-card-body">
+      <div class="prompt-card-header">
+        <strong class="prompt-card-title"
+          >图位 {{ pa.slot_index }}
+          <span class="prompt-card-version">· v{{ pa.version }}</span></strong
+        >
+        {% set _slot = slot_map.get(pa.slot_index) %}
+        {% if _slot and _slot.intent_tag %}
+        <span class="badge badge-tag">{{ _slot.intent_tag }}</span>
+        {% endif %}
+        <span class="badge prompt-card-model"
+          >{{ pa.model_name or '未知模型' }}</span
+        >
+        {% set qa = qa_map.get(pa.id) %}
+        {% if qa %}
+        <span class="badge {% if qa.record.passed %}text-success{% else %}text-danger{% endif %} font-semibold">
+          评分: {{ '%.1f'|format(qa.record.score) }}
+        </span>
+        {% endif %}
+        {% if pa.performance_score is not none and pa.performance_score < 0 %}
+        <span class="badge qa-failed-badge" title="QA 已重试 {{ (3) }} 次，仍未通过，该图位需人工审查">⚠️ QA 失败</span>
+        {% endif %}
+      </div>
+      {% if qa %}
+      <div class="qa-detail-panel">
+        <div class="qa-dims">
+          {% for key, dim in qa.dims.items() %}
+          <div class="qa-dim-row">
+            <span class="qa-dim-label">{{ dim.label }}</span>
+            <div class="qa-dim-bar-wrap">
+              <div class="qa-dim-bar" style="width: {{ (dim.score / dim.max * 100)|int }}%"></div>
+            </div>
+            <span class="qa-dim-score">{{ dim.score }}/{{ dim.max }}</span>
+          </div>
+          {% if dim.sub %}
+          <div class="qa-sub-rows">
+            {% for sub in dim.sub %}
+            <div class="qa-sub-row">
+              <span class="qa-sub-label">{{ sub.key }} {{ sub.label }}</span>
+              <div class="qa-dim-bar-wrap qa-sub-bar-wrap">
+                <div class="qa-dim-bar qa-sub-bar" style="width: {{ (sub.score / sub.max * 100)|int }}%"></div>
+              </div>
+              <span class="qa-dim-score qa-sub-score">{{ sub.score }}/{{ sub.max }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% if qa.issues %}
+        <div class="qa-issues">
+          <span class="qa-issues-label">问题</span>
+          <ul class="qa-issues-list">
+            {% for issue in qa.issues %}
+            <li>{{ issue }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if qa.reasoning %}
+        <div class="qa-reasoning">
+          <span class="qa-reasoning-label">推理摘要</span>
+          <p class="qa-reasoning-text">{{ qa.reasoning }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      <p class="prompt-cell" data-full="{{ pa.prompt_text }}">
         {{ pa.prompt_text }}
       </p>
-      <small>{{ pa.model_name or '未知模型' }}</small>
+      <div class="ab-panel" id="ab-panel-{{ pa.id }}">
+        {% if pa.performance_score is not none and pa.performance_score >= 0 %}
+        <div class="ab-result-readonly" id="ab-readonly-{{ pa.id }}">
+          <div class="ab-result-row">
+            <span class="ab-result-label">📊 A/B 实测</span>
+            <span class="ab-result-raw">CTR {{ '%.2f'|format(pa.ab_ctr * 100) }}%</span>
+            <span class="ab-result-raw">CVR {{ '%.2f'|format(pa.ab_cvr * 100) }}%</span>
+            <span class="ab-score {% if pa.performance_score >= 0.06 %}ab-score-high{% elif pa.performance_score >= 0.04 %}ab-score-mid{% else %}ab-score-low{% endif %}">
+              score {{ '%.3f'|format(pa.performance_score) }}
+              {% if pa.performance_score >= 0.06 %} 🏆{% endif %}
+            </span>
+            <button class="btn btn-xs btn-ghost ab-edit-btn" onclick="abShowForm({{ pa.id }})">✏️ 修改</button>
+            <button class="btn btn-xs btn-ghost ab-clear-btn" onclick="abClear({{ pa.id }})">🗑 清空</button>
+          </div>
+        </div>
+        {% endif %}
+        <div class="ab-form" id="ab-form-{{ pa.id }}" {% if pa.performance_score is not none and pa.performance_score >= 0 %}style="display:none"{% endif %}>
+          <div class="ab-form-title">📊 A/B 实测数据</div>
+          <div class="ab-inputs">
+            <label class="ab-input-group">
+              <span class="ab-input-label">CTR %</span>
+              <input
+                type="number"
+                class="ab-input"
+                id="ab-ctr-{{ pa.id }}"
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="如 8.2"
+                oninput="abPreview({{ pa.id }})"
+              />
+            </label>
+            <label class="ab-input-group">
+              <span class="ab-input-label">CVR %</span>
+              <input
+                type="number"
+                class="ab-input"
+                id="ab-cvr-{{ pa.id }}"
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="如 3.5"
+                oninput="abPreview({{ pa.id }})"
+              />
+            </label>
+          </div>
+          <div class="ab-preview" id="ab-preview-{{ pa.id }}"></div>
+          <div class="ab-form-actions">
+            <button class="btn btn-sm btn-primary" onclick="abSave({{ pa.id }})">保存</button>
+            {% if pa.performance_score is not none and pa.performance_score >= 0 %}
+            <button class="btn btn-sm btn-ghost" onclick="abCancelForm({{ pa.id }})">取消</button>
+            {% endif %}
+          </div>
+          <div class="ab-msg" id="ab-msg-{{ pa.id }}"></div>
+        </div>
+      </div>
     </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
-<div class="empty-state">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="1.5"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-    />
-  </svg>
+<div class="data-empty mb-2">
+  <div class="data-empty-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+      />
+    </svg>
+  </div>
   <p>暂无 Prompt 素材</p>
 </div>
 {% endif %}
 
-<h2>竞品基准</h2>
+<h2 class="section-title">
+  <span class="section-title-primary">📊</span> 竞品基准
+  {% if project.category_path %}<span style="font-size:0.78em;font-weight:400;color:#6b7280;margin-left:10px;">{{ project.category_path }}</span>{% endif %}
+  <button
+    id="bm-retry-btn"
+    class="btn btn-sm btn-secondary ml-auto"
+    onclick="triggerBenchmarkRetry()"
+  >🔄 重新分析</button>
+  <span id="bm-retry-status" class="text-muted font-sm ml-1"></span>
+</h2>
 {% if benchmarks %}
-<div class="table-wrap">
-  <table>
+<div class="data-table-wrap mb-2">
+  <table class="data-table">
     <thead>
       <tr>
-        <th>竞品 ASIN</th>
-        <th>图位</th>
-        <th>评分</th>
+        <th class="th-w-60">图片</th>
+        <th class="th-w-150">竞品 ASIN</th>
+        <th class="th-w-80">排名</th>
+        <th class="th-w-80">图位</th>
+        <th class="th-w-80">评分</th>
         <th>分析</th>
       </tr>
     </thead>
     <tbody>
       {% for b in benchmarks %}
-      <tr>
-        <td class="mono">{{ b.competitor_asin }}</td>
-        <td class="mono">
-          {{ b.slot_index if b.slot_index is not none else '—' }}
+      <tr{% if not b.image_url or not b.analysis %} class="row-missing"{% endif %}>
+        <td>
+          {% if b.image_url %}
+          <img
+            src="{{ b.image_url }}"
+            class="bm-thumb img-zoomable"
+            data-src="{{ b.image_url }}"
+            alt="{{ b.competitor_asin }}"
+            loading="lazy"
+          />
+          {% else %}
+          <span class="text-muted">—</span>
+          {% endif %}
         </td>
-        <td class="mono">
+        <td class="mono font-medium">
+          <a href="https://www.amazon.com/dp/{{ b.competitor_asin }}" target="_blank" rel="noopener" class="link-asin">{{ b.competitor_asin }}</a>
+        </td>
+        <td class="mono text-center">
+          {{ b.slot_index if (b.slot_index is not none and b.slot_index != 0) else '—' }}
+        </td>
+        <td class="mono text-center">
+          {{ b.image_slot if b.image_slot is not none else '—' }}
+        </td>
+        <td
+          class="mono font-semibold text-center {% if b.score and b.score >= 4.0 %}text-success{% elif b.score and b.score >= 3.0 %}text-warning{% else %}text-danger{% endif %}"
+        >
           {{ '%.1f'|format(b.score) if b.score is not none else '—' }}
         </td>
-        <td class="cell-truncate">{{ b.analysis or '—' }}</td>
+        <td class="td-analysis">
+          {% if b.analysis %}
+          {% set ana = b.analysis | from_json %}
+          <div class="bm-tags" data-full="{{ b.analysis }}" title="点击查看完整分析 JSON">
+            {% for tag in ana.get('intent_tags', []) %}<span class="bm-tag bm-tag-intent">{{ tag }}</span>{% endfor %}
+            {% for tag in ana.get('role_tags', []) %}<span class="bm-tag bm-tag-role">{{ tag }}</span>{% endfor %}
+            {% for tag in ana.get('color_tags', []) %}<span class="bm-tag bm-tag-color">{{ tag }}</span>{% endfor %}
+            {% if ana.get('layout') %}<span class="bm-tag bm-tag-layout">{{ ana['layout'] }}</span>{% endif %}
+          </div>
+          {% else %}
+          <span class="text-muted">—</span>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="empty-state">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="1.5"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-    />
-  </svg>
+<div class="data-empty mb-2">
+  <div class="data-empty-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+      />
+    </svg>
+  </div>
   <p>暂无竞品基准数据</p>
 </div>
 {% endif %}
 
-<!-- Prompt Modal -->
-<div
-  id="prompt-modal"
-  style="
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  "
->
-  <div
-    style="
-      background: #fff;
-      border-radius: 8px;
-      padding: 2rem;
-      max-width: 700px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-    "
-  >
-    <button
-      onclick="document.getElementById('prompt-modal').style.display = 'none'"
-      style="
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: none;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
-      "
-    >
-      ✕
-    </button>
-    <h3 style="margin: 0 0 1rem">完整 Prompt</h3>
-    <pre
-      id="prompt-modal-body"
-      style="
-        white-space: pre-wrap;
-        word-break: break-word;
-        font-size: 0.875rem;
-        line-height: 1.6;
-        margin: 0;
-      "
-    ></pre>
+<div id="prompt-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 class="section-title">
+      <span class="section-title-primary">✨</span> 完整 Prompt
+    </h3>
+    <div class="modal-body-wrap">
+      <pre id="prompt-modal-body" class="modal-body-pre"></pre>
+    </div>
   </div>
 </div>
+
+<div id="edit-prompt-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeEditPromptModal()">✕</button>
+    <h3 class="section-title">
+      <span class="section-title-primary">✏️</span> 修改 Prompt
+    </h3>
+    <div class="modal-body-wrap">
+      <textarea
+        id="edit-prompt-modal-text"
+        class="form-control edit-prompt-textarea"
+        rows="6"
+      ></textarea>
+    </div>
+    <div class="data-actions justify-end mt-1">
+      <button class="btn btn-outline" onclick="closeEditPromptModal()">
+        取消
+      </button>
+      <button class="btn btn-primary" onclick="submitEditPromptModal()">
+        🔄 用新Prompt重做
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="img-zoom-modal" class="modal-backdrop">
+  <div class="modal-content img-zoom-modal-content">
+    <button class="modal-close" onclick="closeImgZoom()">✕</button>
+    <img id="img-zoom-target" src="" alt="放大图片" class="img-zoom-full" />
+  </div>
+</div>
+
+<div id="score-modal" class="modal-backdrop">
+  <div class="modal-content score-modal-content">
+    <button class="modal-close" onclick="closeScoreModal()">✕</button>
+    <h3 class="section-title">
+      <span class="section-title-primary">⭐</span> 人工评分
+    </h3>
+    <div class="score-modal-body">
+      <div class="score-row">
+        <span class="score-label">产品还原度 <em>30%</em></span>
+        <div class="star-group" id="stars-fidelity" data-key="fidelity"></div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">光照质量 <em>25%</em></span>
+        <div class="star-group" id="stars-lighting" data-key="lighting"></div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">构图与主体 <em>20%</em></span>
+        <div
+          class="star-group"
+          id="stars-composition"
+          data-key="composition"
+        ></div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">材质质感 <em>15%</em></span>
+        <div class="star-group" id="stars-material" data-key="material"></div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">商业可用性 <em>10%</em></span>
+        <div
+          class="star-group"
+          id="stars-commercial"
+          data-key="commercial"
+        ></div>
+      </div>
+      <div class="score-overall-row">
+        综合分：<strong id="score-overall-display">—</strong>
+      </div>
+      <div class="score-tags-label">失败标签（可选）</div>
+      <div class="score-tags-grid" id="score-failure-tags">
+        <label class="score-tag"
+          ><input type="checkbox" value="产品颜色偏差" /> 产品颜色偏差</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="材质渲染错误" /> 材质渲染错误</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="角度不展示核心卖点" />
+          角度不展示核心卖点</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="AI伪影" /> AI伪影</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="背景不干净" /> 背景不干净</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="尺寸比例失真" /> 尺寸比例失真</label
+        >
+        <label class="score-tag"
+          ><input type="checkbox" value="与产品参考图不符" />
+          与产品参考图不符</label
+        >
+      </div>
+    </div>
+    <div class="data-actions justify-end mt-1">
+      <button class="btn btn-outline" onclick="closeScoreModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitScoreAndApprove()">
+        保存
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="plan-confirm-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closePlanConfirmModal()">✕</button>
+    <h3 class="section-title">
+      <span class="section-title-primary">🔄</span> 确认重新规划
+    </h3>
+    <div class="modal-body-wrap">
+      <p id="plan-confirm-modal-message" class="section-desc"></p>
+      <span id="plan-confirm-modal-hint" class="form-hint"></span>
+    </div>
+    <div class="data-actions justify-end mt-1">
+      <button class="btn btn-outline" onclick="closePlanConfirmModal()">
+        取消
+      </button>
+      <button
+        id="plan-confirm-modal-submit"
+        class="btn btn-primary"
+        onclick="submitPlanConfirmModal()"
+      >
+        确认重新规划
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
-  document.querySelectorAll(".prompt-cell").forEach(function (el) {
-    el.style.cursor = "pointer";
-    el.addEventListener("click", function () {
-      document.getElementById("prompt-modal-body").textContent =
-        el.dataset.full;
-      var modal = document.getElementById("prompt-modal");
-      modal.style.display = "flex";
-    });
+  function closeModal() {
+    var modal = document.getElementById("prompt-modal");
+    modal.classList.remove("show");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 200);
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest(".prompt-cell, .qa-details-cell, .bm-analysis-cell");
+    if (!el) return;
+    document.getElementById("prompt-modal-body").textContent =
+      el.dataset.full || el.textContent;
+    var modal = document.getElementById("prompt-modal");
+    modal.style.display = "flex";
+    modal.offsetHeight;
+    modal.classList.add("show");
   });
+
   document
     .getElementById("prompt-modal")
     .addEventListener("click", function (e) {
-      if (e.target === this) this.style.display = "none";
+      if (e.target === this) closeModal();
     });
 </script>
+
 <script>
   var projectId = {{ project.id }};
+  var selectedRunId = {{ selected_run_id if selected_run_id else 'null' }};
+  var tagOptions = {{ tag_options|tojson }};
+  var tagLookup = {{ tag_lookup|tojson }};
   var btnRun = document.getElementById('btn-run');
   var statusText = document.getElementById('run-status-text');
+  var statusBadge = document.querySelector('.page-title-group .badge');
+  var reviewPanel = document.getElementById('review-panel');
+  var STATE_LABELS = {
+    idle: '空闲', draft: '草稿', initialized: '初始化', planned: '已规划',
+    in_progress: '进行中', running: '生成中', generated: '已出图',
+    waiting_plan_review: '待规划审核', waiting_qa_review: '待 QA 审核',
+    review: '待审核', qa_failed: 'QA 未通过', done: '已完成',
+    completed: '已完成', error: '出错', failed: '失败'
+  };
   var pollTimer = null;
+  var _planConfirmAction = null;
+  var _regenSlotIndex = null;
+  var _regenAllActive = false;
+
+  function getTagLabel(code) {
+    var item = tagLookup[code || ''];
+    if (!item) return code || '—';
+    return item.name_cn + ' · ' + item.name_en;
+  }
+
+  function renderTagSelect(kind, selectedCode, slotIndex) {
+    var options = tagOptions[kind] || [];
+    var html = '<select class="slot-editor-select" data-slot-field="' + kind + '_tag" data-slot-index="' + slotIndex + '">';
+    for (var i = 0; i < options.length; i++) {
+      var option = options[i];
+      var selected = option.code === selectedCode ? ' selected' : '';
+      html += '<option value="' + escapeHtml(option.code) + '"' + selected + '>' + escapeHtml(option.name_cn + ' · ' + option.name_en) + '</option>';
+    }
+    html += '</select>';
+    return html;
+  }
+
+  function getSlotEditorPayload(slotIndex) {
+    var root = reviewPanel.querySelector('[data-slot-row="' + slotIndex + '"]');
+    if (!root) return null;
+    var getValue = function(field) {
+      var el = root.querySelector('[data-slot-field="' + field + '"]');
+      return el ? el.value.trim() : '';
+    };
+    return {
+      slot_index: slotIndex,
+      intent_tag: getValue('intent_tag'),
+      layout_tag: getValue('layout_tag'),
+      style_tag: getValue('style_tag'),
+      color_tag: getValue('color_tag'),
+      description: getValue('description'),
+      custom_prompt: getValue('custom_prompt')
+    };
+  }
+
+  function setSlotRowDirty(slotIndex, dirty) {
+    var row = reviewPanel.querySelector('[data-slot-row="' + slotIndex + '"]');
+    if (!row) return;
+    row.classList.toggle('slot-row-dirty', !!dirty);
+    var badge = row.querySelector('[data-slot-dirty-badge]');
+    if (badge) {
+      badge.textContent = dirty ? '未保存' : '已保存';
+      badge.classList.toggle('is-dirty', !!dirty);
+    }
+  }
+
+  function bindPlanReviewEditors(container) {
+    var root = container || reviewPanel;
+    var fields = root.querySelectorAll('[data-slot-field]');
+    fields.forEach(function(el) {
+      var handler = function() { setSlotRowDirty(el.dataset.slotIndex, true); };
+      el.addEventListener('input', handler);
+      el.addEventListener('change', handler);
+    });
+    var uploadLabels = root.querySelectorAll('[data-upload-slot]');
+    uploadLabels.forEach(function(label) {
+      var slotIndex = parseInt(label.dataset.uploadSlot, 10);
+      var input = label.querySelector('input[type="file"]');
+      if (!input) return;
+      input.addEventListener('change', function() {
+        uploadSlotImage(slotIndex, input);
+      });
+    });
+  }
+
+  function updateSlotCard(s) {
+    var card = reviewPanel.querySelector('[data-slot-row="' + s.slot_index + '"]');
+    if (!card) return;
+    card.classList.remove('slot-regen-loading');
+    var html = '';
+    html += '<div class="slot-card-head">';
+    html += '<span class="slot-card-index">图位 ' + s.slot_index + '</span>';
+    html += '<span class="slot-dirty-badge" data-slot-dirty-badge>已保存</span>';
+    html += '<div class="slot-card-actions">';
+    html += '<button class="btn btn-sm btn-outline" data-save-slot="' + s.slot_index + '" onclick="saveSlot(' + s.slot_index + ')">保存</button>';
+    html += '<button class="btn btn-sm btn-outline" data-regen-slot="' + s.slot_index + '" onclick="regenSlot(' + s.slot_index + ')">🔄 重规划</button>';
+    html += '</div></div>';
+    html += '<div class="slot-card-tags">';
+    html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">意图</label><div class="slot-editor-field">' + renderTagSelect('intent', s.intent_tag, s.slot_index) + '</div></div>';
+    html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">布局</label><div class="slot-editor-field">' + renderTagSelect('layout', s.layout_tag, s.slot_index) + '</div></div>';
+    html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">风格</label><div class="slot-editor-field">' + renderTagSelect('style', s.style_tag, s.slot_index) + '</div></div>';
+    html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">色彩</label><div class="slot-editor-field">' + renderTagSelect('color', s.color_tag, s.slot_index) + '</div></div>';
+    html += '</div>';
+    html += '<div class="slot-card-desc"><label class="slot-card-tag-label">描述</label><textarea class="slot-editor-textarea" data-slot-field="description" data-slot-index="' + s.slot_index + '" rows="2" placeholder="AI 创意说明，指导图片生成内容">' + escapeHtml(s.description || '') + '</textarea></div>';
+    html += '<div class="slot-card-bottom">';
+    html += '<div class="slot-card-desc slot-card-desc--inline"><label class="slot-card-tag-label">自定义提示词</label><textarea class="slot-editor-textarea slot-editor-textarea--custom" data-slot-field="custom_prompt" data-slot-index="' + s.slot_index + '" rows="1" placeholder="可选：追加至生成指令末尾">' + escapeHtml(s.custom_prompt || '') + '</textarea></div>';
+    html += '<div class="slot-card-images" data-slot-images="' + s.slot_index + '">' + renderSlotImages(s.slot_index, s.custom_image_paths || []) + '</div>';
+    html += '</div>';
+    card.innerHTML = html;
+    bindPlanReviewEditors(card);
+  }
+
+  function saveSlot(slotIndex, options) {
+    options = options || {};
+    var payload = getSlotEditorPayload(slotIndex);
+    if (!payload) {
+      return Promise.reject(new Error('找不到图位编辑器'));
+    }
+    var row = reviewPanel.querySelector('[data-slot-row="' + slotIndex + '"]');
+    var saveBtn = row ? row.querySelector('[data-save-slot="' + slotIndex + '"]') : null;
+    var originalText = saveBtn ? saveBtn.textContent : '';
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = '保存中';
+    }
+    return fetch('/project/' + projectId + '/update-slot-plan', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    })
+      .then(function(r) {
+        return r.json().then(function(data) {
+          if (!r.ok) throw new Error(data.error || '保存失败');
+          return data;
+        });
+      })
+      .then(function(data) {
+        setSlotRowDirty(slotIndex, false);
+        if (!options.silent) statusText.textContent = '图位 ' + slotIndex + ' 已保存';
+        return data;
+      })
+      .catch(function(err) {
+        statusText.textContent = '图位 ' + slotIndex + ' 保存失败：' + err.message;
+        throw err;
+      })
+      .finally(function() {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText || '保存';
+        }
+      });
+  }
+
+  function saveAllSlots(options) {
+    options = options || {};
+    var slotRows = reviewPanel.querySelectorAll('[data-slot-row]');
+    var saves = [];
+    slotRows.forEach(function(row) {
+      saves.push(saveSlot(parseInt(row.dataset.slotRow, 10), { silent: true }));
+    });
+    return Promise.all(saves).then(function(result) {
+      if (!options.silent) statusText.textContent = '全部图位修改已保存';
+      return result;
+    });
+  }
 
   function startPipeline() {
     btnRun.disabled = true;
@@ -275,30 +984,944 @@ endblock %} {% block content %}
   function pollStatus() {
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(function() {
-      fetch('/project/' + projectId + '/status')
+      fetch('/project/' + projectId + '/status' + (selectedRunId ? '?run_id=' + selectedRunId : ''))
         .then(function(r) { return r.json(); })
-        .then(function(d) {
-          statusText.textContent = d.message || '';
-          if (d.state === 'done') {
-            clearInterval(pollTimer);
-            location.reload();
-          } else if (d.state === 'error') {
-            clearInterval(pollTimer);
-            btnRun.disabled = false;
-            statusText.textContent = d.message;
-          }
-        });
-    }, 3000);
+        .then(function(d) { handleStatusUpdate(d); });
+    }, 1000);
   }
 
-  fetch('/project/' + projectId + '/status')
+  function handleStatusUpdate(d) {
+    var msg = (d.message || '').split('\n')[0];
+    if (msg.length > 80) msg = msg.slice(0, 80) + '…';
+    statusText.textContent = msg;
+    btnRun.disabled = (d.state !== 'idle' && d.state !== 'done' && d.state !== 'error');
+    if (statusBadge && d.state) {
+      statusBadge.className = 'badge badge-' + d.state;
+      statusBadge.textContent = STATE_LABELS[d.state] || d.state;
+    }
+
+    if (d.state === 'waiting_plan_review') {
+      clearInterval(pollTimer);
+      if (_regenSlotIndex !== null) {
+        var targetSlot = (d.slots || []).find(function(s) { return s.slot_index == _regenSlotIndex; });
+        if (targetSlot) updateSlotCard(targetSlot);
+        _regenSlotIndex = null;
+      } else {
+        _regenAllActive = false;
+        renderPlanReview(d.slots || [], d.steps || []);
+      }
+    } else if (d.state === 'waiting_qa_review') {
+      clearInterval(pollTimer);
+      renderQaReview(d.items || [], d.all_approved || false);
+    } else if (d.state === 'done') {
+      clearInterval(pollTimer);
+      renderQaReview(d.items || [], d.all_approved || false, true);
+    } else if (d.state === 'error') {
+      clearInterval(pollTimer);
+      btnRun.disabled = false;
+      renderErrorPanel(d.message || '未知错误');
+    } else {
+      if (_regenSlotIndex === null && !_regenAllActive) {
+        renderLogPanel(d.logs || []);
+      }
+    }
+  }
+
+  function renderSuccessPanel(steps, reportUrl) {
+    var html = '<div class="content-panel content-panel-success">';
+    html += '<h2 class="section-title section-title-success"><span>🎉</span> 全部完成！</h2>';
+    html += '<p class="section-desc">流水线已成功执行完毕，以下步骤均已完成：</p>';
+    html += '<ul class="success-steps">';
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i];
+      if (typeof s === 'object' && s !== null) {
+        var icon = s.status === 'success' ? '✅' : s.status === 'failed' ? '❌' : '—';
+        var cls = 'pipeline-step pipeline-step-' + s.status;
+        html += '<li class="' + cls + '">';
+        html += '<span class="pipeline-step-icon">' + icon + '</span>';
+        html += '<span class="pipeline-step-body">';
+        html += '<span class="pipeline-step-label">' + escapeHtml(s.label) + '</span>';
+        if (s.detail) {
+          html += '<span class="pipeline-step-detail">' + escapeHtml(s.detail) + '</span>';
+        }
+        html += '</span></li>';
+      } else {
+        html += '<li>' + escapeHtml(String(s)) + '</li>';
+      }
+    }
+    html += '</ul>';
+    html += '<div class="data-actions justify-end">';
+    if (reportUrl) {
+      html += '<a class="btn btn-outline" href="' + reportUrl + '">📊 查看报告</a>';
+    }
+    html += '<a class="btn btn-primary" href="/project/' + projectId + '/deliver">📦 打包交付</a>';
+    html += '</div></div>';
+    reviewPanel.innerHTML = html;
+    setTimeout(function() { location.reload(); }, 3000);
+  }
+
+  function retryPipeline() {
+    reviewPanel.innerHTML = '';
+    startPipeline();
+  }
+
+  function renderErrorPanel(msg) {
+    var html = '<div class="content-panel content-panel-danger">';
+    html += '<h2 class="section-title section-title-danger"><span>❌</span> 流水线出错</h2>';
+    html += '<p class="section-desc">流水线执行过程中发生错误，请查看详情后重试。</p>';
+    html += '<pre class="error-detail">' + escapeHtml(msg) + '</pre>';
+    html += '<div class="data-actions justify-end">';
+    html += '<button class="btn btn-primary" onclick="retryPipeline()">🔄 重试</button>';
+    html += '</div></div>';
+    reviewPanel.innerHTML = html;
+  }
+
+  function toggleQaDetail(id, btn) {
+    var body = document.getElementById(id);
+    if (!body) return;
+    if (body.style.display === 'none') {
+      body.style.display = 'block';
+      btn.textContent = '▼ 收起 QA 详情';
+    } else {
+      body.style.display = 'none';
+      btn.textContent = '▶ 查看 QA 详情';
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderSlotImages(slotIndex, paths) {
+    var html = '<div class="slot-images-list">';
+    (paths || []).forEach(function(p) {
+      var escaped = escapeHtml(p);
+      html += '<div class="slot-image-item">';
+      html += '<img src="/image/' + escaped + '" class="slot-image-thumb">';
+      html += '<button class="slot-image-delete" onclick="deleteSlotImage(' + slotIndex + ',\'' + escaped + '\')" title="删除">×</button>';
+      html += '</div>';
+    });
+    if ((paths || []).length < 2) {
+      var inputId = 'slot-upload-' + slotIndex + '-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+      html += '<label class="slot-image-upload-btn" for="' + inputId + '">+ 图片</label>';
+      html += '<input type="file" id="' + inputId + '" accept="image/*" class="slot-image-file-input" onchange="uploadSlotImage(' + slotIndex + ', this)">';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function uploadSlotImage(slotIndex, input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    var form = new FormData();
+    form.append('custom_images', file);
+    fetch('/project/' + projectId + '/slot/' + slotIndex + '/custom-image', {
+      method: 'POST',
+      body: form
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) {
+          statusText.textContent = d.error;
+          var container = reviewPanel.querySelector('[data-slot-images="' + slotIndex + '"]');
+          if (container) {
+            var errEl = container.querySelector('.slot-upload-error');
+            if (!errEl) {
+              errEl = document.createElement('span');
+              errEl.className = 'slot-upload-error';
+              container.appendChild(errEl);
+            }
+            errEl.textContent = d.error;
+            setTimeout(function() { if (errEl.parentNode) errEl.parentNode.removeChild(errEl); }, 4000);
+          }
+          return;
+        }
+        var container = reviewPanel.querySelector('[data-slot-images="' + slotIndex + '"]');
+        if (container) container.innerHTML = renderSlotImages(slotIndex, d.custom_image_paths || []);
+      })
+      .catch(function(e) { statusText.textContent = '上传失败: ' + e; });
+  }
+
+  function deleteSlotImage(slotIndex, path) {
+    fetch('/project/' + projectId + '/slot/' + slotIndex + '/custom-image/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({path: path})
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) { statusText.textContent = d.error; return; }
+        var container = reviewPanel.querySelector('[data-slot-images="' + slotIndex + '"]');
+        if (container) container.innerHTML = renderSlotImages(slotIndex, d.custom_image_paths || []);
+      })
+      .catch(function(e) { statusText.textContent = '删除失败: ' + e; });
+  }
+
+  function renderLogPanel(logs) {
+    if (!logs || logs.length === 0) {
+      reviewPanel.innerHTML = '';
+      return;
+    }
+
+    // 最后一条 = 当前步骤（高亮），其余 = 历史（灰色小字）
+    var currentEntry = logs[logs.length - 1];
+    var pastEntries = logs.slice(0, logs.length - 1);
+    var currentMsg = currentEntry.msg || '';
+    var isCurrentDone = currentMsg.startsWith('✅') || currentMsg.startsWith('❌');
+
+    var html = '<div class="progress-panel">';
+
+    // ── 当前步骤 ──────────────────────────────────────────────
+    if (isCurrentDone) {
+      // 已完成状态（即将切换 state，短暂显示）
+      var doneColor = currentMsg.startsWith('✅') ? 'progress-banner progress-banner-success' : 'progress-banner progress-banner-error';
+      html += '<div class="' + doneColor + '">';
+      html += '<span class="progress-banner-icon">' + (currentMsg.startsWith('✅') ? '✅' : '❌') + '</span>';
+      html += '<span class="progress-banner-text progress-banner-text-done">' + escapeHtml(currentMsg.replace(/^[✅❌]\s*/, '')) + '</span>';
+      if (currentEntry.ts) html += '<span class="progress-banner-ts">' + escapeHtml(currentEntry.ts) + '</span>';
+      html += '</div>';
+    } else {
+      // 进行中 —— spinner + 高亮文字
+      html += '<div class="progress-banner">';
+      html += '<span class="progress-spinner"></span>';
+      html += '<span class="progress-banner-text">' + escapeHtml(currentMsg.replace(/^⏳\s*/, '')) + '</span>';
+      html += '</div>';
+    }
+
+    // ── 历史步骤（灰色小字，新→旧） ──────────────────────────
+    if (pastEntries.length > 0) {
+      html += '<ul class="progress-history">';
+      for (var i = pastEntries.length - 1; i >= 0; i--) {
+        var e = pastEntries[i];
+        var emsg = e.msg || '';
+        var extraCls = emsg.startsWith('✅') ? ' history-ok' : emsg.startsWith('❌') ? ' history-err' : '';
+        html += '<li class="progress-history-item' + extraCls + '">';
+        html += '<span class="progress-history-msg">' + escapeHtml(emsg) + '</span>';
+        if (e.ts) html += '<span class="progress-history-ts">' + escapeHtml(e.ts) + '</span>';
+        html += '</li>';
+      }
+      html += '</ul>';
+    }
+
+    html += '</div>';
+    reviewPanel.innerHTML = html;
+  }
+
+  function renderPlanReview(slots, steps) {
+    var html = '';
+    if (steps && steps.length > 0) {
+      html += '<div class="content-panel mb-2">';
+      html += '<h3 class="section-title">📊 分析结果摘要</h3>';
+      html += '<ul class="success-steps">';
+      for (var i = 0; i < steps.length; i++) {
+        var st = steps[i];
+        var icon = st.status === 'success' ? '✅' : st.status === 'failed' ? '❌' : '—';
+        var cls = 'pipeline-step pipeline-step-' + st.status;
+        html += '<li class="' + cls + '">';
+        html += '<span class="pipeline-step-icon">' + icon + '</span>';
+        html += '<span class="pipeline-step-body">';
+        html += '<span class="pipeline-step-label">' + escapeHtml(st.label) + '</span>';
+        if (st.detail) {
+          html += '<span class="pipeline-step-detail">' + escapeHtml(st.detail) + '</span>';
+        }
+        html += '</span></li>';
+      }
+      html += '</ul></div>';
+    }
+    html += '<div class="content-panel content-panel-warning">';
+    html += '<div class="plan-review-header">';
+    html += '<div><h2 class="section-title section-title-warning"><span>⚠️</span> 需确认图位规划</h2>';
+    html += '<p class="section-desc">请确认以下为您自动生成的图位规划，确认无误后将开始生成对应图片。</p></div>';
+    html += '<div class="plan-review-global-actions">';
+    html += '<button class="btn btn-sm btn-outline" onclick="regenAllSlots()">🔄 全部重规划</button>';
+    html += '<button class="btn btn-sm btn-outline" onclick="saveAllSlots()">💾 保存全部</button>';
+    html += '<button class="btn btn-primary" onclick="confirmPlan()">✅ 确认规划，开始生成</button>';
+    html += '</div></div>';
+    html += '<div class="slot-card-list">';
+    for (var i = 0; i < slots.length; i++) {
+      var s = slots[i];
+      html += '<div class="slot-card" data-slot-row="' + s.slot_index + '">';
+      html += '<div class="slot-card-head">';
+      html += '<span class="slot-card-index">图位 ' + s.slot_index + '</span>';
+      html += '<span class="slot-dirty-badge" data-slot-dirty-badge>已保存</span>';
+      html += '<div class="slot-card-actions">';
+      html += '<button class="btn btn-sm btn-outline" data-save-slot="' + s.slot_index + '" onclick="saveSlot(' + s.slot_index + ')">保存</button>';
+      html += '<button class="btn btn-sm btn-outline" data-regen-slot="' + s.slot_index + '" onclick="regenSlot(' + s.slot_index + ')">🔄 重规划</button>';
+      html += '</div></div>';
+      html += '<div class="slot-card-tags">';
+      html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">意图</label><div class="slot-editor-field">' + renderTagSelect('intent', s.intent_tag, s.slot_index) + '</div></div>';
+      html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">布局</label><div class="slot-editor-field">' + renderTagSelect('layout', s.layout_tag, s.slot_index) + '</div></div>';
+      html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">风格</label><div class="slot-editor-field">' + renderTagSelect('style', s.style_tag, s.slot_index) + '</div></div>';
+      html += '<div class="slot-card-tag-item"><label class="slot-card-tag-label">色彩</label><div class="slot-editor-field">' + renderTagSelect('color', s.color_tag, s.slot_index) + '</div></div>';
+      html += '</div>';
+      html += '<div class="slot-card-desc"><label class="slot-card-tag-label">描述</label><textarea class="slot-editor-textarea" data-slot-field="description" data-slot-index="' + s.slot_index + '" rows="2" placeholder="AI 创意说明，指导图片生成内容">' + escapeHtml(s.description || '') + '</textarea></div>';
+      html += '<div class="slot-card-bottom">';
+      html += '<div class="slot-card-desc slot-card-desc--inline"><label class="slot-card-tag-label">自定义提示词</label><textarea class="slot-editor-textarea slot-editor-textarea--custom" data-slot-field="custom_prompt" data-slot-index="' + s.slot_index + '" rows="1" placeholder="可选：追加至生成指令末尾">' + escapeHtml(s.custom_prompt || '') + '</textarea></div>';
+      html += '<div class="slot-card-images" data-slot-images="' + s.slot_index + '">' + renderSlotImages(s.slot_index, s.custom_image_paths || []) + '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '<p class="slot-editor-tip">建议：意图 / 布局 / 风格 / 色彩使用受控标签保持一致性，描述用于人工微调。</p>';
+    html += '</div>';
+    reviewPanel.innerHTML = html;
+    bindPlanReviewEditors();
+  }
+
+  function openPlanConfirmModal(action) {
+    _planConfirmAction = action;
+    var messageEl = document.getElementById('plan-confirm-modal-message');
+    var hintEl = document.getElementById('plan-confirm-modal-hint');
+    var submitEl = document.getElementById('plan-confirm-modal-submit');
+    if (action.type === 'slot') {
+      messageEl.textContent = '确认重新规划图位 ' + action.slotIndex + ' 吗？';
+      hintEl.textContent = '会先保存当前图位修改，再执行重新规划。';
+      submitEl.textContent = '确认重规划图位';
+    } else {
+      messageEl.textContent = '确认重新规划全部图位吗？';
+      hintEl.textContent = '会重新生成整组图位规划，并覆盖当前规划结果。';
+      submitEl.textContent = '确认全部重规划';
+    }
+    var modal = document.getElementById('plan-confirm-modal');
+    modal.style.display = 'flex';
+    modal.offsetHeight;
+    modal.classList.add('show');
+  }
+
+  function closePlanConfirmModal() {
+    var modal = document.getElementById('plan-confirm-modal');
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 200);
+    _planConfirmAction = null;
+  }
+
+  function submitPlanConfirmModal() {
+    if (!_planConfirmAction) return;
+    var action = _planConfirmAction;
+    closePlanConfirmModal();
+    if (action.type === 'slot') {
+      executeRegenSlot(action.slotIndex);
+      return;
+    }
+    executeRegenAllSlots();
+  }
+
+  function executeRegenSlot(slotIndex) {
+    _regenSlotIndex = slotIndex;
+    var btn = document.querySelector('[data-regen-slot="' + slotIndex + '"]');
+    var card = reviewPanel.querySelector('[data-slot-row="' + slotIndex + '"]');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+    if (card) { card.classList.add('slot-regen-loading'); }
+    statusText.textContent = '正在保存图位 ' + slotIndex + ' 修改...';
+    saveSlot(slotIndex, { silent: true })
+      .then(function() {
+        statusText.textContent = '正在重新规划图位 ' + slotIndex + '...';
+        return fetch('/project/' + projectId + '/regen-slot/' + slotIndex, { method: 'POST' });
+      })
+      .then(function(r) {
+        return r.json().then(function(data) {
+          if (!r.ok) throw new Error(data.error || '重规划失败');
+          return data;
+        });
+      })
+      .then(function() { pollStatus(); })
+      .catch(function(err) {
+        _regenSlotIndex = null;
+        statusText.textContent = '重规划失败: ' + err.message;
+        if (btn) { btn.disabled = false; btn.textContent = '🔄 重规划'; }
+        if (card) { card.classList.remove('slot-regen-loading'); }
+      });
+  }
+
+  function executeRegenAllSlots() {
+    _regenAllActive = true;
+    var allBtns = document.querySelectorAll('[data-regen-slot]');
+    var allCards = reviewPanel.querySelectorAll('[data-slot-row]');
+    allBtns.forEach(function(b) { b.disabled = true; b.textContent = '⏳'; });
+    allCards.forEach(function(c) { c.classList.add('slot-regen-loading'); });
+    statusText.textContent = '正在重新规划全部图位...';
+    fetch('/project/' + projectId + '/regen-all-slots', { method: 'POST' })
+      .then(function(r) {
+        return r.json().then(function(data) {
+          if (!r.ok) throw new Error(data.error || '重规划失败');
+          return data;
+        });
+      })
+      .then(function() { pollStatus(); })
+      .catch(function(err) {
+        _regenAllActive = false;
+        statusText.textContent = '重规划失败: ' + err.message;
+        allBtns.forEach(function(b) { b.disabled = false; b.textContent = '🔄 重规划'; });
+        allCards.forEach(function(c) { c.classList.remove('slot-regen-loading'); });
+      });
+  }
+
+  function regenSlot(slotIndex) {
+    openPlanConfirmModal({ type: 'slot', slotIndex: slotIndex });
+  }
+
+  function regenAllSlots() {
+    openPlanConfirmModal({ type: 'all' });
+  }
+
+  function confirmPlan() {
+    var confirmBtn = reviewPanel.querySelector('.btn.btn-primary');
+    if (confirmBtn) confirmBtn.disabled = true;
+    statusText.textContent = '正在保存图位修改...';
+    saveAllSlots({ silent: true })
+      .then(function() {
+        statusText.textContent = '正在启动生成...';
+        return fetch('/project/' + projectId + '/confirm-plan', {method: 'POST'});
+      })
+      .then(function(r) { return r.json(); })
+      .then(function() { pollStatus(); })
+      .catch(function(e) {
+        statusText.textContent = '失败: ' + e.message;
+        if (confirmBtn) confirmBtn.disabled = false;
+      });
+  }
+
+  function renderQaReview(items, allApproved, readOnly) {
+    var html = '<div class="content-panel content-panel-primary">';
+    if (readOnly) {
+      html += '<h2 class="section-title section-title-success"><span>✅</span> 已完成 · 图片总览</h2>';
+      html += '<p class="section-desc">流水线已完成，以下为全部生成图片及 QA 评分记录。</p>';
+    } else {
+      html += '<h2 class="section-title section-title-primary"><span>👁️‍🗨️</span> 图片 QA 审核</h2>';
+      html += '<p class="section-desc">请逐张审核生成的图片，您可以选择直接通过或要求重做。</p>';
+    }
+    html += '<div class="prompt-card-grid">';
+    var mismatchSlots = [];
+    for (var i = 0; i < items.length; i++) {
+      var _it = items[i];
+      if (_it.qa_details && _it.qa_score !== null) {
+        try {
+          var _d = JSON.parse(_it.qa_details);
+          var _sum = (_d.A||0)+(_d.B||0)+(_d.C||0)+(_d.D||0)+(_d.E||0);
+          if ((_d.A !== undefined) && Math.abs(_sum - _it.qa_score) > 2) {
+            mismatchSlots.push('图位 ' + _it.slot_index);
+          }
+        } catch(e) {}
+      }
+    }
+    if (mismatchSlots.length) {
+      html += '<div class="qa-score-mismatch-banner">⚠ 以下图位的 QA 维度之和与总分不一致，建议重新评估：' + mismatchSlots.join('、') + '</div>';
+    }
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var scoreClass = it.qa_passed ? 'text-success' : 'text-danger';
+      var scoreText = it.qa_score !== null ? it.qa_score.toFixed(1) : '—';
+      html += '<div class="prompt-card' + (it.approved ? ' is-approved' : '') + '">';
+      if (it.image_url) {
+        html += '<div class="prompt-card-img-wrap">';
+        html += '<img src="' + it.image_url + '" alt="图位 ' + it.slot_index + '" class="prompt-card-img img-zoomable" data-src="' + it.image_url + '">';
+        html += '</div>';
+      } else {
+        html += '<div class="prompt-card-img-wrap text-muted">暂无图片</div>';
+      }
+      html += '<div class="prompt-card-body">';
+      html += '<div class="prompt-card-header">';
+      html += '<strong class="prompt-card-title">图位 ' + it.slot_index + ' <span class="prompt-card-version">· v' + it.version + '</span></strong>';
+      html += '<span class="badge prompt-card-model ' + scoreClass + ' font-semibold">评分: ' + scoreText + '</span>';
+      html += '</div>';
+      if (it.prompt_text) {
+        var safePromptAttr = it.prompt_text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html += '<p class="prompt-cell" data-full="' + safePromptAttr + '">' + it.prompt_text + '</p>';
+      }
+      if (it.qa_details) {
+        var parsedQa = null;
+        try { parsedQa = JSON.parse(it.qa_details); } catch(e) {}
+        html += '<div class="qa-detail-panel">';
+        if (parsedQa) {
+          var GROUP_LABELS = {A:'平台合规', B:'技术质量', C:'AI瑕疵检测', D:'产品一致性', E:'商业品质'};
+          var GROUP_MAX   = {A:25, B:15, C:20, D:30, E:10};
+          var DIM_LABELS  = {
+            A1:'背景纯净', A2:'产品占比', A3:'禁止元素',
+            B1:'清晰度/焦点', B2:'曝光与色彩',
+            C1:'光照一致性', C2:'材质真实感', C3:'边缘质量', C4:'文字渲染', C5:'无幻觉部件',
+            D1:'外观匹配', D2:'多角度一致性',
+            E1:'场景合理性', E2:'Listing匹配'
+          };
+          var dims = ['A','B','C','D','E'];
+          html += '<div class="qa-dims">';
+          dims.forEach(function(k) {
+            if (parsedQa[k] !== undefined) {
+              var score = parsedQa[k];
+              var max   = GROUP_MAX[k];
+              var pct   = max > 0 ? Math.round(score / max * 100) : 0;
+              html += '<div class="qa-dim-row">';
+              html += '<span class="qa-dim-label">' + (GROUP_LABELS[k] || k) + '</span>';
+              html += '<div class="qa-dim-bar-wrap"><div class="qa-dim-bar" style="width:' + pct + '%"></div></div>';
+              html += '<span class="qa-dim-score">' + score + '/' + max + '</span>';
+              html += '</div>';
+            }
+          });
+          html += '</div>';
+          if (parsedQa.issues && parsedQa.issues.length) {
+            html += '<div class="qa-issues">';
+            html += '<span class="qa-issues-label">问题</span>';
+            html += '<ul class="qa-issues-list">';
+            parsedQa.issues.forEach(function(iss) {
+              var label = iss.replace(/^([A-E]\d+):\s*/, function(_, code) {
+                return (DIM_LABELS[code] ? '【' + DIM_LABELS[code] + '】' : code) + '：';
+              });
+              html += '<li>' + escapeHtml(label) + '</li>';
+            });
+            html += '</ul></div>';
+          }
+          if (parsedQa.reasoning) {
+            html += '<div class="qa-reasoning">';
+            html += '<span class="qa-reasoning-label">推理摘要</span>';
+            html += '<p class="qa-reasoning-text">' + escapeHtml(parsedQa.reasoning) + '</p>';
+            html += '</div>';
+          }
+        } else {
+          html += '<pre class="qa-raw">' + escapeHtml(String(it.qa_details)) + '</pre>';
+        }
+        html += '</div>';
+      }
+      if (!readOnly) {
+        html += '<div class="data-actions justify-end pt-1-5 mt-auto">';
+        if (it.approved) {
+          if (it.human_scores) { _humanScores[it.slot_index] = it.human_scores; }
+          html += '<button class="btn btn-success flex-1" onclick="approveSlot(' + it.slot_index + ')">✅ 已通过</button>';
+        } else {
+          var safePromptAttr2 = (it.prompt_text || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+          html += '<button class="btn btn-outline flex-1" onclick="redoSlot(' + it.slot_index + ')">🔄 重做</button>';
+          html += '<button class="btn btn-outline flex-1" data-slot="' + it.slot_index + '" data-prompt="' + safePromptAttr2 + '" onclick="openEditPromptModal(+this.dataset.slot, this.dataset.prompt)">✏️ 改Prompt</button>';
+          html += '<button class="btn btn-primary flex-1" onclick="approveSlot(' + it.slot_index + ')">通过</button>';
+        }
+        html += '</div>';
+      } else {
+        html += '<div class="data-actions justify-end pt-1-5 mt-auto">';
+        html += '<span class="' + (it.approved ? 'text-success' : 'text-muted') + ' font-semibold text-sm">' + (it.approved ? '✅ 已通过' : '— 未审核') + '</span>';
+        html += '</div>';
+      }
+      html += '</div></div>';
+    }
+    html += '</div>';
+    if (readOnly) {
+      html += '<div class="data-actions justify-end border-t pt-1-5">';
+      html += '<a class="btn btn-outline" href="/project/' + projectId + '/report">📊 查看报告</a>';
+      html += '<a class="btn btn-primary" href="/project/' + projectId + '/deliver">📦 打包交付</a>';
+      html += '</div>';
+    } else {
+      html += '<div class="data-actions justify-end border-t pt-1-5">';
+      if (allApproved) {
+        html += '<button class="btn btn-primary" onclick="finishReview()">📊 审核完毕，生成最终报告</button>';
+      } else {
+        html += '<button class="btn" disabled>📊 请先审核全部图片</button>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    reviewPanel.innerHTML = html;
+  }
+
+  var _scoreSlotIndex = null;
+  var _humanScores = {};
+  var _scoreValues = { fidelity: 0, lighting: 0, composition: 0, material: 0, commercial: 0 };
+  var _scoreWeights = { fidelity: 0.30, lighting: 0.25, composition: 0.20, material: 0.15, commercial: 0.10 };
+
+  function approveSlot(slotIndex) {
+    _scoreSlotIndex = slotIndex;
+    var existing = _humanScores[slotIndex] || {};
+    var initScores = {
+      fidelity:    existing.fidelity    || 0,
+      lighting:    existing.lighting    || 0,
+      composition: existing.composition || 0,
+      material:    existing.material    || 0,
+      commercial:  existing.commercial  || 0,
+    };
+    _scoreValues = initScores;
+    Object.keys(initScores).forEach(function(key) { renderStars(key, initScores[key]); });
+    document.querySelectorAll('#score-failure-tags input[type=checkbox]').forEach(function(cb) {
+      cb.checked = (existing.failure_tags || []).indexOf(cb.value) !== -1;
+    });
+    var overall = 0;
+    Object.keys(_scoreWeights).forEach(function(k) { overall += (initScores[k] || 0) * _scoreWeights[k]; });
+    document.getElementById('score-overall-display').textContent = existing.overall
+      ? existing.overall.toFixed(2)
+      : (overall > 0 ? overall.toFixed(2) : '—');
+    var modal = document.getElementById('score-modal');
+    modal.style.display = 'flex';
+    modal.offsetHeight;
+    modal.classList.add('show');
+  }
+
+  function renderStars(key, value) {
+    var group = document.getElementById('stars-' + key);
+    group.innerHTML = '';
+    for (var i = 1; i <= 5; i++) {
+      (function(star) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = star <= value ? '★' : '☆';
+        btn.className = 'star-btn' + (star <= value ? ' active' : '');
+        btn.onclick = function() { setScore(key, star); };
+        group.appendChild(btn);
+      })(i);
+    }
+  }
+
+  function setScore(key, value) {
+    _scoreValues[key] = value;
+    renderStars(key, value);
+    var overall = 0;
+    Object.keys(_scoreWeights).forEach(function(k) {
+      overall += (_scoreValues[k] || 0) * _scoreWeights[k];
+    });
+    document.getElementById('score-overall-display').textContent = overall.toFixed(2);
+  }
+
+  function closeScoreModal() {
+    var modal = document.getElementById('score-modal');
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 200);
+    _scoreSlotIndex = null;
+  }
+
+  function submitScoreAndApprove() {
+    if (_scoreSlotIndex === null) return;
+    var allScored = Object.keys(_scoreValues).every(function(k) { return _scoreValues[k] > 0; });
+    if (!allScored) { alert('请对全部五个维度打分后再提交'); return; }
+    var overall = 0;
+    Object.keys(_scoreWeights).forEach(function(k) {
+      overall += _scoreValues[k] * _scoreWeights[k];
+    });
+    var tags = [];
+    document.querySelectorAll('#score-failure-tags input[type=checkbox]:checked').forEach(function(cb) {
+      tags.push(cb.value);
+    });
+    var slotIndex = _scoreSlotIndex;
+    var savedScores = Object.assign({}, _scoreValues);
+    var savedOverall = parseFloat(overall.toFixed(4));
+    closeScoreModal();
+    fetch('/project/' + projectId + '/approve-slot', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        slot_index: slotIndex,
+        scores: savedScores,
+        failure_tags: tags,
+        overall_score: savedOverall,
+        run_id: selectedRunId
+      })
+    })
+    .then(function(r) {
+      if (!r.ok) { return r.json().then(function(d) { alert('保存失败：' + (d.error || r.status)); throw new Error('save_failed'); }); }
+      return r.json();
+    })
+    .then(function() {
+      _humanScores[slotIndex] = Object.assign({}, savedScores, { overall: savedOverall, failure_tags: tags });
+      refreshQaStatus();
+    })
+    .catch(function(e) { if (e.message !== 'save_failed') { alert('请求失败：' + e); } });
+  }
+
+  function redoSlot(slotIndex) {
+    statusText.textContent = '🔄 已提交重做图位 ' + slotIndex + '，等待生成...';
+    fetch('/project/' + projectId + '/redo-slot', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({slot_index: slotIndex})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) {
+        statusText.textContent = '❌ 重做失败：' + d.error;
+      } else {
+        pollStatus();
+      }
+    })
+    .catch(function(e) {
+      statusText.textContent = '❌ 请求失败：' + e;
+    });
+  }
+
+  var _editSlotIndex = null;
+
+  function openEditPromptModal(slotIndex, currentPrompt) {
+    _editSlotIndex = slotIndex;
+    var ta = document.getElementById('edit-prompt-modal-text');
+    ta.value = currentPrompt || '';
+    var modal = document.getElementById('edit-prompt-modal');
+    modal.style.display = 'flex';
+    modal.offsetHeight;
+    modal.classList.add('show');
+    ta.focus();
+  }
+
+  function closeEditPromptModal() {
+    var modal = document.getElementById('edit-prompt-modal');
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 200);
+    _editSlotIndex = null;
+  }
+
+  function submitEditPromptModal() {
+    if (_editSlotIndex === null) return;
+    var slotIndex = _editSlotIndex;
+    var newPrompt = document.getElementById('edit-prompt-modal-text').value.trim();
+    if (!newPrompt) { alert('Prompt 不能为空'); return; }
+    closeEditPromptModal();
+    statusText.textContent = '正在用新Prompt重做图位 ' + slotIndex + '...';
+    fetch('/project/' + projectId + '/edit-prompt-and-redo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({slot_index: slotIndex, prompt_text: newPrompt})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { statusText.textContent = '错误: ' + d.error; return; }
+      pollStatus();
+    });
+  }
+
+  document.getElementById('edit-prompt-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditPromptModal();
+  });
+
+  document.getElementById('plan-confirm-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePlanConfirmModal();
+  });
+
+  function openImgZoom(src) {
+    document.getElementById('img-zoom-target').src = src;
+    var modal = document.getElementById('img-zoom-modal');
+    modal.style.display = 'flex';
+    modal.offsetHeight;
+    modal.classList.add('show');
+  }
+
+  function closeImgZoom() {
+    var modal = document.getElementById('img-zoom-modal');
+    modal.classList.remove('show');
+    setTimeout(function() { modal.style.display = 'none'; }, 200);
+  }
+
+  document.getElementById('img-zoom-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeImgZoom();
+  });
+
+  document.addEventListener('click', function(e) {
+    var img = e.target.closest('.img-zoomable');
+    if (img) openImgZoom(img.dataset.src || img.src);
+  });
+
+  function finishReview() {
+    var btn = reviewPanel.querySelector('.btn-primary');
+    if (btn) btn.disabled = true;
+    statusText.textContent = '正在生成报告...';
+    fetch('/project/' + projectId + '/finish-review', {method: 'POST'})
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.state === 'done') { location.reload(); }
+        else if (d.error) { statusText.textContent = d.error; }
+      })
+      .catch(function(e) { statusText.textContent = '失败: ' + e; });
+  }
+
+  function refreshQaStatus() {
+    fetch('/project/' + projectId + '/status' + (selectedRunId ? '?run_id=' + selectedRunId : ''))
+      .then(function(r) { return r.json(); })
+      .then(function(d) { handleStatusUpdate(d); });
+  }
+
+  fetch('/project/' + projectId + '/status' + (selectedRunId ? '?run_id=' + selectedRunId : ''))
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.state === 'running') {
         btnRun.disabled = true;
         statusText.textContent = d.message || '运行中...';
         pollStatus();
+      } else {
+        handleStatusUpdate(d);
       }
     });
+
+  var _bmRetryPollTimer = null;
+
+  function triggerBenchmarkRetry() {
+    var btn = document.getElementById('bm-retry-btn');
+    var statusEl = document.getElementById('bm-retry-status');
+    btn.disabled = true;
+    statusEl.textContent = '启动中...';
+    fetch('/project/' + projectId + '/benchmarks/retry', {method: 'POST'})
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) {
+          statusEl.textContent = d.error;
+          btn.disabled = false;
+        } else {
+          statusEl.textContent = '分析中...';
+          _pollBmRetryStatus();
+        }
+      })
+      .catch(function(e) {
+        statusEl.textContent = '请求失败: ' + e;
+        btn.disabled = false;
+      });
+  }
+
+  (function initStatus() {
+    fetch('/project/' + projectId + '/status' + (selectedRunId ? '?run_id=' + selectedRunId : ''))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        handleStatusUpdate(d);
+        if (d.state !== 'done' && d.state !== 'error' && d.state !== 'idle' &&
+            d.state !== 'waiting_plan_review' && d.state !== 'waiting_qa_review') {
+          pollStatus();
+        }
+      });
+  })();
+
+  function _pollBmRetryStatus() {
+    if (_bmRetryPollTimer) clearTimeout(_bmRetryPollTimer);
+    fetch('/project/' + projectId + '/benchmarks/retry/status')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var statusEl = document.getElementById('bm-retry-status');
+        var btn = document.getElementById('bm-retry-btn');
+        if (d.state === 'running') {
+          statusEl.textContent = '分析中...';
+          _bmRetryPollTimer = setTimeout(_pollBmRetryStatus, 3000);
+        } else if (d.state === 'idle') {
+          statusEl.textContent = '完成（重试 ' + (d.retried || 0) + ' 条，更新 ' + (d.updated || 0) + ' 条）';
+          btn.disabled = false;
+          location.reload();
+        } else if (d.state === 'error') {
+          statusEl.textContent = '失败: ' + (d.error || '未知错误');
+          btn.disabled = false;
+        } else {
+          btn.disabled = false;
+        }
+      })
+      .catch(function() {
+        _bmRetryPollTimer = setTimeout(_pollBmRetryStatus, 5000);
+      });
+  }
+
+  function switchRun(runId) {
+    var url = window.location.pathname;
+    if (runId) {
+      url += '?run_id=' + runId;
+    }
+    window.location.href = url;
+  }
+
+  pollStatus();
+</script>
+
+<script>
+  function abPreview(paId) {
+    var ctrInput = document.getElementById('ab-ctr-' + paId);
+    var cvrInput = document.getElementById('ab-cvr-' + paId);
+    var previewEl = document.getElementById('ab-preview-' + paId);
+    var ctr = parseFloat(ctrInput.value);
+    var cvr = parseFloat(cvrInput.value);
+    if (isNaN(ctr) || isNaN(cvr)) {
+      previewEl.textContent = '';
+      previewEl.className = 'ab-preview';
+      return;
+    }
+    // 输入为百分比，除以 100 转小数后计算 score
+    var score = (ctr * 0.6 + cvr * 0.4) / 100;
+    var label = score >= 0.06 ? '🏆 触发飞轮回写' : score >= 0.04 ? '一般' : '偏低';
+    var cls = score >= 0.06 ? 'ab-preview ab-preview-high' : score >= 0.04 ? 'ab-preview ab-preview-mid' : 'ab-preview ab-preview-low';
+    previewEl.textContent = '预估 score：' + score.toFixed(3) + '  ' + label;
+    previewEl.className = cls;
+  }
+
+  function abSave(paId) {
+    var ctr = parseFloat(document.getElementById('ab-ctr-' + paId).value);
+    var cvr = parseFloat(document.getElementById('ab-cvr-' + paId).value);
+    var msgEl = document.getElementById('ab-msg-' + paId);
+    if (isNaN(ctr) || isNaN(cvr)) {
+      msgEl.textContent = '请填写 CTR 和 CVR';
+      msgEl.className = 'ab-msg ab-msg-error';
+      return;
+    }
+    msgEl.textContent = '保存中…';
+    msgEl.className = 'ab-msg';
+    fetch('/api/ab-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt_asset_id: paId, ctr: ctr, cvr: cvr })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok) {
+        msgEl.textContent = '保存失败：' + (data.error || '未知错误');
+        msgEl.className = 'ab-msg ab-msg-error';
+        return;
+      }
+      var score = data.performance_score;
+      var readonlyEl = document.getElementById('ab-readonly-' + paId);
+      var scoreClass = score >= 0.06 ? 'ab-score ab-score-high' : score >= 0.04 ? 'ab-score ab-score-mid' : 'ab-score ab-score-low';
+      var trophy = score >= 0.06 ? ' 🏆' : '';
+      if (!readonlyEl) {
+        readonlyEl = document.createElement('div');
+        readonlyEl.className = 'ab-result-readonly';
+        readonlyEl.id = 'ab-readonly-' + paId;
+        document.getElementById('ab-panel-' + paId).insertBefore(readonlyEl, document.getElementById('ab-form-' + paId));
+      }
+      readonlyEl.innerHTML =
+        '<div class="ab-result-row">' +
+        '<span class="ab-result-label">📊 A/B 实测</span>' +
+        '<span class="ab-result-raw">CTR ' + ctr.toFixed(2) + '%</span>' +
+        '<span class="ab-result-raw">CVR ' + cvr.toFixed(2) + '%</span>' +
+        '<span class="' + scoreClass + '">score ' + score.toFixed(3) + trophy + '</span>' +
+        '<button class="btn btn-xs btn-ghost ab-edit-btn" onclick="abShowForm(' + paId + ')">✏️ 修改</button>' +
+        '<button class="btn btn-xs btn-ghost ab-clear-btn" onclick="abClear(' + paId + ')">🗑 清空</button>' +
+        '</div>';
+      readonlyEl.style.display = '';
+      document.getElementById('ab-form-' + paId).style.display = 'none';
+      msgEl.textContent = '';
+    })
+    .catch(function() {
+      msgEl.textContent = '网络错误，请重试';
+      msgEl.className = 'ab-msg ab-msg-error';
+    });
+  }
+
+  function abShowForm(paId) {
+    document.getElementById('ab-form-' + paId).style.display = '';
+    var readonlyEl = document.getElementById('ab-readonly-' + paId);
+    if (readonlyEl) readonlyEl.style.display = 'none';
+  }
+
+  function abCancelForm(paId) {
+    document.getElementById('ab-form-' + paId).style.display = 'none';
+    var readonlyEl = document.getElementById('ab-readonly-' + paId);
+    if (readonlyEl) readonlyEl.style.display = '';
+  }
+
+  function abClear(paId) {
+    if (!confirm('确认清空该 Prompt 的 A/B 实测数据？')) return;
+    fetch('/api/ab-result/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt_asset_id: paId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok) { alert('清空失败：' + (data.error || '未知错误')); return; }
+      var readonlyEl = document.getElementById('ab-readonly-' + paId);
+      if (readonlyEl) readonlyEl.style.display = 'none';
+      var formEl = document.getElementById('ab-form-' + paId);
+      formEl.style.display = '';
+      document.getElementById('ab-ctr-' + paId).value = '';
+      document.getElementById('ab-cvr-' + paId).value = '';
+      document.getElementById('ab-preview-' + paId).textContent = '';
+      document.getElementById('ab-preview-' + paId).className = 'ab-preview';
+      document.getElementById('ab-msg-' + paId).textContent = '';
+    })
+    .catch(function() { alert('网络错误，请重试'); });
+  }
 </script>
 {% endblock %}
