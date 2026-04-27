@@ -1,7 +1,8 @@
 {
-  "active_plan": "/Users/axureboutique/Projects/auto-image-pipeline/.sisyphus/plans/single-admin-mode.md",
-  "started_at": "2026-04-20T08:59:06.291Z",
-  "session_ids": ["ses_2582396a1ffeLoZXw21XbaZ6ch"],
-  "plan_name": "single-admin-mode",
-  "status": "in_progress"
+  "active_plan": "/Users/axureboutique/Projects/auto-image-pipeline/.sisyphus/plans/gate4-deadcode-cleanup.md",
+  "started_at": "2026-04-25T04:08:08.000Z",
+  "session_ids": ["ses_23df67292ffei3Tfl53B5ocdR5"],
+  "plan_name": "gate4-deadcode-cleanup",
+  "status": "done",
+  "completed_at": "2026-04-28T00:00:00.000Z"
 }
