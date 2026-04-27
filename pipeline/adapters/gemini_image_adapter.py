@@ -71,27 +71,46 @@ class GeminiImageAdapter(BaseImageAdapter):
                 }
             )
 
-        default_model = config.image_model if not image_b64 else config.edit_model
+        primary_model = (
+            params.get("model", config.image_model) if params else config.image_model
+        )
         payload = {
-            "model": params.get("model", default_model) if params else default_model,
+            "model": primary_model,
             "stream": False,
             "messages": [{"role": "user", "content": content}],
             "modalities": ["text", "image"],
         }
 
-        resp = httpx.post(
-            f"{self._base_url}/chat/completions",
-            headers=self._headers,
-            json=payload,
-            **self._client_kwargs,
-        )
-        if resp.status_code >= 400:
-            logger.error("API error %s: %s", resp.status_code, resp.text)
-        resp.raise_for_status()
-        body = resp.json()
+        try:
+            resp = httpx.post(
+                f"{self._base_url}/chat/completions",
+                headers=self._headers,
+                json=payload,
+                **self._client_kwargs,
+            )
+            if resp.status_code >= 400:
+                logger.error("API error %s: %s", resp.status_code, resp.text)
+            resp.raise_for_status()
+            body = resp.json()
+            reply = body["choices"][0]["message"]["content"]
+            match = _B64_IMG_PATTERN.search(reply)
+        except Exception as exc:
+            logger.warning(
+                "Gemini primary failed (%s), falling back to %s",
+                exc,
+                config.fallback_model,
+            )
+            from pipeline.adapters.gpt_image_adapter import GptImageAdapter
 
-        reply = body["choices"][0]["message"]["content"]
-        match = _B64_IMG_PATTERN.search(reply)
+            fb_params = {"model": config.fallback_model}
+            if image_b64:
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                    tmp.write(base64.b64decode(image_b64))
+                    tmp_path = tmp.name
+                return GptImageAdapter().edit(tmp_path, prompt, params=fb_params)
+            return GptImageAdapter().generate(prompt, params=fb_params)
 
         job_id = uuid.uuid4().hex[:12]
         out_path: str | None = None
@@ -109,18 +128,33 @@ class GeminiImageAdapter(BaseImageAdapter):
                 config.image_output_size,
             )
         else:
-            logger.warning("No image found in Gemini response for job %s", job_id)
+            logger.warning(
+                "No image in Gemini response for job %s, falling back to %s",
+                job_id,
+                config.fallback_model,
+            )
+            from pipeline.adapters.gpt_image_adapter import GptImageAdapter
+
+            fb_params = {"model": config.fallback_model}
+            if image_b64:
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                    tmp.write(base64.b64decode(image_b64))
+                    tmp_path = tmp.name
+                return GptImageAdapter().edit(tmp_path, prompt, params=fb_params)
+            return GptImageAdapter().generate(prompt, params=fb_params)
 
         usage = body.get("usage", {})
         return ImageResult(
             job_id=job_id,
-            status=JobStatus.COMPLETED if out_path else JobStatus.FAILED,
+            status=JobStatus.COMPLETED,
             image_path=out_path,
-            error=None if out_path else "No image in response",
+            error=None,
             metadata={
                 "adapter": "gemini_image",
-                "model": default_model,
-                "text_reply": reply[:500] if not match else None,
+                "model": primary_model,
+                "text_reply": None,
                 "prompt_tokens": usage.get("prompt_tokens"),
                 "completion_tokens": usage.get("completion_tokens"),
             },
@@ -163,28 +197,40 @@ class GeminiImageAdapter(BaseImageAdapter):
                 }
             )
 
+        primary_model = (
+            params.get("model", config.image_model) if params else config.image_model
+        )
         payload = {
-            "model": params.get("model", config.edit_model)
-            if params
-            else config.edit_model,
+            "model": primary_model,
             "stream": False,
             "messages": [{"role": "user", "content": content}],
             "modalities": ["text", "image"],
         }
 
-        resp = httpx.post(
-            f"{self._base_url}/chat/completions",
-            headers=self._headers,
-            json=payload,
-            **self._client_kwargs,
-        )
-        if resp.status_code >= 400:
-            logger.error("API error %s: %s", resp.status_code, resp.text)
-        resp.raise_for_status()
-        body = resp.json()
+        try:
+            resp = httpx.post(
+                f"{self._base_url}/chat/completions",
+                headers=self._headers,
+                json=payload,
+                **self._client_kwargs,
+            )
+            if resp.status_code >= 400:
+                logger.error("API error %s: %s", resp.status_code, resp.text)
+            resp.raise_for_status()
+            body = resp.json()
+            reply = body["choices"][0]["message"]["content"]
+            match = _B64_IMG_PATTERN.search(reply)
+        except Exception as exc:
+            logger.warning(
+                "Gemini edit primary failed (%s), falling back to %s",
+                exc,
+                config.fallback_model,
+            )
+            from pipeline.adapters.gpt_image_adapter import GptImageAdapter
 
-        reply = body["choices"][0]["message"]["content"]
-        match = _B64_IMG_PATTERN.search(reply)
+            return GptImageAdapter().edit(
+                image_paths, prompt, params={"model": config.fallback_model}
+            )
 
         job_id = uuid.uuid4().hex[:12]
         out_path: str | None = None
@@ -203,18 +249,27 @@ class GeminiImageAdapter(BaseImageAdapter):
                 len(image_paths),
             )
         else:
-            logger.warning("No image found in Gemini response for job %s", job_id)
+            logger.warning(
+                "No image in Gemini edit response for job %s, falling back to %s",
+                job_id,
+                config.fallback_model,
+            )
+            from pipeline.adapters.gpt_image_adapter import GptImageAdapter
+
+            return GptImageAdapter().edit(
+                image_paths, prompt, params={"model": config.fallback_model}
+            )
 
         usage = body.get("usage", {})
         return ImageResult(
             job_id=job_id,
-            status=JobStatus.COMPLETED if out_path else JobStatus.FAILED,
+            status=JobStatus.COMPLETED,
             image_path=out_path,
-            error=None if out_path else "No image in response",
+            error=None,
             metadata={
                 "adapter": "gemini_image",
-                "model": config.edit_model,
-                "text_reply": reply[:500] if not match else None,
+                "model": primary_model,
+                "text_reply": None,
                 "prompt_tokens": usage.get("prompt_tokens"),
                 "completion_tokens": usage.get("completion_tokens"),
                 "input_image_count": len(image_paths),

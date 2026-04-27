@@ -11,7 +11,7 @@ class Config:
         default_factory=lambda: os.getenv("AIP_DB_PATH", "data/pipeline.db")
     )
     db_url: str = field(
-        default_factory=lambda: os.getenv("AIP_DB_URL", "sqlite:///data/pipeline.db")
+        default_factory=lambda: os.getenv("AIP_DB_URL", "postgresql://localhost/aip_db")
     )
     keepa_api_key: str = field(default_factory=lambda: os.getenv("KEEPA_API_KEY", ""))
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
@@ -32,9 +32,10 @@ class Config:
         default_factory=lambda: os.getenv("AIP_IMAGE_MODEL", "gpt-image-1")
     )
     edit_model: str = field(
-        default_factory=lambda: os.getenv(
-            "AIP_EDIT_MODEL", "gemini-2.5-flash-image-preview"
-        )
+        default_factory=lambda: os.getenv("AIP_EDIT_MODEL", "gpt-image-1.5")
+    )
+    fallback_model: str = field(
+        default_factory=lambda: os.getenv("AIP_FALLBACK_MODEL", "gpt-image-2")
     )
     vision_model: str = field(
         default_factory=lambda: os.getenv("AIP_VISION_MODEL", "gemini-2.5-flash")
@@ -48,6 +49,9 @@ class Config:
     image_output_dir: str = field(
         default_factory=lambda: os.getenv("AIP_IMAGE_OUTPUT_DIR", "data/images")
     )
+    image_output_size: int = field(
+        default_factory=lambda: int(os.getenv("AIP_IMAGE_OUTPUT_SIZE", "2000"))
+    )
     parallel_analyze: bool = field(
         default_factory=lambda: (
             os.getenv("AIP_PARALLEL_ANALYZE", "1").lower() in ("1", "true", "yes")
@@ -55,6 +59,11 @@ class Config:
     )
     vision_provider: str = field(
         default_factory=lambda: os.getenv("VISION_PROVIDER", "openai")
+    )
+    http_proxy: str = field(
+        default_factory=lambda: (
+            os.getenv("HTTPS_PROXY") or os.getenv("HTTP_PROXY") or ""
+        )
     )
     log_level: str = field(default_factory=lambda: os.getenv("AIP_LOG_LEVEL", "INFO"))
     flask_port: int = field(
@@ -76,6 +85,15 @@ class Config:
             os.getenv("AIP_FLYWHEEL_CONFIDENCE_THRESHOLD", "85")
         )
     )
+
+    @property
+    def image_adapter(self) -> str:
+        m = self.image_model.lower()
+        if "gemini" in m:
+            return "gemini_image"
+        if "gpt" in m or "dall-e" in m:
+            return "gpt_image"
+        return "mock"
 
 
 config = Config()
