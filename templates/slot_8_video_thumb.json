@@ -1,0 +1,6 @@
+{
+  "slot_index": 8,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Eye-catching video thumbnail for Amazon product listing video. {{ subject }} as the hero element in a dynamic, attention-grabbing {{ composition }} composition. {{ tone }} visual style with high contrast and vibrant energy. The image should instantly communicate the product's key benefit and compel viewers to click play. Bold, cinematic feel with dramatic lighting.{% if constraints %} Color palette: {{ constraints }}.{% endif %}{% if environment %} Scene: {{ environment }}.{% endif %}{% if camera %} Cinematic framing: {{ camera }}.{% endif %} 16:9 aspect ratio, high impact, scroll-stopping visual.",
+  "negative_prompt": "boring composition, flat lighting, text heavy, play button icon, blurry, low quality, generic, dull colors, cluttered, confusing focal point"
+}

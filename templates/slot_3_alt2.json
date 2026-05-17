@@ -1,0 +1,6 @@
+{
+  "slot_index": 3,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Product infographic layout for Amazon listing. {{ subject }} displayed with a {{ composition }} layout. {{ tone }} design style with clean visual hierarchy. The image should clearly communicate key product features and specifications through visual arrangement. Structured, organized composition with distinct zones for the product and feature highlights. Light, professional background.{% if constraints %} Color scheme: {{ constraints }}.{% endif %}{% if environment %} Context: {{ environment }}.{% endif %}{% if camera %} Perspective: {{ camera }}.{% endif %} High-resolution, sharp details.",
+  "negative_prompt": "cluttered layout, hard-to-read elements, blurry, low contrast, dark moody lighting, inconsistent style, distorted product, amateur design"
+}

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "auto-image-pipeline"
+version = "0.1.0"
+description = "Amazon product image automation pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    "sqlalchemy>=2.0",
+    "click>=8.1",
+    "httpx>=0.25",
+    "openai>=1.0",
+    "flask>=3.0",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+aip = "pipeline.__main__:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::sqlalchemy.exc.SAWarning",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov"]

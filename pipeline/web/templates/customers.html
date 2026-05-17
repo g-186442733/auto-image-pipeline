@@ -1,0 +1,168 @@
+{% extends "base.html" %} {% block title %}客户管理 — 主图工厂{% endblock %} {%
+block content %}
+<div class="page-header">
+  <h1>客户管理</h1>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%} {% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %} {% endif %} {% endwith %}
+
+<div class="data-toolbar">
+  <div class="data-filters"></div>
+  <button class="btn btn-primary" onclick="openAddModal()">+ 新增客户</button>
+</div>
+
+{% if tenants %}
+<div class="data-table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>名称</th>
+        <th>Slug</th>
+        <th>项目数</th>
+        <th>创建时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tenants %}
+      <tr>
+        <td class="col-title">{{ t.name }}</td>
+        <td class="mono">{{ t.slug }}</td>
+        <td class="mono">{{ counts.get(t.id, 0) }}</td>
+        <td class="mono">
+          {{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '—' }}
+        </td>
+        <td>
+          <a class="btn btn-sm" href="/tenants/{{ t.id }}/brands">品牌管理</a>
+          <button
+            class="btn btn-sm"
+            onclick="openEditModal({{ t.id }}, '{{ t.name | e }}')"
+          >
+            编辑
+          </button>
+          <button
+            class="btn btn-sm btn-danger"
+            onclick="deleteCustomer({{ t.id }}, '{{ t.name | e }}')"
+          >
+            删除
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="data-empty">
+  <div class="data-empty-icon">👥</div>
+  <p>暂无客户，请点击「新增客户」添加。</p>
+</div>
+{% endif %}
+
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">新增客户</h2>
+      <button type="button" class="modal-close" onclick="closeAddModal()">
+        &times;
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('customers_new') }}">
+      <div class="modal-body">
+        <label for="add_name">客户名称</label>
+        <input
+          type="text"
+          id="add_name"
+          name="name"
+          placeholder="请输入客户名称"
+          required
+          class="data-input"
+        />
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeAddModal()"
+        >
+          取消
+        </button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">编辑客户</h2>
+      <button type="button" class="modal-close" onclick="closeEditModal()">
+        &times;
+      </button>
+    </div>
+    <form method="POST" id="editForm" action="">
+      <div class="modal-body">
+        <label for="edit_name">客户名称</label>
+        <input
+          type="text"
+          id="edit_name"
+          name="name"
+          placeholder="请输入客户名称"
+          required
+          class="data-input"
+        />
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeEditModal()"
+        >
+          取消
+        </button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openAddModal() {
+    document.getElementById("addModal").classList.add("modal-visible");
+  }
+  function closeAddModal(e) {
+    if (e && e.target !== document.getElementById("addModal")) return;
+    document.getElementById("addModal").classList.remove("modal-visible");
+    document.getElementById("add_name").value = "";
+  }
+  function openEditModal(id, name) {
+    document.getElementById("edit_name").value = name;
+    document.getElementById("editForm").action = "/customers/" + id + "/edit";
+    document.getElementById("editModal").classList.add("modal-visible");
+  }
+  function closeEditModal(e) {
+    if (e && e.target !== document.getElementById("editModal")) return;
+    document.getElementById("editModal").classList.remove("modal-visible");
+  }
+  function deleteCustomer(id, name) {
+    if (!confirm("确定要删除客户「" + name + "」吗？此操作不可撤销。")) return;
+    fetch("/customers/" + id + "/delete", { method: "POST" })
+      .then(function (r) {
+        if (r.ok) {
+          location.reload();
+        } else {
+          return r.text().then(function (msg) {
+            alert("删除失败：" + msg);
+          });
+        }
+      })
+      .catch(function () {
+        alert("网络错误，请重试。");
+      });
+  }
+</script>
+{% endblock %}

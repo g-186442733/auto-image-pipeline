@@ -1,0 +1,21 @@
+Task 14: build_prompt() in prompt_engine.py
+============================================
+Date: 2026-04-18
+Status: COMPLETE
+
+Baseline: 94 passed
+Final: 101 passed (+7 new tests)
+
+Changes:
+- pipeline/layers/prompt_engine.py: Added build_prompt(project_id, slot_index, session=None)
+  - owns_session pattern (matching slot_planner.py)
+  - Reads ImageBrief, BrandProfile, CompetitorListing from DB
+  - json.loads(brief_json) with fallback to empty dict on decode error
+  - Raises E_BUILD_001 when no ImageBrief found
+  - No lazy import of google.generativeai needed (build_prompt doesn't call Gemini)
+
+- tests/test_prompt_engine_v2.py: 7 new tests in 2 classes
+  - TestBuildPromptBasic (4 tests): string return, brief concept, brand inclusion, competitor inclusion
+  - TestBuildPromptEdgeCases (3 tests): raises without brief, malformed JSON fallback, works without brand/competitor
+
+Evidence: .venv/bin/python -m pytest --tb=no -q → 101 passed in 1.91s

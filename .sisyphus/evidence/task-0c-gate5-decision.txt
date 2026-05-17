@@ -1,0 +1,14 @@
+## Wave 0c — QA Gate 5 Decision
+Date: 2026-04-20
+Decision confirmed by user.
+
+Gate 5 Threshold: ≥0.6 PASS, <0.6 FAIL
+
+Composite formula:
+  0.4 * tag_coverage_norm   (≥3 of 5 layers tagged)
+  + 0.4 * brand_consistency  (brand color/style match score)
+  + 0.2 * resolution_pass   (binary: both dims ≥1024px)
+
+Score range: 0.0–1.0
+Pass: score ≥ 0.6
+Fail: score < 0.6

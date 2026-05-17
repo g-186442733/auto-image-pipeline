@@ -1,0 +1,31 @@
+Task 12 — Vision Integration Evidence
+======================================
+Date: 2026-04-18
+
+## Changes
+
+### pipeline/orchestrator.py
+- Added `_call_vision(image_url: str) -> dict` helper that imports and calls `analyze_image`
+- Added vision analysis loop in `step_analyze()` after benchmark persistence:
+  - Queries all benchmarks for the project
+  - Skips benchmarks without `image_url`
+  - Calls `_call_vision()` and writes `json.dumps(result)` to `bm.analysis`
+  - Catches exceptions and logs warning (graceful degradation)
+- Return dict now includes `"vision_analyzed": int`
+
+### tests/test_vision_integration.py (NEW — 6 tests)
+1. test_vision_analyzed_count — verifies count=2 for 2 benchmarks with image_url
+2. test_analysis_field_persisted — verifies bm.analysis contains valid JSON with correct data
+3. test_call_vision_receives_correct_urls — verifies correct URLs passed to _call_vision
+4. test_no_image_url_skipped — verifies benchmarks without image_url are skipped
+5. test_vision_failure_graceful — verifies partial failure (1/2 succeed) degrades gracefully
+6. test_all_vision_fail_still_returns — verifies total failure still returns valid result
+
+## Test Results
+77 passed (baseline: 71, new: 6)
+
+## Design Decisions
+- `_call_vision` is a module-level function (not method) for easy mocking in tests
+- Vision loop runs AFTER benchmark persistence commit, queries back from DB
+- No new external dependencies; no modification to vision_analyzer.py
+- No hardcoded API keys

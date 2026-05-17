@@ -1,0 +1,139 @@
+........................................................................ [  9%]
+........................................................................ [ 19%]
+........................................................................ [ 29%]
+........................................................................ [ 39%]
+........................................................................ [ 49%]
+........................................................................ [ 59%]
+........................................................................ [ 69%]
+........................................................................ [ 79%]
+........................................................................ [ 89%]
+........................................................................ [ 99%]
+..                                                                       [100%]
+=============================== warnings summary ===============================
+tests/test_aplus_content.py: 9 warnings
+tests/test_aplus_generator.py: 140 warnings
+tests/test_schema_l4.py: 20 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks
+tests/test_e2e_orchestrator.py::TestStepAnalyze::test_analyze_updates_status_to_analyzed
+tests/test_orchestrator_brief.py::test_brief_generated_after_analyzers
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (1,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_hypothesis_tracker.py::TestShouldTrack::test_should_track_within_window
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:38: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py: 6 warnings
+tests/test_integration_pipeline.py: 4 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/hypothesis_tracker.py:16: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestShouldTrack::test_should_not_track_after_14_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:48: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_updates_last_checked_at
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:77: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_updates_last_checked_at
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_increments_check_count
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_expires_past_window
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_auto_sets_tracking_dates
+tests/test_integration_pipeline.py::TestHypothesisLifecycle::test_hypothesis_lifecycle
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/hypothesis_tracker.py:36: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_increments_check_count
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:96: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_expires_past_window
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:114: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_integration_pipeline.py::TestHypothesisLifecycle::test_hypothesis_lifecycle
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_integration_pipeline.py:147: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_orchestrator_brief.py::test_brief_failure_does_not_crash
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (2,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_with_partial_upstream_failure
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (3,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (4,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (5,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_analyze_qa_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (7,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_entry_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (8,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (9,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_analyze_reviews_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (10,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_cluster_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (11,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (12,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_true_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (13,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_false_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (14,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_sets_status_analyzed
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (15,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_phase1_both_fetchers_called
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (16,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_vision_phase3_parallel
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:235: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (18,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_returns_time_series
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_empty_history
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/ranking_tracker.py:20: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_ranking_tracker.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    r.tracked_at = datetime.utcnow() - timedelta(days=60)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+722 passed, 218 warnings in 65.09s (0:01:05)

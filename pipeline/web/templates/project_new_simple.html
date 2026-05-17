@@ -1,0 +1,299 @@
+{% extends "base.html" %} {% block title %}新建项目 — 主图工厂{% endblock %} {%
+block content %}
+<div class="container" style="max-width: 620px">
+  <h1>新建项目</h1>
+  <p class="text-muted">
+    快速创建项目，稍后可在详情页点击「✏️ 编辑需求 Brief」补充完整信息。
+  </p>
+
+  <form method="POST" action="{{ url_for('project_new') }}">
+    <label for="customer_search">客户 <span class="required">*</span></label>
+    <div class="customer-picker" id="customerPicker">
+      <input
+        type="text"
+        id="customer_search"
+        class="customer-search-input"
+        placeholder="输入客户名称搜索，或新建客户"
+        autocomplete="off"
+      />
+      <div class="customer-search-results" id="customerSearchResults"></div>
+      <div class="customer-selected" id="customerSelected"></div>
+      <input type="hidden" id="tenant_id" name="tenant_id" value="" />
+      <input
+        type="hidden"
+        id="new_customer_name"
+        name="new_customer_name"
+        value=""
+      />
+    </div>
+
+    <label for="name">项目名称 <span class="required">*</span></label>
+    <input
+      type="text"
+      id="name"
+      name="name"
+      required
+      placeholder="如：蓝牙耳机主图优化"
+      autofocus
+    />
+
+    <label for="asin">竞争对手 ASIN（选填）</label>
+    <input
+      type="text"
+      id="asin"
+      name="asin"
+      maxlength="20"
+      placeholder="B0XXXXXXXXX"
+    />
+    <small class="form-hint"
+      >填写竞争对手产品的 Amazon ASIN，系统将自动抓取其标题、价格、评分、BSR
+      及评论，作为出图策略参考。不填则跳过竞品分析，仅基于品类数据出图。</small
+    >
+
+    <label for="category_search">品类（选填）</label>
+    <div class="cat-picker" id="catPicker">
+      <input
+        type="text"
+        id="category_search"
+        class="cat-search"
+        placeholder="搜索品类（如 Headphones）或从下方选择"
+        autocomplete="off"
+      />
+      <div class="cat-search-results" id="catSearchResults"></div>
+      <div class="cat-selects">
+        <select id="cat_l1" class="cat-select-l1">
+          <option value="">-- 一级品类 --</option>
+        </select>
+        <select id="cat_l2" class="cat-select-l2" disabled>
+          <option value="">-- 二级品类 --</option>
+        </select>
+      </div>
+      <input type="hidden" id="category" name="category" value="" />
+      <div class="cat-selected" id="catSelected"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 1.2rem">
+      创建项目
+    </button>
+  </form>
+</div>
+
+<script>
+  (function() {
+    var treeData = {{ amazon_category_tree | safe }};
+    var catL1 = document.getElementById('cat_l1');
+    var catL2 = document.getElementById('cat_l2');
+    var hiddenInput = document.getElementById('category');
+    var searchInput = document.getElementById('category_search');
+    var searchResults = document.getElementById('catSearchResults');
+    var catSelected = document.getElementById('catSelected');
+
+    var flatItems = [];
+    for (var i = 0; i < treeData.length; i++) {
+      var l1 = treeData[i];
+      flatItems.push({id: l1.id, name: l1.name, parentName: '', type: 'l1', l1Idx: i});
+      for (var j = 0; j < l1.children.length; j++) {
+        var l2 = l1.children[j];
+        flatItems.push({id: l2.id, name: l2.name, parentName: l1.name, type: 'l2', l1Idx: i, l2Idx: j});
+      }
+    }
+
+    for (var i = 0; i < treeData.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = treeData[i].id;
+      opt.textContent = treeData[i].name;
+      catL1.appendChild(opt);
+    }
+
+    catL1.addEventListener('change', function() {
+      catL2.innerHTML = '<option value="">-- 二级品类 --</option>';
+      catL2.disabled = true;
+      clearSelection();
+      var l1Id = catL1.value;
+      if (!l1Id) return;
+      for (var i = 0; i < treeData.length; i++) {
+        if (treeData[i].id === l1Id) {
+          var kids = treeData[i].children;
+          for (var j = 0; j < kids.length; j++) {
+            var opt = document.createElement('option');
+            opt.value = kids[j].id;
+            opt.textContent = kids[j].name;
+            catL2.appendChild(opt);
+          }
+          catL2.disabled = false;
+          setSelection(l1Id, treeData[i].name);
+          break;
+        }
+      }
+    });
+
+    catL2.addEventListener('change', function() {
+      if (!catL2.value) {
+        if (catL1.value) {
+          for (var i = 0; i < treeData.length; i++) {
+            if (treeData[i].id === catL1.value) {
+              setSelection(catL1.value, treeData[i].name);
+              break;
+            }
+          }
+        }
+        return;
+      }
+      for (var i = 0; i < treeData.length; i++) {
+        if (treeData[i].id === catL1.value) {
+          for (var j = 0; j < treeData[i].children.length; j++) {
+            if (treeData[i].children[j].id === catL2.value) {
+              setSelection(catL2.value, treeData[i].name + ' > ' + treeData[i].children[j].name);
+              break;
+            }
+          }
+          break;
+        }
+      }
+    });
+
+    var debounceTimer = null;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(doSearch, 200);
+    });
+    searchInput.addEventListener('focus', function() {
+      if (searchInput.value.length >= 1) doSearch();
+    });
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('catPicker').contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    function doSearch() {
+      var q = searchInput.value.trim().toLowerCase();
+      searchResults.innerHTML = '';
+      if (q.length < 1) { searchResults.style.display = 'none'; return; }
+      var matches = [];
+      for (var i = 0; i < flatItems.length; i++) {
+        var item = flatItems[i];
+        if (item.name.toLowerCase().indexOf(q) !== -1 || item.parentName.toLowerCase().indexOf(q) !== -1) {
+          matches.push(item);
+          if (matches.length >= 15) break;
+        }
+      }
+      if (matches.length === 0) { searchResults.style.display = 'none'; return; }
+      for (var i = 0; i < matches.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'cat-search-item';
+        var label = matches[i].type === 'l2'
+          ? matches[i].parentName + ' > ' + matches[i].name
+          : matches[i].name;
+        div.textContent = label;
+        div.setAttribute('data-id', matches[i].id);
+        div.setAttribute('data-label', label);
+        div.setAttribute('data-l1idx', matches[i].l1Idx);
+        div.setAttribute('data-type', matches[i].type);
+        if (matches[i].type === 'l2') div.setAttribute('data-l2idx', matches[i].l2Idx);
+        div.addEventListener('click', function() {
+          var id = this.getAttribute('data-id');
+          var lbl = this.getAttribute('data-label');
+          var l1i = parseInt(this.getAttribute('data-l1idx'));
+          var tp = this.getAttribute('data-type');
+          catL1.value = treeData[l1i].id;
+          catL1.dispatchEvent(new Event('change'));
+          if (tp === 'l2') catL2.value = id;
+          setSelection(id, lbl);
+          searchInput.value = '';
+          searchResults.style.display = 'none';
+        });
+        searchResults.appendChild(div);
+      }
+      searchResults.style.display = 'block';
+    }
+
+    function setSelection(id, label) {
+      hiddenInput.value = id;
+      catSelected.textContent = '✓ ' + label;
+      catSelected.style.display = 'block';
+    }
+    function clearSelection() {
+      hiddenInput.value = '';
+      catSelected.textContent = '';
+      catSelected.style.display = 'none';
+    }
+  })();
+
+  (function() {
+    var searchInput = document.getElementById('customer_search');
+    var resultsDiv = document.getElementById('customerSearchResults');
+    var selectedDiv = document.getElementById('customerSelected');
+    var tenantIdInput = document.getElementById('tenant_id');
+    var newNameInput = document.getElementById('new_customer_name');
+    var debounce = null;
+
+    function selectCustomer(id, name) {
+      tenantIdInput.value = id;
+      newNameInput.value = '';
+      selectedDiv.innerHTML = '<span class="customer-tag">' + name + ' <button type="button" class="customer-tag-remove">&times;</button></span>';
+      selectedDiv.style.display = 'block';
+      searchInput.value = '';
+      resultsDiv.style.display = 'none';
+      selectedDiv.querySelector('.customer-tag-remove').addEventListener('click', clearCustomer);
+    }
+
+    function clearCustomer() {
+      tenantIdInput.value = '';
+      newNameInput.value = '';
+      selectedDiv.innerHTML = '';
+      selectedDiv.style.display = 'none';
+      searchInput.value = '';
+    }
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounce);
+      debounce = setTimeout(function() {
+        var q = searchInput.value.trim();
+        if (q.length < 1) { resultsDiv.style.display = 'none'; return; }
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/customers/search?q=' + encodeURIComponent(q));
+        xhr.onload = function() {
+          if (xhr.status !== 200) return;
+          var data = JSON.parse(xhr.responseText);
+          resultsDiv.innerHTML = '';
+          for (var i = 0; i < data.length; i++) {
+            var div = document.createElement('div');
+            div.className = 'customer-result-item';
+            div.textContent = data[i].name;
+            div.setAttribute('data-id', data[i].id);
+            div.setAttribute('data-name', data[i].name);
+            div.addEventListener('click', function() {
+              selectCustomer(this.getAttribute('data-id'), this.getAttribute('data-name'));
+            });
+            resultsDiv.appendChild(div);
+          }
+          var createDiv = document.createElement('div');
+          createDiv.className = 'customer-result-item customer-create-new';
+          createDiv.textContent = '+ 新建客户「' + q + '」';
+          createDiv.addEventListener('click', function() {
+            var name = searchInput.value.trim();
+            if (!name) return;
+            tenantIdInput.value = '';
+            newNameInput.value = name;
+            selectedDiv.innerHTML = '<span class="customer-tag customer-tag-new">' + name + ' (新建) <button type="button" class="customer-tag-remove">&times;</button></span>';
+            selectedDiv.style.display = 'block';
+            searchInput.value = '';
+            resultsDiv.style.display = 'none';
+            selectedDiv.querySelector('.customer-tag-remove').addEventListener('click', clearCustomer);
+          });
+          resultsDiv.appendChild(createDiv);
+          resultsDiv.style.display = 'block';
+        };
+        xhr.send();
+      }, 200);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('customerPicker').contains(e.target)) {
+        resultsDiv.style.display = 'none';
+      }
+    });
+  })();
+</script>
+{% endblock %}

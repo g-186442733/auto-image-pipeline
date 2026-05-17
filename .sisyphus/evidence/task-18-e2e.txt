@@ -1,0 +1,23 @@
+Task 18 — E2E Pipeline Integration Tests
+=========================================
+Date: 2026-04-18
+File: tests/test_e2e_pipeline.py
+
+Tests created (6 total, all passing):
+1. TestGenerateBrief::test_returns_image_brief — brief generation with degraded Gemini fallback
+2. TestSlotPlanner::test_returns_eight_plans — slot plan generation (8 plans, indices 1-8)
+3. TestPromptEngine::test_build_prompt_slot_zero — prompt assembly from DB data
+4. TestDelivery::test_build_delivery_creates_manifest — delivery package with manifest.json
+5. TestFeedbackLoop::test_record_and_export — AB result recording + conclusion export
+6. TestDegradedFullChain::test_full_chain_no_api_key — full pipeline without API key
+
+Test run:
+  tests/test_e2e_pipeline.py: 6 passed in 0.22s
+  Full suite: 125 passed in 2.49s (threshold: ≥119)
+
+Key findings:
+- slot_planner uses 1-based indices (1-8), not 0-based
+- ImageSlot model not exported from pipeline.models.__init__ — must import directly
+- delivery.py uses hardcoded "output" path, not config.output_dir
+- get_session() returns raw Session (not context manager)
+- Models must be imported before Base.metadata.create_all() for table registration

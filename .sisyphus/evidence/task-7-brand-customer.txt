@@ -1,0 +1,21 @@
+Task 7: 品牌/审核/交付页面加客户标识
+Date: 2026-04-20
+
+## 验证结果
+
+### curl 验证
+- GET /review        → 200
+- GET /brand-profile/1 → 200
+- GET /project/1/deliver → 200
+
+### 内联样式检查
+grep -r '<style>' pipeline/web/templates/ | wc -l → 0
+
+### pytest
+34 failed, 938 passed, 12 warnings (与 baseline 一致，无新增失败)
+
+## 修改摘要
+- pipeline/web/app.py: review() 路由追加 _customer_name 和 tenants
+- pipeline/web/templates/review.html: 客户列 + customerFilter 下拉 + JS 过滤
+- pipeline/web/templates/brand_profile.html: page-header 追加 customer-tag
+- pipeline/web/templates/deliver.html: page-header 追加 customer-tag

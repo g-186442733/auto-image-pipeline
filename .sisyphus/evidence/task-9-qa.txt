@@ -1,0 +1,18 @@
+21:36:45 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+21:36:45 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+21:36:45 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+21:36:45 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+21:36:45 [WARNING] aip.qa_gate: LLM QA evaluation failed (empty response); returning safe default
+21:36:45 [INFO] aip.qa_gate: LLM QA for SlotPlan 25: score=0, passed=False
+21:36:45 [INFO] aip.orchestrator: QA failed for slot 25 (attempt 1/3, score=0), regenerating. Feedback: LLM evaluation unavailable
+21:37:05 [INFO] aip.orchestrator: Generated image for MAIN via gpt_image
+21:37:26 [INFO] aip.orchestrator: Generated image for ALT1 via gpt_image
+21:37:47 [INFO] aip.orchestrator: Generated image for ALT2 via gpt_image
+21:38:07 [INFO] aip.orchestrator: Generated image for ALT3 via gpt_image
+21:38:24 [INFO] aip.orchestrator: Generated image for ALT4 via gpt_image
+21:38:51 [INFO] aip.orchestrator: Generated image for ALT5 via gpt_image
+21:39:12 [INFO] aip.orchestrator: Generated image for ALT6 via gpt_image
+21:39:33 [INFO] aip.orchestrator: Generated image for VIDEO_THUMB via gpt_image
+21:39:33 [WARNING] aip.qa_gate: LLM QA evaluation failed (empty response); returning safe default
+21:39:33 [INFO] aip.qa_gate: LLM QA for SlotPlan 25: score=0, passed=False
+21:39:33 [INFO] aip.orchestrator: QA failed for slot 25 (attempt 2/3, score=0), regenerating. Feedback: LLM evaluation unavailable

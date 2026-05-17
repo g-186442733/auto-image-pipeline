@@ -1,0 +1,1773 @@
+{% extends "base.html" %} {% block title %}客户需求输入 — 主图工厂{% endblock %}
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <span>客户需求输入</span>
+</div>
+
+<h1>客户需求输入</h1>
+
+<div class="ci-container">
+  <div class="ci-progress">
+    <div class="ci-progress-bar">
+      <div class="ci-progress-fill" id="progressFill"></div>
+    </div>
+    <div class="ci-steps" id="stepIndicators"></div>
+  </div>
+
+  <form
+    method="post"
+    enctype="multipart/form-data"
+    action="{% if project_id %}{{ url_for('customer_input_update', project_id=project_id) }}{% else %}{{ url_for('customer_input_create') }}{% endif %}"
+    id="ciForm"
+  >
+    <div class="ci-step" data-step="1">
+      <div class="ci-step-header">
+        <span class="ci-step-number">01</span>
+        <div>
+          <h2 class="ci-step-title">产品基本信息</h2>
+          <p class="ci-step-desc">告诉我们产品的核心信息</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <div class="ci-section-card ci-section-card--compact">
+          <h3 class="ci-section-title">基础身份</h3>
+          <div class="ci-field-grid">
+        <label for="ci_customer_search" class="field-required">客户</label>
+        <div class="customer-picker" id="ciCustomerPicker">
+          <input
+            type="text"
+            id="ci_customer_search"
+            class="customer-search-input"
+            placeholder="输入客户名称搜索，或新建客户"
+            autocomplete="off"
+          />
+          <div
+            class="customer-search-results"
+            id="ciCustomerSearchResults"
+          ></div>
+          <div class="customer-selected" id="ciCustomerSelected"></div>
+          <input type="hidden" id="ci_tenant_id" name="tenant_id" value="" />
+          <input
+            type="hidden"
+            id="ci_new_customer_name"
+            name="new_customer_name"
+            value=""
+          />
+        </div>
+
+        <label for="ci_brand_select" class="field-required">品牌</label>
+        <select id="ci_brand_select" disabled>
+          <option value="">— 请先选择客户 —</option>
+        </select>
+
+        <label for="ci_product_select" class="field-required">产品档案</label>
+        <select id="ci_product_select" disabled>
+          <option value="">— 请先选择品牌 —</option>
+        </select>
+        <input
+          type="hidden"
+          id="ci_product_profile_id"
+          name="product_profile_id"
+          value=""
+        />
+        <div class="reuse-panel is-hidden" id="profileReusePanel">
+          <div class="reuse-panel-head">
+            <div>
+              <strong>检测到产品档案可复用信息</strong>
+              <p>默认只填入空白字段，不覆盖你已经写好的内容。</p>
+            </div>
+            <button type="button" class="reuse-panel-close" onclick="dismissProfileReusePanel()">×</button>
+          </div>
+          <div class="reuse-list" id="profileReuseList"></div>
+          <div class="reuse-actions">
+            <button type="button" class="btn btn-primary btn-sm" onclick="applyProfileReuse('empty')">填入空白字段</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="applyProfileReuse('selected')">填入勾选项</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="dismissProfileReusePanel()">忽略</button>
+          </div>
+        </div>
+
+        <label for="product_name" class="field-required">产品名称</label>
+        <input
+          type="text"
+          id="product_name"
+          name="product_name"
+          required
+          placeholder="例：无线蓝牙降噪耳机"
+          value="{{ step_data.get('product_name', '') }}"
+        />
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="2">
+      <div class="ci-step-header">
+        <span class="ci-step-number">02</span>
+        <div>
+          <h2 class="ci-step-title">参考素材</h2>
+          <p class="ci-step-desc">上传真实产品、包装、配件和细节图</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <div class="ci-section-card">
+          <h3 class="ci-section-title">产品真实性素材</h3>
+          <p class="ci-section-note">先上传真实素材。系统会按图片类型自动约束套图和 A+，避免产品、包装、配件被 AI 乱画。</p>
+          <div class="ci-reference-grid">
+        <label class="field-required">产品白底图（必填）</label>
+        <div class="upload-zone" id="whiteBgZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p class="upload-text">点击或拖拽图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，≤10MB，白色背景产品正面图
+            </p>
+          </div>
+          <input
+            type="file"
+            id="white_bg_upload"
+            accept="image/png,image/jpeg,image/webp"
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="whiteBgPreview"></div>
+        <input
+          type="hidden"
+          id="white_bg_image_path"
+          name="white_bg_image_path"
+          value="{{ step_data.get('white_bg_image_path', '') }}"
+        />
+
+        <label>产品多角度图（可选）</label>
+        <div class="upload-zone" id="multiangleZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <p class="upload-text">点击或拖拽多张图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，支持多选，侧面 / 背面 / 细节等角度图
+            </p>
+          </div>
+          <input
+            type="file"
+            id="multiangle_upload"
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="multianglePreview"></div>
+        <input
+          type="hidden"
+          id="multiangle_image_paths"
+          name="multiangle_image_paths"
+          value="{{ step_data.get('multiangle_image_paths', '') }}"
+        />
+
+        <label>包装图（选填）</label>
+        <small class="form-hint"
+          >产品外包装正面图，用于包装展示类主图和 A+ 模块，减少 AI
+          生图对包装内容的猜测。</small
+        >
+        <div class="upload-zone" id="packagingZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p class="upload-text">点击或拖拽图片至此区域</p>
+            <p class="upload-hint">PNG / JPG / WEBP，≤10MB，产品外包装正面图</p>
+          </div>
+          <input
+            type="file"
+            id="packaging_upload"
+            accept="image/png,image/jpeg,image/webp"
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="packagingPreview"></div>
+        <input
+          type="hidden"
+          id="packaging_image_path"
+          name="packaging_image_path"
+          value="{{ step_data.get('packaging_image_path', '') }}"
+        />
+
+        <label>配件全家福图（选填）</label>
+        <small class="form-hint"
+          >所有随箱配件平铺展开图，用于配件内容展示类主图和 A+ 模块。</small
+        >
+        <div class="upload-zone" id="inboxFlatLayZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p class="upload-text">点击或拖拽图片至此区域</p>
+            <p class="upload-hint">PNG / JPG / WEBP，≤10MB，配件平铺展开图</p>
+          </div>
+          <input
+            type="file"
+            id="inbox_flatlay_upload"
+            accept="image/png,image/jpeg,image/webp"
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="inboxFlatLayPreview"></div>
+        <input
+          type="hidden"
+          id="inbox_flatlay_image_path"
+          name="inbox_flatlay_image_path"
+          value="{{ step_data.get('inbox_flatlay_image_path', '') }}"
+        />
+
+        <label>细节特写图（选填，可多张）</label>
+        <small class="form-hint"
+          >产品局部细节、材质、做工等特写图，用于细节展示类主图和信息图模块。</small
+        >
+        <div class="upload-zone" id="detailCloseupZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <p class="upload-text">点击或拖拽多张图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，支持多选，材质 / 接缝 / 按键等细节图
+            </p>
+          </div>
+          <input
+            type="file"
+            id="detail_closeup_upload"
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="detailCloseupPreview"></div>
+        <input
+          type="hidden"
+          id="detail_closeup_image_paths"
+          name="detail_closeup_image_paths"
+          value="{{ step_data.get('detail_closeup_image_paths', '') }}"
+        />
+
+        <label>尺寸参照图（选填）</label>
+        <small class="form-hint"
+          >产品与常见物体（手、硬币、标准纸张等）对比的尺寸参照图，用于信息图尺寸模块。</small
+        >
+        <div class="upload-zone" id="scaleRefZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p class="upload-text">点击或拖拽图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，≤10MB，产品与参照物对比图
+            </p>
+          </div>
+          <input
+            type="file"
+            id="scale_ref_upload"
+            accept="image/png,image/jpeg,image/webp"
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="scaleRefPreview"></div>
+        <input
+          type="hidden"
+          id="scale_ref_image_path"
+          name="scale_ref_image_path"
+          value="{{ step_data.get('scale_ref_image_path', '') }}"
+        />
+
+        <label>使用场景图（选填，可多张）</label>
+        <small class="form-hint"
+          >产品在真实使用场景中的图片，用于生活方式类主图和 A+
+          场景模块，减少场景幻觉。</small
+        >
+        <div class="upload-zone" id="usageContextZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <p class="upload-text">点击或拖拽多张图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，支持多选，户外 / 居家 / 办公等使用场景图
+            </p>
+          </div>
+          <input
+            type="file"
+            id="usage_context_upload"
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="usageContextPreview"></div>
+        <input
+          type="hidden"
+          id="usage_context_image_paths"
+          name="usage_context_image_paths"
+          value="{{ step_data.get('usage_context_image_paths', '') }}"
+        />
+
+        <label>颜色款式图（选填，可多张）</label>
+        <small class="form-hint"
+          >产品各颜色 / 款式的白底或实拍图，用于颜色对比类主图和 A+
+          对比模块。</small
+        >
+        <div class="upload-zone" id="colorVariantZone">
+          <div class="upload-zone-inner">
+            <svg
+              class="upload-icon"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <p class="upload-text">点击或拖拽多张图片至此区域</p>
+            <p class="upload-hint">
+              PNG / JPG / WEBP，支持多选，每种颜色 / 款式各一张
+            </p>
+          </div>
+          <input
+            type="file"
+            id="color_variant_upload"
+            accept="image/png,image/jpeg,image/webp"
+            multiple
+            style="display: none"
+          />
+        </div>
+        <div class="ref-images-preview" id="colorVariantPreview"></div>
+        <input
+          type="hidden"
+          id="color_variant_image_paths"
+          name="color_variant_image_paths"
+          value="{{ step_data.get('color_variant_image_paths', '') }}"
+        />
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="3">
+      <div class="ci-step-header">
+        <span class="ci-step-number">03</span>
+        <div>
+          <h2 class="ci-step-title">竞品与品类</h2>
+          <p class="ci-step-desc">提供市场参照和 Amazon 品类</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <div class="ci-section-card ci-section-card--compact">
+          <h3 class="ci-section-title">市场定位</h3>
+          <div class="ci-field-grid">
+        <label for="asin">竞争对手 ASIN（选填）</label>
+        <input
+          type="text"
+          id="asin"
+          name="asin"
+          maxlength="20"
+          placeholder="B0XXXXXXXXX"
+          value="{{ step_data.get('asin', '') }}"
+        />
+        <small class="form-hint"
+          >填写竞争对手产品的 Amazon ASIN，系统将自动抓取其标题、价格、评分、BSR
+          及评论，作为出图策略参考。不填则跳过竞品分析，仅基于品类数据出图。</small
+        >
+
+        <label for="competitor_asins">主要竞品 ASIN</label>
+        <textarea
+          id="competitor_asins"
+          name="competitor_asins"
+          rows="2"
+          placeholder="每行一个 ASIN（可选）"
+        >
+{{ step_data.get('competitor_asins', '') }}</textarea
+        >
+
+        <label for="differentiation" class="label-recommended"
+          >差异化优势 <span class="recommended-badge">强烈推荐填写</span></label
+        >
+        <textarea
+          id="differentiation"
+          name="differentiation"
+          rows="3"
+          placeholder="相比竞品，你的产品有什么独特之处？（可选）"
+        >
+{{ step_data.get('differentiation', '') }}</textarea
+        >
+
+        <label for="category_search_ci" class="field-required">品类</label>
+        <div class="cat-picker" id="catPickerCI">
+          <input
+            type="text"
+            id="category_search_ci"
+            class="cat-search"
+            placeholder="搜索品类（如 Headphones）或从下方选择"
+            autocomplete="off"
+          />
+          <div class="cat-search-results" id="catSearchResultsCI"></div>
+          <div class="cat-selects">
+            <select id="cat_l1_ci" class="cat-select-l1">
+              <option value="">-- 一级品类 --</option>
+            </select>
+            <select id="cat_l2_ci" class="cat-select-l2" disabled>
+              <option value="">-- 二级品类 --</option>
+            </select>
+          </div>
+          <input
+            type="hidden"
+            id="product_category"
+            name="product_category"
+            value="{{ step_data.get('product_category', '') }}"
+          />
+          <div class="cat-selected" id="catSelectedCI"></div>
+        </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="4">
+      <div class="ci-step-header">
+        <span class="ci-step-number">04</span>
+        <div>
+          <h2 class="ci-step-title">产品内容</h2>
+          <p class="ci-step-desc">补充卖点、参数、受众和使用场景</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <div class="ci-section-card ci-section-card--compact">
+          <h3 class="ci-section-title">产品卖点与资料</h3>
+          <div class="ci-field-grid">
+        <label for="price_point">价格定位</label>
+        <div class="input-group">
+          <span class="input-prefix">$</span>
+          <input
+            type="text"
+            id="price_point"
+            name="price_point"
+            placeholder="例：基础款 / 中端 / 高端 / 超高端（可选）"
+            value="{{ step_data.get('price_point', '') }}"
+          />
+        </div>
+
+        <label for="key_features" class="label-recommended"
+          >主要卖点 <span class="recommended-badge">强烈推荐填写</span></label
+        >
+        <textarea
+          id="key_features"
+          name="key_features"
+          rows="3"
+          placeholder="列出 3-5 个核心卖点，用逗号分隔（可选）"
+        >
+{{ step_data.get('key_features', '') }}</textarea
+        >
+
+        <label for="visual_notes">视觉备注</label>
+        <textarea
+          id="visual_notes"
+          name="visual_notes"
+          rows="2"
+          placeholder="图片风格、场景、颜色等视觉要求（可选）"
+        >
+{{ step_data.get('visual_notes', '') }}</textarea
+        >
+
+        <label for="product_dimensions">产品尺寸</label>
+        <input
+          type="text"
+          id="product_dimensions"
+          name="product_dimensions"
+          placeholder="例：30cm × 20cm × 5cm（可选）"
+          value="{{ step_data.get('product_dimensions', '') }}"
+        />
+
+        <label for="product_weight">重量</label>
+        <input
+          type="text"
+          id="product_weight"
+          name="product_weight"
+          placeholder="例：500g（可选）"
+          value="{{ step_data.get('product_weight', '') }}"
+        />
+
+        <label for="product_material">材质</label>
+        <input
+          type="text"
+          id="product_material"
+          name="product_material"
+          placeholder="例：食品级 ABS 塑料（可选）"
+          value="{{ step_data.get('product_material', '') }}"
+        />
+
+        <label for="product_color">颜色</label>
+        <input
+          type="text"
+          id="product_color"
+          name="product_color"
+          placeholder="例：哑光黑、星空蓝（可选）"
+          value="{{ step_data.get('product_color', '') }}"
+        />
+
+        <label for="package_contents">包装内容物</label>
+        <textarea
+          id="package_contents"
+          name="package_contents"
+          rows="2"
+          placeholder="例：主机 × 1、充电线 × 1、说明书 × 1（可选）"
+        >
+{{ step_data.get('package_contents', '') }}</textarea
+        >
+
+        <label for="product_certifications">认证 / 资质</label>
+        <input
+          type="text"
+          id="product_certifications"
+          name="product_certifications"
+          placeholder="例：FDA、CE、RoHS（可选）"
+          value="{{ step_data.get('product_certifications', '') }}"
+        />
+
+        <label for="listing_title">Listing 标题</label>
+        <input
+          type="text"
+          id="listing_title"
+          name="listing_title"
+          placeholder="Amazon 商品标题（可选）"
+          value="{{ step_data.get('listing_title', '') }}"
+        />
+
+        <label for="listing_keywords">核心关键词</label>
+        <textarea
+          id="listing_keywords"
+          name="listing_keywords"
+          rows="2"
+          placeholder="用逗号分隔（可选）"
+        >
+{{ step_data.get('listing_keywords', '') }}</textarea
+        >
+
+        <label for="listing_bullets">五点描述</label>
+        <textarea
+          id="listing_bullets"
+          name="listing_bullets"
+          rows="4"
+          placeholder="每行一条（可选）"
+        >
+{{ step_data.get('listing_bullets', '') }}</textarea
+        >
+
+        <label for="target_audience" class="label-recommended"
+          >目标受众 <span class="recommended-badge">强烈推荐填写</span></label
+        >
+        <input
+          type="text"
+          id="target_audience"
+          name="target_audience"
+          placeholder="例：25-40岁健身爱好者、家有宠物的年轻妈妈（可选）"
+          value="{{ step_data.get('target_audience', '') }}"
+        />
+
+        <label for="customer_pain_points" class="label-recommended"
+          >客户核心痛点
+          <span class="recommended-badge">强烈推荐填写</span></label
+        >
+        <textarea
+          id="customer_pain_points"
+          name="customer_pain_points"
+          rows="3"
+          placeholder="竞品差评中最常见的问题，例：安装复杂、尺寸标注不准、材质易生锈（可选）"
+        >
+{{ step_data.get('customer_pain_points', '') }}</textarea
+        >
+
+        <label for="audience_scenarios">主要使用场景</label>
+        <textarea
+          id="audience_scenarios"
+          name="audience_scenarios"
+          rows="3"
+          placeholder="何时/何地/如何使用，例：早晨厨房备餐、周末户外露营、办公室午休（可选）"
+        >
+{{ step_data.get('audience_scenarios', '') }}</textarea
+        >
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="5">
+      <div class="ci-step-header">
+        <span class="ci-step-number">05</span>
+        <div>
+          <h2 class="ci-step-title">出图约束</h2>
+          <p class="ci-step-desc">说明必须展示、禁止展示和生成边界</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <div class="ci-section-card ci-section-card--compact">
+          <h3 class="ci-section-title">用户自定义要求</h3>
+          <p class="ci-section-note">这里的要求会进入 slot 规划、A+ storyboard、prompt 和 QA。适合写必须展示、禁止展示、风格禁忌和特殊业务需求。</p>
+          <div class="preset-group">
+            <span class="preset-group-label">风格方向</span>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('style', 'premium')">高端商务</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('style', 'home')">自然家居</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('style', 'outdoor')">户外运动</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('style', 'tech')">科技极简</button>
+          </div>
+          <div class="preset-group">
+            <span class="preset-group-label">套图规划</span>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('listing', 'standard')">标准 6 图</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('listing', 'scene')">场景强化</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('listing', 'detail')">细节强化</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('listing', 'package')">包装配件强化</button>
+          </div>
+          <div class="preset-group">
+            <span class="preset-group-label">A+ 模块</span>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('aplus', 'standard')">标准 A+</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('aplus', 'benefit')">卖点型</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('aplus', 'story')">品牌故事型</button>
+            <button type="button" class="preset-chip" onclick="applyInputPreset('aplus', 'compare')">对比型</button>
+          </div>
+          <div class="ci-field-grid">
+        <label for="custom_requirements_text">自定义要求 / 特殊说明</label>
+        <textarea
+          id="custom_requirements_text"
+          name="custom_requirements_text"
+          rows="4"
+          placeholder="说明必须展示什么、不能出现什么、风格偏好、套图/A+重点、平台禁忌等。例：整体高端商务科技风，必须展示 USB-C 接口，不要儿童/宠物/电竞灯效，不要发明不存在的配件。"
+        >
+{{ step_data.get('custom_requirements_text', step_data.get('custom_requirements', {}).get('raw_text', '') if step_data.get('custom_requirements') else '') }}</textarea
+        >
+
+        <label for="style_direction">整体风格方向</label>
+        <input
+          type="text"
+          id="style_direction"
+          name="style_direction"
+          placeholder="例：高端商务科技风、自然家居风、户外运动风（可选）"
+          value="{{ step_data.get('style_direction', step_data.get('custom_requirements', {}).get('project_direction', '') if step_data.get('custom_requirements') else '') }}"
+        />
+
+        <label for="must_show">必须展示</label>
+        <textarea
+          id="must_show"
+          name="must_show"
+          rows="3"
+          placeholder="每行一条，例：USB-C接口、包装盒和全部配件、黑色主款、耳罩柔软材质（可选）"
+        >
+{{ step_data.get('must_show', '\n'.join(step_data.get('custom_requirements', {}).get('must_show', [])) if step_data.get('custom_requirements') else '') }}</textarea
+        >
+
+        <label for="must_not_show">禁止展示</label>
+        <textarea
+          id="must_not_show"
+          name="must_not_show"
+          rows="3"
+          placeholder="每行一条，例：不存在的颜色、儿童场景、宠物场景、竞品品牌名、虚构配件（可选）"
+        >
+{{ step_data.get('must_not_show', '\n'.join(step_data.get('custom_requirements', {}).get('must_not_show', [])) if step_data.get('custom_requirements') else '') }}</textarea
+        >
+
+        <label for="listing_image_preferences">套图规划偏好</label>
+        <textarea
+          id="listing_image_preferences"
+          name="listing_image_preferences"
+          rows="2"
+          placeholder="例：希望 2 张场景图、2 张细节图、1 张尺寸图、1 张包装配件图（可选）"
+        >
+{{ step_data.get('listing_image_preferences', step_data.get('custom_requirements', {}).get('listing_preferences', {}).get('raw', '') if step_data.get('custom_requirements') else '') }}</textarea
+        >
+
+        <label for="aplus_module_preferences">A+ 模块偏好</label>
+        <textarea
+          id="aplus_module_preferences"
+          name="aplus_module_preferences"
+          rows="2"
+          placeholder="例：HERO横幅、3个核心卖点模块、1个品牌故事模块（可选）"
+        >
+{{ step_data.get('aplus_module_preferences', step_data.get('custom_requirements', {}).get('aplus_preferences', {}).get('raw', '') if step_data.get('custom_requirements') else '') }}</textarea
+        >
+
+        <label>生成策略</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" name="allow_ai_background_generation" checked /> 允许 AI 生成背景/场景</label>
+          <label><input type="checkbox" name="prefer_real_product_composite" checked /> 优先保持真实产品外观</label>
+          <label><input type="checkbox" name="allow_invent_accessories" /> 允许 AI 补充未上传配件</label>
+          <label><input type="checkbox" name="allow_invent_color_variants" /> 允许 AI 补充未上传颜色款式</label>
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ci-step" data-step="6">
+      <div class="ci-step-header">
+        <span class="ci-step-number">06</span>
+        <div>
+          <h2 class="ci-step-title">品牌与风格</h2>
+          <p class="ci-step-desc">设定品牌语调和视觉参考</p>
+        </div>
+      </div>
+      <div class="ci-fields">
+        <label for="primary_color">主色调</label>
+        <input
+          type="text"
+          id="primary_color"
+          name="primary_color"
+          placeholder="例：#1a1a2e 或 深蓝色（若已关联品牌则自动继承）"
+          value="{{ step_data.get('primary_color', '') }}"
+        />
+
+        <label for="reference_urls">视觉风格参考图</label>
+        <input
+          type="file"
+          id="reference_images_upload"
+          accept="image/*"
+          multiple
+        />
+        <small class="form-hint"
+          >可上传本地图片（支持多选），或在下方填写图片
+          URL（每行一个），两种方式均可。</small
+        >
+        <div class="ref-images-preview" id="refImagesPreview"></div>
+        <input
+          type="hidden"
+          id="reference_image_paths"
+          name="reference_image_paths"
+          value="{{ step_data.get('reference_image_paths', '') }}"
+        />
+        <textarea
+          id="reference_urls"
+          name="reference_urls"
+          rows="2"
+          placeholder="每行一个图片 URL（可选）"
+        >
+{{ step_data.get('reference_urls', '') }}</textarea
+        >
+
+        <label for="brand_voice">品牌声音/语调</label>
+        <input
+          type="text"
+          id="brand_voice"
+          name="brand_voice"
+          placeholder="例：专业严谨、活泼年轻（可选）"
+          value="{{ step_data.get('brand_voice', '') }}"
+        />
+      </div>
+    </div>
+
+    <div class="ci-nav" id="ciNav">
+      <button
+        type="button"
+        class="btn btn-outline"
+        id="btnPrev"
+        onclick="changeStep(-1)"
+      >
+        上一步
+      </button>
+      <span class="ci-step-label" id="stepLabel">第 1 / 6 步</span>
+      {% if project_id %}
+      <button
+        type="button"
+        class="btn btn-outline"
+        id="btnSave"
+        onclick="saveCurrentStep()"
+      >
+        💾 保存
+      </button>
+      {% endif %}
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="btnNext"
+        onclick="changeStep(1)"
+      >
+        下一步
+      </button>
+      <button type="submit" class="btn btn-primary" id="btnSubmit">提交</button>
+    </div>
+  </form>
+</div>
+
+<div class="save-toast" id="saveToast"></div>
+
+<script>
+  (function() {
+    var currentStep = 1;
+    var steps = document.querySelectorAll('.ci-step');
+    var totalSteps = steps.length;
+    var progressFill = document.getElementById('progressFill');
+    var stepLabel = document.getElementById('stepLabel');
+    var btnPrev = document.getElementById('btnPrev');
+    var btnNext = document.getElementById('btnNext');
+    var btnSubmit = document.getElementById('btnSubmit');
+    var indicatorContainer = document.getElementById('stepIndicators');
+
+    for (var i = 1; i <= totalSteps; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'ci-dot';
+      dot.setAttribute('data-n', i);
+      dot.textContent = i;
+      (function(n) {
+        dot.addEventListener('click', function() { goToStep(n); });
+      })(i);
+      indicatorContainer.appendChild(dot);
+    }
+
+    var REQUIRED_BY_STEP = {
+      1: ['product_name'],
+      2: ['white_bg_image_path'],
+      3: ['product_category']
+    };
+
+    function clearErrors() {
+      var errSpans = document.querySelectorAll('span.field-error');
+      for (var k = 0; k < errSpans.length; k++) { errSpans[k].remove(); }
+      var errInputs = document.querySelectorAll('.field-error-input');
+      for (var k = 0; k < errInputs.length; k++) { errInputs[k].classList.remove('field-error-input'); }
+    }
+
+    function validateStep(step) {
+      clearErrors();
+      var fields = REQUIRED_BY_STEP[step];
+      if (!fields) return true;
+      var valid = true;
+      for (var i = 0; i < fields.length; i++) {
+        var el = document.getElementById(fields[i]);
+        if (el && !el.value.trim()) {
+          el.classList.add('field-error-input');
+          var span = document.createElement('span');
+          span.className = 'field-error';
+          span.textContent = '此项为必填项';
+          el.parentNode.insertBefore(span, el.nextSibling);
+          valid = false;
+        }
+      }
+      return valid;
+    }
+
+    function validateAll() {
+      clearErrors();
+      var allRequired = ['product_name', 'product_category', 'white_bg_image_path'];
+      var valid = true;
+      for (var i = 0; i < allRequired.length; i++) {
+        var el = document.getElementById(allRequired[i]);
+        if (el && !el.value.trim()) {
+          el.classList.add('field-error-input');
+          var span = document.createElement('span');
+          span.className = 'field-error';
+          span.textContent = '此项为必填项';
+          el.parentNode.insertBefore(span, el.nextSibling);
+          valid = false;
+        }
+      }
+      return valid;
+    }
+
+    function goToStep(n) {
+      currentStep = n;
+      render();
+    }
+
+    window.changeStep = function(delta) {
+      if (delta > 0 && !validateStep(currentStep)) return;
+      if (delta > 0) clearErrors();
+      var next = currentStep + delta;
+      if (next < 1 || next > totalSteps) return;
+      currentStep = next;
+      render();
+    };
+
+    btnSubmit.addEventListener('click', function(e) {
+      if (!validateAll()) {
+        e.preventDefault();
+        var firstErr = document.querySelector('.field-error-input');
+        if (firstErr) {
+          var stepEl = firstErr.closest('.ci-step');
+          if (stepEl) { goToStep(parseInt(stepEl.getAttribute('data-step'))); }
+          firstErr.focus();
+        }
+      }
+    });
+
+    function render() {
+      for (var i = 0; i < steps.length; i++) {
+        steps[i].style.display = (parseInt(steps[i].getAttribute('data-step')) === currentStep) ? '' : 'none';
+      }
+      progressFill.style.width = ((currentStep / totalSteps) * 100) + '%';
+      stepLabel.textContent = '\u7B2C ' + currentStep + ' / ' + totalSteps + ' \u6B65';
+      btnPrev.style.display = currentStep === 1 ? 'none' : '';
+      btnNext.style.display = currentStep === totalSteps ? 'none' : '';
+      btnSubmit.style.display = currentStep === totalSteps ? '' : 'none';
+
+      var dots = indicatorContainer.querySelectorAll('.ci-dot');
+      for (var j = 0; j < dots.length; j++) {
+        var n = parseInt(dots[j].getAttribute('data-n'));
+        dots[j].className = 'ci-dot' + (n === currentStep ? ' active' : '') + (n < currentStep ? ' done' : '');
+      }
+    }
+
+    render();
+  })();
+
+  (function() {
+    var treeData = {{ amazon_category_tree | default('[]', true) | safe }};
+    var catL1 = document.getElementById('cat_l1_ci');
+    var catL2 = document.getElementById('cat_l2_ci');
+    var hiddenInput = document.getElementById('product_category');
+    var searchInput = document.getElementById('category_search_ci');
+    var searchResults = document.getElementById('catSearchResultsCI');
+    var catSelected = document.getElementById('catSelectedCI');
+
+    var flatItems = [];
+    for (var i = 0; i < treeData.length; i++) {
+      var l1 = treeData[i];
+      flatItems.push({id: l1.id, name: l1.name, parentName: '', type: 'l1', l1Idx: i});
+      for (var j = 0; j < l1.children.length; j++) {
+        var l2 = l1.children[j];
+        flatItems.push({id: l2.id, name: l2.name, parentName: l1.name, type: 'l2', l1Idx: i, l2Idx: j});
+      }
+    }
+
+    for (var i = 0; i < treeData.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = treeData[i].id;
+      opt.textContent = treeData[i].name;
+      catL1.appendChild(opt);
+    }
+
+    // 回填已保存的品类值
+    var savedVal = hiddenInput.value;
+    if (savedVal) {
+      for (var i = 0; i < flatItems.length; i++) {
+        if (flatItems[i].id === savedVal) {
+          var lbl = flatItems[i].type === 'l2'
+            ? flatItems[i].parentName + ' > ' + flatItems[i].name
+            : flatItems[i].name;
+          catL1.value = treeData[flatItems[i].l1Idx].id;
+          catL1.dispatchEvent(new Event('change'));
+          if (flatItems[i].type === 'l2') catL2.value = savedVal;
+          setSelection(savedVal, lbl);
+          break;
+        }
+      }
+    }
+
+    catL1.addEventListener('change', function() {
+      catL2.innerHTML = '<option value="">-- 二级品类 --</option>';
+      catL2.disabled = true;
+      clearSelection();
+      var l1Id = catL1.value;
+      if (!l1Id) return;
+      for (var i = 0; i < treeData.length; i++) {
+        if (treeData[i].id === l1Id) {
+          var kids = treeData[i].children;
+          for (var j = 0; j < kids.length; j++) {
+            var opt = document.createElement('option');
+            opt.value = kids[j].id;
+            opt.textContent = kids[j].name;
+            catL2.appendChild(opt);
+          }
+          catL2.disabled = false;
+          setSelection(l1Id, treeData[i].name);
+          break;
+        }
+      }
+    });
+
+    catL2.addEventListener('change', function() {
+      if (!catL2.value) {
+        if (catL1.value) {
+          for (var i = 0; i < treeData.length; i++) {
+            if (treeData[i].id === catL1.value) {
+              setSelection(catL1.value, treeData[i].name);
+              break;
+            }
+          }
+        }
+        return;
+      }
+      for (var i = 0; i < treeData.length; i++) {
+        if (treeData[i].id === catL1.value) {
+          for (var j = 0; j < treeData[i].children.length; j++) {
+            if (treeData[i].children[j].id === catL2.value) {
+              setSelection(catL2.value, treeData[i].name + ' > ' + treeData[i].children[j].name);
+              break;
+            }
+          }
+          break;
+        }
+      }
+    });
+
+    var debounceTimer = null;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(doSearch, 200);
+    });
+    searchInput.addEventListener('focus', function() {
+      if (searchInput.value.length >= 1) doSearch();
+    });
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('catPickerCI').contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    function doSearch() {
+      var q = searchInput.value.trim().toLowerCase();
+      searchResults.innerHTML = '';
+      if (q.length < 1) { searchResults.style.display = 'none'; return; }
+      var matches = [];
+      for (var i = 0; i < flatItems.length; i++) {
+        var item = flatItems[i];
+        if (item.name.toLowerCase().indexOf(q) !== -1 || item.parentName.toLowerCase().indexOf(q) !== -1) {
+          matches.push(item);
+          if (matches.length >= 15) break;
+        }
+      }
+      if (matches.length === 0) { searchResults.style.display = 'none'; return; }
+      for (var i = 0; i < matches.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'cat-search-item';
+        var label = matches[i].type === 'l2'
+          ? matches[i].parentName + ' > ' + matches[i].name
+          : matches[i].name;
+        div.textContent = label;
+        div.setAttribute('data-id', matches[i].id);
+        div.setAttribute('data-label', label);
+        div.setAttribute('data-l1idx', matches[i].l1Idx);
+        div.setAttribute('data-type', matches[i].type);
+        if (matches[i].type === 'l2') div.setAttribute('data-l2idx', matches[i].l2Idx);
+        div.addEventListener('click', function() {
+          var id = this.getAttribute('data-id');
+          var lbl = this.getAttribute('data-label');
+          var l1i = parseInt(this.getAttribute('data-l1idx'));
+          var tp = this.getAttribute('data-type');
+          catL1.value = treeData[l1i].id;
+          catL1.dispatchEvent(new Event('change'));
+          if (tp === 'l2') catL2.value = id;
+          setSelection(id, lbl);
+          searchInput.value = '';
+          searchResults.style.display = 'none';
+        });
+        searchResults.appendChild(div);
+      }
+      searchResults.style.display = 'block';
+    }
+
+    function setSelection(id, label) {
+      hiddenInput.value = id;
+      catSelected.textContent = '✓ ' + label;
+      catSelected.style.display = 'block';
+    }
+    function clearSelection() {
+      hiddenInput.value = '';
+      catSelected.textContent = '';
+      catSelected.style.display = 'none';
+    }
+  })();
+
+  (function() {
+    var searchInput = document.getElementById('ci_customer_search');
+    if (!searchInput) return;
+    var resultsDiv = document.getElementById('ciCustomerSearchResults');
+    var selectedDiv = document.getElementById('ciCustomerSelected');
+    var tenantIdInput = document.getElementById('ci_tenant_id');
+    var newNameInput = document.getElementById('ci_new_customer_name');
+    var debounce = null;
+
+    function selectCustomer(id, name) {
+      tenantIdInput.value = id;
+      newNameInput.value = '';
+      selectedDiv.innerHTML = '<span class="customer-tag">' + name + ' <button type="button" class="customer-tag-remove">&times;</button></span>';
+      selectedDiv.style.display = 'block';
+      searchInput.value = '';
+      resultsDiv.style.display = 'none';
+      selectedDiv.querySelector('.customer-tag-remove').addEventListener('click', clearCustomer);
+      // 触发品牌联动
+      loadBrandsForTenant(id);
+    }
+
+    function clearCustomer() {
+      tenantIdInput.value = '';
+      newNameInput.value = '';
+      selectedDiv.innerHTML = '';
+      selectedDiv.style.display = 'none';
+      searchInput.value = '';
+      // 重置品牌和产品下拉
+      resetBrandSelect();
+      resetProductSelect();
+    }
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounce);
+      debounce = setTimeout(function() {
+        var q = searchInput.value.trim();
+        if (q.length < 1) { resultsDiv.style.display = 'none'; return; }
+        fetch('/api/customers/search?q=' + encodeURIComponent(q))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            resultsDiv.innerHTML = '';
+            data.forEach(function(c) {
+              var div = document.createElement('div');
+              div.className = 'customer-result-item';
+              div.textContent = c.name;
+              div.addEventListener('click', function() { selectCustomer(c.id, c.name); });
+              resultsDiv.appendChild(div);
+            });
+            var createDiv = document.createElement('div');
+            createDiv.className = 'customer-result-item customer-create-new';
+            createDiv.textContent = '+ 新建客户「' + q + '」';
+            createDiv.addEventListener('click', function() {
+              var name = searchInput.value.trim();
+              if (!name) return;
+              tenantIdInput.value = '';
+              newNameInput.value = name;
+              selectedDiv.innerHTML = '<span class="customer-tag customer-tag-new">' + name + ' (新建) <button type="button" class="customer-tag-remove">&times;</button></span>';
+              selectedDiv.style.display = 'block';
+              searchInput.value = '';
+              resultsDiv.style.display = 'none';
+              selectedDiv.querySelector('.customer-tag-remove').addEventListener('click', clearCustomer);
+            });
+            resultsDiv.appendChild(createDiv);
+            resultsDiv.style.display = 'block';
+          });
+      }, 200);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('ciCustomerPicker').contains(e.target)) {
+        resultsDiv.style.display = 'none';
+      }
+    });
+  })();
+
+  (function() {
+    var brandSelect = document.getElementById('ci_brand_select');
+    var productSelect = document.getElementById('ci_product_select');
+    var productProfileIdInput = document.getElementById('ci_product_profile_id');
+
+    function resetBrandSelect() {
+      brandSelect.innerHTML = '<option value="">— 请先选择客户 —</option>';
+      brandSelect.disabled = true;
+      resetProductSelect();
+    }
+
+    function resetProductSelect() {
+      productSelect.innerHTML = '<option value="">— 请先选择品牌 —</option>';
+      productSelect.disabled = true;
+      productProfileIdInput.value = '';
+    }
+
+    function loadBrandsForTenant(tenantId) {
+      resetBrandSelect();
+      fetch('/api/tenants/' + tenantId + '/brands')
+        .then(function(r) { return r.json(); })
+        .then(function(brands) {
+          brandSelect.innerHTML = '<option value="">— 请选择品牌 —</option>';
+          brands.forEach(function(b) {
+            var opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = b.label;
+            brandSelect.appendChild(opt);
+          });
+          brandSelect.disabled = false;
+        });
+    }
+
+    function loadProductsForBrand(brandId) {
+      resetProductSelect();
+      var tenantId = tenantIdInput ? tenantIdInput.value : '';
+      fetch('/api/brands/' + brandId + '/products?tenant_id=' + tenantId)
+        .then(function(r) { return r.json(); })
+        .then(function(products) {
+          productSelect.innerHTML = '<option value="">— 请选择产品档案 —</option>';
+          products.forEach(function(p) {
+            var opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.product_name || ('产品档案#' + p.id);
+            opt.dataset.profile = JSON.stringify(p);
+            productSelect.appendChild(opt);
+          });
+          productSelect.disabled = false;
+        });
+    }
+
+    brandSelect.addEventListener('change', function() {
+      if (this.value) {
+        loadProductsForBrand(this.value);
+        var tenantId = tenantIdInput ? tenantIdInput.value : '';
+        fetch('/api/brands/' + this.value + '?tenant_id=' + tenantId)
+          .then(function(r) { return r.json(); })
+          .then(function(b) {
+            var brandVoiceEl = document.getElementById('brand_voice');
+            if (brandVoiceEl && b.brand_story && !brandVoiceEl.value) {
+              brandVoiceEl.value = b.brand_story;
+            }
+          });
+      } else {
+        resetProductSelect();
+      }
+    });
+
+    productSelect.addEventListener('change', function() {
+      var productId = this.value;
+      productProfileIdInput.value = productId;
+      if (!productId) return;
+
+      fetch('/api/products/' + productId + '?tenant_id=' + tenantId)
+        .then(function(r) { return r.json(); })
+        .then(function(p) {
+          showProfileReusePanel(p);
+
+          if (p.brand_profile_id) {
+            fetch('/api/brands/' + p.brand_profile_id + '?tenant_id=' + tenantId)
+              .then(function(r2) { return r2.json(); })
+              .then(function(b) {
+                if (b.brand_tone) {
+                  var bvEl = document.getElementById('brand_voice');
+                  if (bvEl) bvEl.value = b.brand_tone;
+                }
+                if (b.color_system) {
+                  var pcEl = document.getElementById('primary_color');
+                  if (pcEl) pcEl.value = b.color_system;
+                }
+              });
+          }
+        });
+    });
+
+    // 暴露给客户选择 JS 调用
+    window.loadBrandsForTenant = loadBrandsForTenant;
+    window.resetBrandSelect = resetBrandSelect;
+    window.resetProductSelect = resetProductSelect;
+  })();
+
+  (function() {
+    var reuseItems = [];
+    var reusableFields = [
+      { key: 'product_name', label: '产品名称' },
+      { key: 'price_point', label: '价格定位' },
+      { key: 'key_features', label: '主要卖点' },
+      { key: 'visual_notes', label: '视觉备注' },
+      { key: 'brand_voice', label: '品牌语调' },
+      { key: 'primary_color', label: '主色调' }
+    ];
+
+    function getFieldValue(key) {
+      var el = document.getElementById(key);
+      return el ? el.value.trim() : '';
+    }
+
+    function setFieldValue(key, value, overwrite) {
+      var el = document.getElementById(key);
+      if (!el || !value) return false;
+      if (!overwrite && el.value.trim()) return false;
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
+
+    window.showProfileReusePanel = function(profile) {
+      var panel = document.getElementById('profileReusePanel');
+      var list = document.getElementById('profileReuseList');
+      if (!panel || !list || !profile) return;
+      reuseItems = reusableFields
+        .map(function(field) {
+          var rawValue = profile[field.key];
+          var value = rawValue == null ? '' : String(rawValue).trim();
+          if (!value) return null;
+          return {
+            key: field.key,
+            label: field.label,
+            value: value,
+            current: getFieldValue(field.key)
+          };
+        })
+        .filter(Boolean);
+      if (!reuseItems.length) {
+        panel.classList.add('is-hidden');
+        return;
+      }
+      list.innerHTML = reuseItems.map(function(item, idx) {
+        var blocked = item.current ? ' 已有内容，默认不会覆盖' : ' 空白，可直接填入';
+        return '<label class="reuse-item">'
+          + '<input type="checkbox" data-reuse-idx="' + idx + '" checked />'
+          + '<span><strong>' + item.label + '</strong><em>' + blocked + '</em><small>' + item.value + '</small></span>'
+          + '</label>';
+      }).join('');
+      panel.classList.remove('is-hidden');
+    };
+
+    window.dismissProfileReusePanel = function() {
+      var panel = document.getElementById('profileReusePanel');
+      if (panel) panel.classList.add('is-hidden');
+    };
+
+    window.applyProfileReuse = function(mode) {
+      var panel = document.getElementById('profileReusePanel');
+      var selected = Array.from(document.querySelectorAll('[data-reuse-idx]:checked'));
+      var applied = 0;
+      if (mode === 'empty') {
+        reuseItems.forEach(function(item) {
+          if (setFieldValue(item.key, item.value, false)) applied += 1;
+        });
+      } else {
+        selected.forEach(function(input) {
+          var item = reuseItems[parseInt(input.dataset.reuseIdx, 10)];
+          if (item && setFieldValue(item.key, item.value, true)) applied += 1;
+        });
+      }
+      if (panel) panel.classList.add('is-hidden');
+      var toast = document.getElementById('saveToast');
+      if (toast) {
+        toast.textContent = applied ? '已复用 ' + applied + ' 个字段 ✓' : '没有需要填入的空白字段';
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+      }
+    };
+
+    var PRESETS = {
+      style: {
+        premium: { style_direction: '高端商务科技风', visual_notes: '干净、克制、高级的商业摄影风，突出产品质感和专业可信赖感。', brand_voice: '专业、克制、可信赖' },
+        home: { style_direction: '自然家居风', visual_notes: '自然光、真实家居环境、温暖亲和，突出日常使用价值。', brand_voice: '温和、亲切、实用' },
+        outdoor: { style_direction: '户外运动风', visual_notes: '明亮、有动感、真实户外场景，突出耐用性和使用自由度。', brand_voice: '积极、可靠、有活力' },
+        tech: { style_direction: '科技极简风', visual_notes: '极简背景、清晰轮廓、冷色调光线，突出结构、功能和科技感。', brand_voice: '清晰、现代、理性' }
+      },
+      listing: {
+        standard: { listing_image_preferences: '1张白底主图\n2张生活方式场景图\n1张细节特写图\n1张信息图\n1张包装/配件图（如有素材）' },
+        scene: { listing_image_preferences: '1张白底主图\n3张生活方式场景图\n1张细节图\n1张信息图，重点展示真实使用场景' },
+        detail: { listing_image_preferences: '1张白底主图\n2张细节特写图\n2张卖点信息图\n1张场景图，重点展示材质、结构和核心卖点' },
+        package: { listing_image_preferences: '1张白底主图\n1张包装图\n1张配件全家福图\n1张细节图\n2张场景/信息图，重点展示交付完整性' }
+      },
+      aplus: {
+        standard: { aplus_module_preferences: 'HERO横幅\n3个核心卖点模块\n1个使用场景模块\n1个细节模块' },
+        benefit: { aplus_module_preferences: 'HERO横幅\n4个卖点解释模块\n1个痛点解决模块\n1个细节模块' },
+        story: { aplus_module_preferences: 'HERO横幅\n品牌故事模块\n使用场景模块\n3个核心卖点模块' },
+        compare: { aplus_module_preferences: 'HERO横幅\n竞品/旧款对比模块\n3个优势说明模块\n1个购买理由总结模块' }
+      }
+    };
+
+    window.applyInputPreset = function(group, key) {
+      var preset = PRESETS[group] && PRESETS[group][key];
+      if (!preset) return;
+      Object.keys(preset).forEach(function(field) {
+        setFieldValue(field, preset[field], false);
+      });
+    };
+  })();
+
+  (function() {
+    var projectId = {{ project_id | tojson }};
+    // 编辑模式：仅当项目已存在时处理参考图上传
+    if (!projectId) return;
+    var uploadInput = document.getElementById('reference_images_upload');
+    var hiddenPaths = document.getElementById('reference_image_paths');
+    var preview = document.getElementById('refImagesPreview');
+    if (!uploadInput || !hiddenPaths || !preview) return;
+
+    function appendThumb(src) {
+      var img = document.createElement('img');
+      img.src = src;
+      img.className = 'ref-thumb';
+      preview.appendChild(img);
+    }
+
+    function renderSavedImages() {
+      var saved = hiddenPaths.value;
+      if (!saved) return;
+      saved.split(',').filter(function(p) { return p.trim(); })
+        .forEach(function(p) { appendThumb('/image/' + p.trim()); });
+    }
+    renderSavedImages();
+
+    uploadInput.addEventListener('change', function() {
+      var files = Array.from(this.files);
+      files.forEach(function(file) {
+        var fd = new FormData();
+        fd.append('file', file);
+        fetch('/api/projects/' + projectId + '/upload', { method: 'POST', body: fd })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.path) {
+              var cur = hiddenPaths.value;
+              hiddenPaths.value = cur ? cur + ',' + data.path : data.path;
+              appendThumb('/image/' + data.path);
+            }
+          });
+      });
+      this.value = '';
+    });
+  })();
+
+  (function() {
+    var projectId = {{ project_id | tojson }};
+    var pendingFiles = {};
+
+    // 追加单张缩略图（无删除按钮）
+    function appendThumb(preview, src) {
+      var img = document.createElement('img');
+      img.src = src;
+      img.className = 'ref-thumb';
+      preview.appendChild(img);
+    }
+
+    function appendThumbWithDelete(preview, src, fileIdx, inputId) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'ref-thumb-wrapper';
+      var img = document.createElement('img');
+      img.src = src;
+      img.className = 'ref-thumb';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ref-thumb-delete';
+      btn.textContent = '×';
+      btn.addEventListener('click', function() {
+        pendingFiles[inputId].splice(fileIdx, 1);
+        rebuildPreview(inputId, preview);
+      });
+      wrapper.appendChild(img);
+      wrapper.appendChild(btn);
+      preview.appendChild(wrapper);
+    }
+
+    function rebuildPreview(inputId, previewEl) {
+      previewEl.innerHTML = '';
+      (pendingFiles[inputId] || []).forEach(function(file, idx) {
+        var reader = new FileReader();
+        (function(capturedIdx) {
+          reader.onload = function(e) {
+            appendThumbWithDelete(previewEl, e.target.result, capturedIdx, inputId);
+          };
+        })(idx);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // 带删除按钮的缩略图（编辑模式已保存图片）
+    function appendThumbSaved(preview, src, path, hidden, single) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'ref-thumb-wrapper';
+      var img = document.createElement('img');
+      img.src = src;
+      img.className = 'ref-thumb';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ref-thumb-delete';
+      btn.textContent = '×';
+      btn.addEventListener('click', function() {
+        if (single) {
+          hidden.value = '';
+        } else {
+          var paths = hidden.value.split(',').map(function(p) { return p.trim(); });
+          var idx = paths.indexOf(path);
+          if (idx !== -1) paths.splice(idx, 1);
+          hidden.value = paths.filter(Boolean).join(',');
+        }
+        wrapper.remove();
+      });
+      wrapper.appendChild(img);
+      wrapper.appendChild(btn);
+      preview.appendChild(wrapper);
+    }
+
+    function makeUploader(inputId, hiddenId, previewId, single) {
+      var input = document.getElementById(inputId);
+      var hidden = document.getElementById(hiddenId);
+      var preview = document.getElementById(previewId);
+      var zone = input ? input.closest('.upload-zone') : null;
+      if (!input) return;
+
+      // 编辑模式下渲染已保存路径的缩略图（带删除按钮）
+      var saved = hidden.value;
+      if (saved) {
+        saved.split(',').filter(function(p) { return p.trim(); })
+          .forEach(function(p) { appendThumbSaved(preview, '/image/' + p.trim(), p.trim(), hidden, single); });
+      }
+
+      // 处理选中文件（新建/编辑两种模式复用）
+      function handleFiles(files) {
+        if (single) files = files.slice(0, 1);
+        files.forEach(function(file) {
+          if (projectId) {
+            // 编辑模式：直接上传至服务器
+            if (zone) zone.classList.add('uploading');
+            var fd = new FormData();
+            fd.append('file', file);
+            fetch('/api/projects/' + projectId + '/upload', { method: 'POST', body: fd })
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (zone) zone.classList.remove('uploading');
+                if (data.path) {
+                  if (single) {
+                    hidden.value = data.path;
+                    preview.innerHTML = '';
+                  } else {
+                    var cur = hidden.value;
+                    hidden.value = cur ? cur + ',' + data.path : data.path;
+                  }
+                  appendThumbSaved(preview, '/image/' + data.path, data.path, hidden, single);
+                }
+              })
+              .catch(function() { if (zone) zone.classList.remove('uploading'); });
+          } else {
+            // 新建模式：FileReader 本地预览，文件暂存内存
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              if (single) {
+                pendingFiles[inputId] = file;
+                preview.innerHTML = '';
+                appendThumb(preview, e.target.result);
+                hidden.value = file.name;
+              } else {
+                if (!Array.isArray(pendingFiles[inputId])) pendingFiles[inputId] = [];
+                pendingFiles[inputId].push(file);
+                var idx = pendingFiles[inputId].length - 1;
+                appendThumbWithDelete(preview, e.target.result, idx, inputId);
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      input.addEventListener('change', function() {
+        handleFiles(Array.from(this.files));
+        this.value = '';
+      });
+
+      // 拖拽上传支持
+      if (zone) {
+        zone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', function() {
+          zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          var files = Array.from(e.dataTransfer.files).filter(function(f) {
+            return f.type.match(/^image\/(png|jpeg|webp)$/);
+          });
+          if (files.length) handleFiles(files);
+        });
+        // 点击区域触发文件选择
+        zone.addEventListener('click', function(e) {
+          if (e.target !== input) input.click();
+        });
+      }
+    }
+
+    makeUploader('white_bg_upload', 'white_bg_image_path', 'whiteBgPreview', true);
+    makeUploader('multiangle_upload', 'multiangle_image_paths', 'multianglePreview', false);
+    makeUploader('packaging_upload', 'packaging_image_path', 'packagingPreview', true);
+    makeUploader('inbox_flatlay_upload', 'inbox_flatlay_image_path', 'inboxFlatLayPreview', true);
+    makeUploader('detail_closeup_upload', 'detail_closeup_image_paths', 'detailCloseupPreview', false);
+    makeUploader('scale_ref_upload', 'scale_ref_image_path', 'scaleRefPreview', true);
+    makeUploader('usage_context_upload', 'usage_context_image_paths', 'usageContextPreview', false);
+    makeUploader('color_variant_upload', 'color_variant_image_paths', 'colorVariantPreview', false);
+
+    // 新建模式：拦截表单提交，通过 fetch 附加文件
+    if (!projectId) {
+      var form = document.getElementById('ciForm');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var fd = new FormData(form);
+        var uploaderConfig = [
+          { inputId: 'white_bg_upload',       fieldName: 'white_bg_file',          single: true  },
+          { inputId: 'multiangle_upload',     fieldName: 'multiangle_files',        single: false },
+          { inputId: 'packaging_upload',      fieldName: 'packaging_file',          single: true  },
+          { inputId: 'inbox_flatlay_upload',  fieldName: 'inbox_flatlay_file',      single: true  },
+          { inputId: 'detail_closeup_upload', fieldName: 'detail_closeup_files',    single: false },
+          { inputId: 'scale_ref_upload',      fieldName: 'scale_ref_file',          single: true  },
+          { inputId: 'usage_context_upload',  fieldName: 'usage_context_files',     single: false },
+          { inputId: 'color_variant_upload',  fieldName: 'color_variant_files',     single: false },
+        ];
+        uploaderConfig.forEach(function(cfg) {
+          var store = pendingFiles[cfg.inputId];
+          if (cfg.single) {
+            if (store) fd.append(cfg.fieldName, store);
+          } else {
+            (store || []).forEach(function(f) { fd.append(cfg.fieldName, f); });
+          }
+        });
+        fetch(form.action, { method: 'POST', body: fd })
+          .then(function(r) {
+            if (r.redirected) {
+              window.location.href = r.url;
+            } else {
+              return r.text().then(function(t) {
+                console.error('提交失败:', t);
+              });
+            }
+          })
+          .catch(function(err) {
+            console.error('网络错误:', err);
+          });
+      });
+    }
+  })();
+
+  (function() {
+    var tenantInfo = {{ tenant_info | tojson if tenant_info else 'null' }};
+    var brandInfo  = {{ brand_info  | tojson if brand_info  else 'null' }};
+    if (!tenantInfo) return;
+
+    var savedProductProfileId = {{ product_profile_id | tojson if product_profile_id else 'null' }};
+
+    var tenantIdInput  = document.getElementById('ci_tenant_id');
+    var searchInput    = document.getElementById('ci_customer_search');
+    var selectedDiv    = document.getElementById('ciCustomerSelected');
+
+    tenantIdInput.value = tenantInfo.id;
+    if (selectedDiv) {
+      selectedDiv.innerHTML = '<span class="customer-tag">' + tenantInfo.name + ' <button type="button" class="customer-tag-remove">&times;</button></span>';
+      selectedDiv.style.display = 'block';
+    }
+    if (searchInput) searchInput.value = '';
+
+    fetch('/api/tenants/' + tenantInfo.id + '/brands')
+      .then(function(r) { return r.json(); })
+      .then(function(brands) {
+        var brandSelect = document.getElementById('ci_brand_select');
+        brandSelect.innerHTML = '<option value="">— 请选择品牌 —</option>';
+        brands.forEach(function(b) {
+          var opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = b.label || b.name;
+          brandSelect.appendChild(opt);
+        });
+        brandSelect.disabled = false;
+        if (brandInfo) {
+          brandSelect.value = brandInfo.id;
+          return fetch('/api/brands/' + brandInfo.id + '/products?tenant_id=' + tenantInfo.id);
+        }
+      })
+      .then(function(r) { return r ? r.json() : null; })
+      .then(function(products) {
+        if (!products) return;
+        var productSelect = document.getElementById('ci_product_select');
+        var productProfileIdInput = document.getElementById('ci_product_profile_id');
+        productSelect.innerHTML = '<option value="">— 请选择产品档案 —</option>';
+        products.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.product_name || ('产品档案#' + p.id);
+          opt.dataset.profile = JSON.stringify(p);
+          productSelect.appendChild(opt);
+        });
+        productSelect.disabled = false;
+        if (savedProductProfileId) {
+          productSelect.value = savedProductProfileId;
+          productProfileIdInput.value = savedProductProfileId;
+        }
+      });
+  })();
+
+  window.saveCurrentStep = function() {
+    var projectId = {{ project_id | tojson }};
+    if (!projectId) return;
+    var fd = new FormData(document.getElementById('ciForm'));
+    fetch('/input/' + projectId + '/save', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var toast = document.getElementById('saveToast');
+        toast.textContent = data.ok ? '已保存 ✓' : '保存失败';
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+      });
+  };
+</script>
+{% endblock %}

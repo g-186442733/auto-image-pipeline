@@ -1,0 +1,7 @@
+Task 1 Evidence: No auth redirect
+Date: 2026-04-20
+
+curl -sL -o /dev/null -w '%{http_code}' http://localhost:9010/
+Result: 200
+
+Service accessible without login. No redirect to /login.

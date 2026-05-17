@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Version History — Project {{ project.id }}</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>Version History — {{ project.name }}</h1>
+    <p><a href="/project/{{ project.id }}">← Back to Project</a></p>
+
+    {% if versions %}
+    <table>
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Trigger</th>
+          <th>Summary</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in versions %}
+        <tr>
+          <td>v{{ v.version_number }}</td>
+          <td>{{ v.trigger }}</td>
+          <td>{{ v.change_summary }}</td>
+          <td>{{ v.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No versions yet.</p>
+    {% endif %}
+  </body>
+</html>

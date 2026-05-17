@@ -1,0 +1,60 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 8 items
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_init PASSED             [ 12%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_analyze PASSED          [ 25%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_plan PASSED             [ 37%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_generate PASSED         [ 50%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_qa PASSED               [ 62%]
+tests/test_e2e_tws.py::TestStepByStep::test_step_report PASSED           [ 75%]
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_completes PASSED [ 87%]
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_db_records_complete PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/test_e2e_tws.py: 29 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:28: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    proj = session.query(Project).get(project_id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_init
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:162: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_analyze
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:58: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    proj = session.query(Project).get(project_id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_analyze
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:202: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_plan
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:212: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_generate
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:229: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_qa
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:251: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestStepByStep::test_step_report
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:272: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    db_proj = session.query(Project).get(project.id)
+
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_completes
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:338: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    proj = session.query(Project).get(result["project_id"])
+
+tests/test_e2e_tws.py::TestFullPipeline::test_full_pipeline_db_records_complete
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_e2e_tws.py:398: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    proj = session.query(Project).get(pid)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 8 passed, 38 warnings in 1.24s ========================

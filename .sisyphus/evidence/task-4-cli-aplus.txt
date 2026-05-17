@@ -1,0 +1,13 @@
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+Usage: python -m pipeline aplus [OPTIONS] PROJECT_ID
+Try 'python -m pipeline aplus --help' for help.
+
+Error: Missing argument 'PROJECT_ID'.
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+02:25:05 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+A+ storyboard generated: 7 modules

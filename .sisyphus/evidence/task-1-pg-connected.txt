@@ -1,0 +1,17 @@
+PG OK
+Engine URL: postgresql://localhost/aip_db
+Tables: 32
+  amazon_benchmarks: 450 rows
+  brand_profile_cards: 1 rows
+  competitor_listings: 13 rows
+  delivery_versions: 6 rows
+  image_briefs: 13 rows
+  price_analyses: 13 rows
+  projects: 18 rows
+  promo_analysis: 13 rows
+  prompt_assets: 87 rows
+  qa_records: 210 rows
+  slot_plans: 87 rows
+  tag_assignments: 128 rows
+Connection closed successfully
+Brew: postgresql@16 started         axureboutique ~/Library/LaunchAgents/homebrew.mxcl.postgresql@16.plist

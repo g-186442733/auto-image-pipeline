@@ -1,0 +1,126 @@
+{% extends "base.html" %} {% block title %}竞品基准 — 主图工厂{% endblock %} {%
+block content %}
+<div class="page-header">
+  <h1>竞品基准</h1>
+</div>
+{% if benchmarks %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>项目</th>
+        <th>竞品 ASIN</th>
+        <th>图片</th>
+        <th>图位</th>
+        <th>评分</th>
+        <th>分析</th>
+        <th>创建时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in benchmarks %}
+      <tr{% if not b.image_url or not b.analysis %} class="row-missing"{% endif %}>
+        <td class="mono">{{ b.id }}</td>
+        <td>
+          <a href="{{ url_for('project_detail', project_id=b.project_id) }}"
+            >{{ b.project_id }}</a
+          >
+        </td>
+        <td class="mono">{{ b.competitor_asin }}</td>
+        <td>
+          {% if b.image_url %}
+          <img
+            src="{{ b.image_url }}"
+            alt="{{ b.competitor_asin }}"
+            style="max-height: 64px; max-width: 64px; object-fit: contain"
+          />
+          {% else %}
+          <span class="text-warning">无图片</span>
+          {% endif %}
+        </td>
+        <td class="mono">
+          {{ b.slot_index if b.slot_index is not none else '—' }}
+        </td>
+        <td class="mono">
+          {{ '%.1f'|format(b.score) if b.score is not none else '—' }}
+        </td>
+        <td class="cell-truncate">{{ b.analysis or '—' }}</td>
+        <td class="mono">
+          {{ b.created_at.strftime('%Y-%m-%d') if b.created_at else '—' }}
+        </td>
+        <td>
+          {% if not b.image_url or not b.analysis %}
+          <button
+            class="btn btn-sm btn-secondary"
+            onclick="triggerProjectRetry({{ b.project_id }}, this)"
+          >🔄</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+    />
+  </svg>
+  <p>暂无竞品基准数据</p>
+</div>
+{% endif %}
+<script>
+  var _retryingProjects = {};
+
+  function triggerProjectRetry(projectId, btn) {
+    if (_retryingProjects[projectId]) return;
+    _retryingProjects[projectId] = true;
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    fetch('/project/' + projectId + '/benchmarks/retry', {method: 'POST'})
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) {
+          btn.textContent = '❌';
+          btn.disabled = false;
+          delete _retryingProjects[projectId];
+        } else {
+          _pollRetry(projectId, btn);
+        }
+      })
+      .catch(function() {
+        btn.textContent = '❌';
+        btn.disabled = false;
+        delete _retryingProjects[projectId];
+      });
+  }
+
+  function _pollRetry(projectId, btn) {
+    fetch('/project/' + projectId + '/benchmarks/retry/status')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.state === 'running') {
+          setTimeout(function() { _pollRetry(projectId, btn); }, 3000);
+        } else {
+          delete _retryingProjects[projectId];
+          location.reload();
+        }
+      })
+      .catch(function() {
+        setTimeout(function() { _pollRetry(projectId, btn); }, 5000);
+      });
+  }
+</script>
+{% endblock %}

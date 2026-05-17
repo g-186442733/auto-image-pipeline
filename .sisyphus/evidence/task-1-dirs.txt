@@ -1,0 +1,1 @@
+QA6 PASS: All 11 dirs exist, all 6 __init__.py present

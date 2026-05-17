@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}主图工厂{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <nav>
+      <a class="nav-brand" href="{{ url_for('index') }}">✦ 主图工厂</a>
+      <a href="{{ url_for('index') }}">项目列表</a>
+      <a href="{{ url_for('prompts_list') }}">Prompt 库</a>
+      <a href="{{ url_for('benchmarks_list') }}">竞品基准</a>
+      <a href="/knowledge">知识库</a>
+      <a href="/review">复核</a>
+      <a href="/customers">客户</a>
+      <a href="/brands">品牌</a>
+      <a href="/products">产品</a>
+      <a href="/qa-dashboard">QA 看板</a>
+      <a href="/flywheel/dashboard">飞轮分析</a>
+    </nav>
+    <main>{% block content %}{% endblock %}</main>
+  </body>
+</html>

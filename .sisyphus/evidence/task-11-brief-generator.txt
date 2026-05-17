@@ -1,0 +1,29 @@
+Task 11: brief_generator.py — Evidence
+========================================
+Date: 2026-04-18
+Status: COMPLETE
+
+Files created:
+  - pipeline/layers/brief_generator.py (implementation)
+  - tests/test_brief_generator.py (10 tests)
+
+Test results: 87 passed (baseline 77, added 10, target 85)
+
+Implementation details:
+  - generate_brief() integrates CompetitorListing + ReviewCluster + QAEntry → ImageBrief
+  - _call_gemini() with lazy import of google.generativeai (same pattern as review_analyzer.py)
+  - Graceful degradation: no API key → default brief, API error → default brief, bad JSON → default brief
+  - Database write: session.add + session.commit
+  - Prompt includes listing title, bullets, selling points, cluster labels, Q&A pairs
+
+Tests cover:
+  1. Returns ImageBrief instance
+  2. Correct project_id
+  3. brief_json contains slots
+  4. Written to database
+  5. Gemini failure → default brief
+  6. No API key → default brief
+  7. Invalid JSON → default brief
+  8. Prompt includes listing/review/QA data
+  9. _call_gemini returns text (with sys.modules mock)
+  10. _call_gemini no key returns "{}"

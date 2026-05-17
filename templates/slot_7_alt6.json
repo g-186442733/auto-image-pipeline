@@ -1,0 +1,6 @@
+{
+  "slot_index": 7,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Lifestyle or model shot for Amazon product listing. {{ subject }} being worn, held, or actively used by a person in a {{ tone }} styled scene. {{ composition }} composition. The model looks natural and relatable, showing the product in authentic everyday use. Aspirational yet accessible atmosphere.{% if constraints %} Color mood: {{ constraints }}.{% endif %}{% if environment %} Location: {{ environment }}.{% endif %}{% if camera %} Camera style: {{ camera }}.{% endif %} High-quality editorial photography, natural skin tones, genuine expression.",
+  "negative_prompt": "stiff pose, awkward expression, artificial lighting, stock photo cliché, text, watermark, logo, blurry, low quality, overly retouched skin, uncanny valley"
+}

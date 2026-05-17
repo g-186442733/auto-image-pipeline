@@ -1,0 +1,25 @@
+Task: T6 — 完善 input_layer 提资清单逻辑
+Date: 2026-04-18
+
+Modified files:
+1. pipeline/layers/input_layer.py
+   - 新增 import: IntakeChecklist, Optional
+   - __all__ 新增 "get_intake_checklist"
+   - create_project() 新增 intake_checklist: Optional[dict] = None 参数
+     → 传入时在同一事务中创建 IntakeChecklist 记录（向后兼容）
+   - 新增 get_intake_checklist(project_id: int) -> Optional[IntakeChecklist]
+     → 无数据/project不存在时返回 None，不抛异常
+
+2. tests/test_input_layer.py (新建)
+   - 11 个测试覆盖：
+     · create_project 基础成功/缺失字段/ASIN格式
+     · get_intake_checklist 无数据返回None
+     · get_intake_checklist project不存在返回None
+     · create_project + intake_checklist 全字段
+     · create_project 无 intake_checklist 向后兼容
+     · create_project 部分 intake_checklist 字段
+     · upsert_brand_profile 创建/更新/无效project
+
+pytest output:
+  tests/test_input_layer.py: 11 passed
+  tests/ (full suite):       48 passed in 1.30s (原37个均通过，无回归)

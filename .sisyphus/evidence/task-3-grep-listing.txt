@@ -1,0 +1,2 @@
+99:            from pipeline.layers.listing_analyzer import analyze_listing
+101:            listing_result = analyze_listing(proj.asin, asin_detail)

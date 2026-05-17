@@ -1,0 +1,4 @@
+keepa_api_key: test123
+openai_base_url: https://api.openai.com/v1
+templates_dir: templates
+output_dir: data/output

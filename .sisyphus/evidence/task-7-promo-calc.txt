@@ -1,0 +1,5 @@
+asin: B09XS7JWHH
+promo_pattern: seasonal
+avg_discount_pct: 19.0
+promo_frequency: 2.3226
+last_promo_date: 2024-03-15

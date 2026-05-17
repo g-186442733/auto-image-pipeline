@@ -1,0 +1,55 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 36 items
+
+tests/test_ab_attribution.py::test_constants PASSED                      [  2%]
+tests/test_ab_attribution.py::test_score_normal PASSED                   [  5%]
+tests/test_ab_attribution.py::test_score_high PASSED                     [  8%]
+tests/test_ab_attribution.py::test_score_boundary PASSED                 [ 11%]
+tests/test_ab_attribution.py::test_import_csv PASSED                     [ 13%]
+tests/test_ab_attribution.py::test_import_csv_recommended PASSED         [ 16%]
+tests/test_ab_attribution.py::test_import_json PASSED                    [ 19%]
+tests/test_ab_attribution.py::test_import_csv_missing_cvr PASSED         [ 22%]
+tests/test_ab_attribution.py::test_apply_not_recommended PASSED          [ 25%]
+tests/test_ab_attribution.py::test_apply_recommended PASSED              [ 27%]
+tests/test_ab_attribution.py::test_apply_boundary PASSED                 [ 30%]
+tests/test_ab_attribution.py::test_apply_missing_asset PASSED            [ 33%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_high_score_pass PASSED [ 36%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_mid_score_retry PASSED [ 38%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_low_score_human_review PASSED [ 41%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_boundary_80_pass PASSED [ 44%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_boundary_79_9_retry PASSED [ 47%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_boundary_50_retry PASSED [ 50%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_boundary_49_9_human_review PASSED [ 52%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_score_100 PASSED [ 55%]
+tests/test_confidence_routing.py::TestRouteByConfidence::test_score_0 PASSED [ 58%]
+tests/test_knowledge_anonymizer.py::TestBrandAnonymize::test_brand_replaced_in_content PASSED [ 61%]
+tests/test_knowledge_anonymizer.py::TestBrandAnonymize::test_brand_replaced_in_title PASSED [ 63%]
+tests/test_knowledge_anonymizer.py::TestBrandAnonymize::test_multiple_brands PASSED [ 66%]
+tests/test_knowledge_anonymizer.py::TestBrandAnonymize::test_brand_case_insensitive PASSED [ 69%]
+tests/test_knowledge_anonymizer.py::TestOrderAnonymize::test_order_with_hash PASSED [ 72%]
+tests/test_knowledge_anonymizer.py::TestOrderAnonymize::test_order_without_hash PASSED [ 75%]
+tests/test_knowledge_anonymizer.py::TestPathAnonymize::test_simple_path PASSED [ 77%]
+tests/test_knowledge_anonymizer.py::TestPathAnonymize::test_nested_path PASSED [ 80%]
+tests/test_knowledge_anonymizer.py::TestMixedAnonymize::test_all_patterns_replaced PASSED [ 83%]
+tests/test_knowledge_anonymizer.py::TestSafeText::test_no_sensitive_data_unchanged PASSED [ 86%]
+tests/test_knowledge_anonymizer.py::TestSafeText::test_tags_preserved PASSED [ 88%]
+tests/test_knowledge_anonymizer.py::TestImmutability::test_original_entry_unchanged PASSED [ 91%]
+tests/test_db_migrate.py::test_fresh_migration_adds_all_columns PASSED   [ 94%]
+tests/test_db_migrate.py::test_migration_idempotent PASSED               [ 97%]
+tests/test_db_migrate.py::test_migration_skips_missing_table PASSED      [100%]
+
+=============================== warnings summary ===============================
+tests/test_ab_attribution.py::test_apply_not_recommended
+tests/test_ab_attribution.py::test_apply_recommended
+tests/test_ab_attribution.py::test_apply_boundary
+tests/test_ab_attribution.py::test_apply_missing_asset
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/ab_attribution.py:54: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    asset = session.query(PromptAsset).get(asset_id)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 36 passed, 4 warnings in 0.28s ========================

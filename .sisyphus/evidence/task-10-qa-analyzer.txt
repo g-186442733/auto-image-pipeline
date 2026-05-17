@@ -1,0 +1,37 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 8 items
+
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_returns_list_of_qa_entries PASSED [ 12%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_entry_fields_populated PASSED [ 25%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_empty_qa_returns_empty_list PASSED [ 37%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_gemini_called_with_asin_and_qa PASSED [ 50%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_invalid_json_returns_empty_list PASSED [ 62%]
+tests/test_qa_analyzer.py::TestAnalyzeQA::test_default_frequency_and_category PASSED [ 75%]
+tests/test_qa_analyzer.py::TestCallGeminiQA::test_call_gemini_returns_text PASSED [ 87%]
+tests/test_qa_analyzer.py::TestCallGeminiQA::test_call_gemini_no_key_returns_empty_array PASSED [100%]
+
+============================== 8 passed in 0.16s ===============================
+---FULL SUITE---
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.13.0
+collected 71 items
+
+tests/test_data_flow.py ....                                             [  5%]
+tests/test_e2e_tws.py ........                                           [ 16%]
+tests/test_input_layer.py ...........                                    [ 32%]
+tests/test_listing_analyzer.py .......                                   [ 42%]
+tests/test_new_models.py .........                                       [ 54%]
+tests/test_qa_analyzer.py ........                                       [ 66%]
+tests/test_review_analyzer.py ........                                   [ 77%]
+tests/test_wave1_bugs.py ................                                [100%]
+
+============================== 71 passed in 1.26s ==============================

@@ -1,0 +1,2 @@
+119:            from pipeline.layers.review_analyzer import analyze_reviews
+122:            review_clusters = analyze_reviews(proj.asin, reviews)

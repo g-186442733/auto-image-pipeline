@@ -1,0 +1,6 @@
+{
+  "slot_index": 4,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Extreme close-up detail shot for Amazon product listing. {{ subject }} captured in macro-level detail showing texture, material quality, and craftsmanship. {{ composition }} framing with {{ tone }} lighting. Dramatic focus on surface details, stitching, finish, or key material properties that convey premium quality.{% if constraints %} Mood: {{ constraints }}.{% endif %}{% if environment %} Setting: {{ environment }}.{% endif %}{% if camera %} Camera setup: {{ camera }}.{% endif %} Tack-sharp focus, shallow depth of field, professional product photography.",
+  "negative_prompt": "wide shot, full product view, text, watermark, blurry focus point, overexposed highlights, underexposed shadows, noise, grain, distortion"
+}

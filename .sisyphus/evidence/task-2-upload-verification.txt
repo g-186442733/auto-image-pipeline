@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 10 items
+
+tests/test_upload.py::TestUploadPage::test_get_upload_page_200 PASSED    [ 10%]
+tests/test_upload.py::TestUploadFile::test_upload_jpg_success PASSED     [ 20%]
+tests/test_upload.py::TestUploadFile::test_upload_png_success PASSED     [ 30%]
+tests/test_upload.py::TestUploadFile::test_upload_webp_success PASSED    [ 40%]
+tests/test_upload.py::TestUploadFile::test_upload_svg_success PASSED     [ 50%]
+tests/test_upload.py::TestUploadFile::test_reject_exe_file PASSED        [ 60%]
+tests/test_upload.py::TestUploadFile::test_reject_oversized_file PASSED  [ 70%]
+tests/test_upload.py::TestUploadFile::test_no_file_provided PASSED       [ 80%]
+tests/test_upload.py::TestDeleteFile::test_delete_existing_file PASSED   [ 90%]
+tests/test_upload.py::TestDeleteFile::test_delete_nonexistent_file PASSED [100%]
+
+============================== 10 passed in 0.32s ==============================
+=== Full Suite ===
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+256 passed, 53 warnings in 28.67s

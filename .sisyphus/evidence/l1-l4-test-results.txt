@@ -1,0 +1,1118 @@
+......................FF................................................ [ 11%]
+........................................................................ [ 22%]
+.......FFF.........................F.FFFFFFFF......FF.F................. [ 33%]
+..................FFFF.......................FF......................... [ 44%]
+........................................................................ [ 55%]
+........................................................................ [ 66%]
+........................................................................ [ 78%]
+............................................FFFF........................ [ 89%]
+......................................................................   [100%]DRL scheduler loop error: type object 'Project' has no attribute 'live_at'
+
+=================================== FAILURES ===================================
+______ TestAdapterExports.test_helium10_importable_from_adapters_package _______
+
+self = <test_adapters.TestAdapterExports object at 0x10cd5de50>
+
+    def test_helium10_importable_from_adapters_package(self):
+>       from pipeline.adapters import Helium10Adapter as H10
+E       ImportError: cannot import name 'Helium10Adapter' from 'pipeline.adapters' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/adapters/__init__.py)
+
+tests/test_adapters.py:76: ImportError
+____ TestAdapterExports.test_jungle_scout_importable_from_adapters_package _____
+
+self = <test_adapters.TestAdapterExports object at 0x10cd5df90>
+
+    def test_jungle_scout_importable_from_adapters_package(self):
+>       from pipeline.adapters import JungleScoutAdapter as JS
+E       ImportError: cannot import name 'JungleScoutAdapter' from 'pipeline.adapters' (/Users/axureboutique/Projects/auto-image-pipeline/pipeline/adapters/__init__.py)
+
+tests/test_adapters.py:81: ImportError
+____________ TestDecisionEndpoint.test_get_decisions_endpoint_empty ____________
+
+self = <test_decision_log.TestDecisionEndpoint object at 0x10e9f3110>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_get_decisions_endpoint_empty(self, client):
+        resp = client.get("/api/projects/999/decisions")
+>       assert resp.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_decision_log.py:68: AssertionError
+_________ TestDecisionEndpoint.test_get_decisions_endpoint_returns_all _________
+
+self = <test_decision_log.TestDecisionEndpoint object at 0x10e9f3250>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_get_decisions_endpoint_returns_all(self, client):
+        from pipeline.utils.decision_logger import log_decision
+    
+        db = base_mod.get_session()
+        log_decision(db, 1, "type_a", "Decision A")
+        log_decision(db, 1, "type_b", "Decision B")
+        db.close()
+    
+        resp = client.get("/api/projects/1/decisions")
+>       assert resp.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_decision_log.py:81: AssertionError
+______ TestDecisionEndpoint.test_get_decisions_sorted_by_created_at_desc _______
+
+self = <test_decision_log.TestDecisionEndpoint object at 0x10e79de00>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_get_decisions_sorted_by_created_at_desc(self, client):
+        from pipeline.utils.decision_logger import log_decision
+        from pipeline.models.decision_log import DecisionLog
+        from datetime import datetime
+    
+        db = base_mod.get_session()
+        d1 = DecisionLog(
+            project_id=1,
+            decision_type="t",
+            decision_text="First",
+            created_at=datetime(2025, 1, 1),
+        )
+        d2 = DecisionLog(
+            project_id=1,
+            decision_type="t",
+            decision_text="Second",
+            created_at=datetime(2025, 6, 1),
+        )
+        db.add_all([d1, d2])
+        db.commit()
+        db.close()
+    
+        resp = client.get("/api/projects/1/decisions")
+>       decisions = resp.get_json()["decisions"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_decision_log.py:110: TypeError
+____________________ TestMarkProjectLive.test_sets_live_at _____________________
+
+self = <test_drl_scheduler.TestMarkProjectLive object at 0x10ea61590>
+db_session = <sqlalchemy.orm.session.Session object at 0x10feb9010>
+
+    def test_sets_live_at(self, db_session):
+>       p = _make_project(db_session)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_drl_scheduler.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x1102051d0>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': None, 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+____________ TestCheckDueProjects.test_returns_project_past_14_days ____________
+
+self = <test_drl_scheduler.TestCheckDueProjects object at 0x10ea61810>
+db_session = <sqlalchemy.orm.session.Session object at 0x10feba510>
+
+    def test_returns_project_past_14_days(self, db_session):
+        past = datetime.now(timezone.utc) - timedelta(days=DRL_WINDOW_DAYS + 1)
+>       _make_project(db_session, live_at=past.replace(tzinfo=None))
+
+tests/test_drl_scheduler.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x110207d90>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': datetime.datetime(2026, 4, 4, 21, 35, 7, 492731), 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+__________ TestCheckDueProjects.test_ignores_project_not_yet_14_days ___________
+
+self = <test_drl_scheduler.TestCheckDueProjects object at 0x10ea61950>
+db_session = <sqlalchemy.orm.session.Session object at 0x10febaa50>
+
+    def test_ignores_project_not_yet_14_days(self, db_session):
+        recent = datetime.now(timezone.utc) - timedelta(days=DRL_WINDOW_DAYS - 1)
+>       _make_project(db_session, live_at=recent.replace(tzinfo=None))
+
+tests/test_drl_scheduler.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042c230>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': datetime.datetime(2026, 4, 6, 21, 35, 7, 540523), 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_____________ TestCheckDueProjects.test_ignores_already_triggered ______________
+
+self = <test_drl_scheduler.TestCheckDueProjects object at 0x10ea348a0>
+db_session = <sqlalchemy.orm.session.Session object at 0x10febaf90>
+
+    def test_ignores_already_triggered(self, db_session):
+        past = datetime.now(timezone.utc) - timedelta(days=DRL_WINDOW_DAYS + 5)
+>       _make_project(
+            db_session,
+            live_at=past.replace(tzinfo=None),
+            drl_triggered_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        )
+
+tests/test_drl_scheduler.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042c370>
+kwargs = {'asin': 'B001', 'drl_triggered_at': datetime.datetime(2026, 4, 19, 21, 35, 7, 584259), 'live_at': datetime.datetime(2026, 3, 31, 21, 35, 7, 584251), 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+__________ TestCheckDueProjects.test_ignores_project_without_live_at ___________
+
+self = <test_drl_scheduler.TestCheckDueProjects object at 0x10ea34c30>
+db_session = <sqlalchemy.orm.session.Session object at 0x10febb620>
+
+    def test_ignores_project_without_live_at(self, db_session):
+>       _make_project(db_session, live_at=None)
+
+tests/test_drl_scheduler.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042cd70>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': None, 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+______________ TestCheckDueProjects.test_multiple_projects_mixed _______________
+
+self = <test_drl_scheduler.TestCheckDueProjects object at 0x10e817e30>
+db_session = <sqlalchemy.orm.session.Session object at 0x10f8bf620>
+
+    def test_multiple_projects_mixed(self, db_session):
+        past = datetime.now(timezone.utc) - timedelta(days=DRL_WINDOW_DAYS + 2)
+        recent = datetime.now(timezone.utc) - timedelta(days=1)
+>       _make_project(db_session, name="Due", live_at=past.replace(tzinfo=None))
+
+tests/test_drl_scheduler.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042c2d0>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': datetime.datetime(2026, 4, 3, 21, 35, 7, 673950), 'name': 'Due'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+______________ TestTriggerDrlCollection.test_creates_pipeline_run ______________
+
+self = <test_drl_scheduler.TestTriggerDrlCollection object at 0x10ea61a90>
+db_session = <sqlalchemy.orm.session.Session object at 0x10f8bfb60>
+
+    def test_creates_pipeline_run(self, db_session):
+>       p = _make_project(db_session, asin="B001TEST")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_drl_scheduler.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042cb90>
+kwargs = {'asin': 'B001TEST', 'drl_triggered_at': None, 'live_at': None, 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_____________ TestTriggerDrlCollection.test_sets_drl_triggered_at ______________
+
+self = <test_drl_scheduler.TestTriggerDrlCollection object at 0x10ea61bd0>
+db_session = <sqlalchemy.orm.session.Session object at 0x10f8bf4d0>
+
+    def test_sets_drl_triggered_at(self, db_session):
+>       p = _make_project(db_session)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_drl_scheduler.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042c4b0>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': None, 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+______________ TestTriggerDrlCollection.test_run_persisted_in_db _______________
+
+self = <test_drl_scheduler.TestTriggerDrlCollection object at 0x10ea34fc0>
+db_session = <sqlalchemy.orm.session.Session object at 0x10f8bef90>
+
+    def test_run_persisted_in_db(self, db_session):
+>       p = _make_project(db_session)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_drl_scheduler.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_drl_scheduler.py:37: in _make_project
+    p = Project(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.project.Project object at 0x11042db30>
+kwargs = {'asin': 'B001', 'drl_triggered_at': None, 'live_at': None, 'name': 'Test'}
+cls_ = <class 'pipeline.models.project.Project'>, k = 'live_at'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'live_at' is an invalid keyword argument for Project
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_______________ TestEventTrigger.test_create_project_returns_201 _______________
+
+self = <test_event_trigger.TestEventTrigger object at 0x10ea620d0>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_create_project_returns_201(self, client):
+        with patch(
+            "pipeline.web.routes.project_routes.threading.Thread"
+        ) as mock_thread:
+            mock_thread.return_value = MagicMock()
+            resp = client.post(
+                "/api/projects",
+                data=json.dumps({"name": "Test Product", "asin": "B00TEST123"}),
+                content_type="application/json",
+            )
+>           assert resp.status_code == 201
+E           assert 404 == 201
+E            +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_event_trigger.py:37: AssertionError
+_________ TestEventTrigger.test_create_project_spawns_thread_when_asin _________
+
+self = <test_event_trigger.TestEventTrigger object at 0x10ea61f90>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_create_project_spawns_thread_when_asin(self, client):
+        with patch(
+            "pipeline.web.routes.project_routes.threading.Thread"
+        ) as mock_thread:
+            mock_instance = MagicMock()
+            mock_thread.return_value = mock_instance
+            client.post(
+                "/api/projects",
+                data=json.dumps({"name": "Test", "asin": "B00ASIN001"}),
+                content_type="application/json",
+            )
+>           mock_thread.assert_called_once()
+
+tests/test_event_trigger.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='Thread' id='4555787968'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'Thread' to have been called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py:964: AssertionError
+______________ TestEventTrigger.test_create_project_requires_name ______________
+
+self = <test_event_trigger.TestEventTrigger object at 0x10ea35810>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_create_project_requires_name(self, client):
+        resp = client.post(
+            "/api/projects",
+            data=json.dumps({"asin": "B00TEST123"}),
+            content_type="application/json",
+        )
+>       assert resp.status_code == 400
+E       assert 404 == 400
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_event_trigger.py:76: AssertionError
+______________________ TestHypothesisCRUD.test_list_empty ______________________
+
+self = <test_hypothesis_crud.TestHypothesisCRUD object at 0x10ea63b10>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_list_empty(self, client):
+        resp = client.get("/api/hypotheses")
+>       assert resp.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_hypothesis_crud.py:26: AssertionError
+________________________ TestHypothesisCRUD.test_create ________________________
+
+self = <test_hypothesis_crud.TestHypothesisCRUD object at 0x10ea63c50>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_create(self, client):
+        resp = client.post(
+            "/api/hypotheses",
+            data=json.dumps(
+                {
+                    "category": "shoes",
+                    "hypothesis_text": "High heels sell better",
+                    "confidence": 0.8,
+                }
+            ),
+            content_type="application/json",
+        )
+>       assert resp.status_code == 201
+E       assert 404 == 201
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_hypothesis_crud.py:41: AssertionError
+________________________ TestHypothesisCRUD.test_update ________________________
+
+self = <test_hypothesis_crud.TestHypothesisCRUD object at 0x10ea362c0>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_update(self, client):
+        resp = client.post(
+            "/api/hypotheses",
+            data=json.dumps(
+                {"category": "bags", "hypothesis_text": "Leather bags preferred"}
+            ),
+            content_type="application/json",
+        )
+>       hyp_id = resp.get_json()["id"]
+                 ^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_hypothesis_crud.py:57: TypeError
+________________________ TestHypothesisCRUD.test_delete ________________________
+
+self = <test_hypothesis_crud.TestHypothesisCRUD object at 0x10ea368b0>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_delete(self, client):
+        resp = client.post(
+            "/api/hypotheses",
+            data=json.dumps(
+                {"category": "hats", "hypothesis_text": "Summer hats trend"}
+            ),
+            content_type="application/json",
+        )
+>       hyp_id = resp.get_json()["id"]
+                 ^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_hypothesis_crud.py:77: TypeError
+_______________ TestDecisionLogAndApi.test_decision_log_and_api ________________
+
+self = <test_integration_pipeline.TestDecisionLogAndApi object at 0x10eaf2e90>
+session = <sqlalchemy.orm.session.Session object at 0x10f6f2a50>
+
+    def test_decision_log_and_api(self, session):
+        from pipeline.utils.decision_logger import log_decision
+    
+        proj = _make_project(session)
+    
+        # 记录决策
+        d1 = log_decision(
+            session=session,
+            project_id=proj.id,
+            decision_type="slot_selection",
+            decision_text="Selected lifestyle image for slot 0",
+            rationale="Higher CTR in A/B tests",
+            made_by="system",
+        )
+        d2 = log_decision(
+            session=session,
+            project_id=proj.id,
+            decision_type="color_palette",
+            decision_text="Use warm tones",
+            rationale="Matches brand guidelines",
+            made_by="human",
+        )
+    
+        assert d1.id is not None
+        assert d2.id is not None
+    
+        # 验证数据库内容
+        rows = (
+            session.query(DecisionLog)
+            .filter_by(project_id=proj.id)
+            .order_by(DecisionLog.created_at.desc())
+            .all()
+        )
+        assert len(rows) == 2
+        types = {r.decision_type for r in rows}
+        assert "slot_selection" in types
+        assert "color_palette" in types
+    
+        # 通过 Flask 测试客户端验证 API
+        from pipeline.web.app import create_app
+    
+        app = create_app()
+        with app.test_client() as client:
+            resp = client.get(f"/api/projects/{proj.id}/decisions")
+>           assert resp.status_code == 200
+E           assert 404 == 200
+E            +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests/test_integration_pipeline.py:346: AssertionError
+_____ TestListingAnalysisUpdatesBrand.test_listing_analysis_updates_brand ______
+
+self = <test_integration_pipeline.TestListingAnalysisUpdatesBrand object at 0x10eaf2fd0>
+session = <sqlalchemy.orm.session.Session object at 0x10f55e120>
+
+    def test_listing_analysis_updates_brand(self, session):
+        from pipeline.layers.listing_analyzer import ListingAnalyzer
+    
+        proj = _make_project(session)
+    
+        # 创建 BrandProfile
+        bp = BrandProfile(
+            project_id=proj.id,
+            brand_tone="Professional",
+        )
+        session.add(bp)
+        session.commit()
+        session.refresh(bp)
+    
+        # 创建 CompetitorListing
+        listing = CompetitorListing(
+            asin="B000TEST02",
+            title="Premium Widget",
+            bullet_points=json.dumps(
+                [
+                    "Durability: Built to last with premium materials",
+                    "Easy Setup: Ready in 5 minutes",
+                    "Eco-Friendly: Made from recycled materials",
+                ]
+            ),
+        )
+        session.add(listing)
+        session.commit()
+        session.refresh(listing)
+    
+        # 解析 bullets
+        analyzer = ListingAnalyzer()
+        bullets = analyzer.parse_bullets(listing.bullet_points)
+    
+        assert len(bullets) == 3
+        assert bullets[0]["keyword"] == "Durability"
+        assert bullets[1]["keyword"] == "Easy Setup"
+        assert bullets[2]["keyword"] == "Eco-Friendly"
+    
+        # 构建 listing_analysis 字典
+        listing_analysis = {
+            "id": listing.id,
+            "asin": listing.asin,
+            "title": listing.title,
+            "bullets": bullets,
+            "bullet_count": len(bullets),
+        }
+    
+        # 更新品牌 messaging_pillars
+        result = analyzer.update_brand_from_listing(bp.id, listing_analysis)
+>       assert result is True
+E       assert False is True
+
+tests/test_integration_pipeline.py:409: AssertionError
+____________________ TestTagReviewRoutes.test_list_pending _____________________
+
+self = <test_tag_review_routes.TestTagReviewRoutes object at 0x10ef76350>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_list_pending(self, client):
+>       _seed_tag(client)
+
+tests/test_tag_review_routes.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tag_review_routes.py:27: in _seed_tag
+    ta = TagAssignment(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.tag_assignment.TagAssignment object at 0x1105cb6d0>
+kwargs = {'entity_id': 1, 'entity_type': 'image', 'status': 'pending', 'tag_code': 'HERO_SHOT', ...}
+cls_ = <class 'pipeline.models.tag_assignment.TagAssignment'>, k = 'status'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'status' is an invalid keyword argument for TagAssignment
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+_______________________ TestTagReviewRoutes.test_approve _______________________
+
+self = <test_tag_review_routes.TestTagReviewRoutes object at 0x10ef76490>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_approve(self, client):
+>       tag_id = _seed_tag(client)
+                 ^^^^^^^^^^^^^^^^^
+
+tests/test_tag_review_routes.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tag_review_routes.py:27: in _seed_tag
+    ta = TagAssignment(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.tag_assignment.TagAssignment object at 0x10ee8b4d0>
+kwargs = {'entity_id': 1, 'entity_type': 'image', 'status': 'pending', 'tag_code': 'HERO_SHOT', ...}
+cls_ = <class 'pipeline.models.tag_assignment.TagAssignment'>, k = 'status'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'status' is an invalid keyword argument for TagAssignment
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+------------------------------ Captured log setup ------------------------------
+ERROR    pipeline.layers.drl_scheduler:drl_scheduler.py:86 DRL scheduler loop error: type object 'Project' has no attribute 'live_at'
+_______________________ TestTagReviewRoutes.test_reject ________________________
+
+self = <test_tag_review_routes.TestTagReviewRoutes object at 0x10ef45e00>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_reject(self, client):
+>       tag_id = _seed_tag(client)
+                 ^^^^^^^^^^^^^^^^^
+
+tests/test_tag_review_routes.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tag_review_routes.py:27: in _seed_tag
+    ta = TagAssignment(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.tag_assignment.TagAssignment object at 0x10ec72050>
+kwargs = {'entity_id': 1, 'entity_type': 'image', 'status': 'pending', 'tag_code': 'HERO_SHOT', ...}
+cls_ = <class 'pipeline.models.tag_assignment.TagAssignment'>, k = 'status'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'status' is an invalid keyword argument for TagAssignment
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+________________________ TestTagReviewRoutes.test_edit _________________________
+
+self = <test_tag_review_routes.TestTagReviewRoutes object at 0x10ef46060>
+client = <FlaskClient <Flask 'pipeline.web.app'>>
+
+    def test_edit(self, client):
+>       tag_id = _seed_tag(client)
+                 ^^^^^^^^^^^^^^^^^
+
+tests/test_tag_review_routes.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tag_review_routes.py:27: in _seed_tag
+    ta = TagAssignment(
+<string>:4: in __init__
+    ???
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:596: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:594: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <pipeline.models.tag_assignment.TagAssignment object at 0x110910250>
+kwargs = {'entity_id': 1, 'entity_type': 'image', 'status': 'pending', 'tag_code': 'HERO_SHOT', ...}
+cls_ = <class 'pipeline.models.tag_assignment.TagAssignment'>, k = 'status'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'status' is an invalid keyword argument for TagAssignment
+
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2179: TypeError
+=============================== warnings summary ===============================
+tests/test_aplus_content.py: 9 warnings
+tests/test_aplus_generator.py: 112 warnings
+tests/test_schema_l4.py: 20 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_data_flow.py::TestDictBenchmarkHandling::test_step_analyze_with_dict_benchmarks
+tests/test_orchestrator_brief.py::test_brief_generated_after_analyzers
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_vision_analyzed_count
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_analysis_field_persisted
+tests/test_vision_integration.py::TestVisionIntegrationHappyPath::test_call_vision_receives_correct_urls
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_no_image_url_skipped
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_vision_failure_graceful
+tests/test_vision_integration.py::TestVisionIntegrationDegradation::test_all_vision_fail_still_returns
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (1,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_hypothesis_tracker.py::TestShouldTrack::test_should_track_within_window
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:38: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py: 6 warnings
+tests/test_integration_pipeline.py: 4 warnings
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/hypothesis_tracker.py:16: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestShouldTrack::test_should_not_track_after_14_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:48: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_updates_last_checked_at
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:77: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_updates_last_checked_at
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_increments_check_count
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_expires_past_window
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_auto_sets_tracking_dates
+tests/test_integration_pipeline.py::TestHypothesisLifecycle::test_hypothesis_lifecycle
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/hypothesis_tracker.py:36: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_increments_check_count
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:96: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_hypothesis_tracker.py::TestCheckAll::test_check_all_expires_past_window
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_hypothesis_tracker.py:114: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_integration_pipeline.py::TestHypothesisLifecycle::test_hypothesis_lifecycle
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_integration_pipeline.py:147: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_orchestrator_brief.py::test_brief_failure_does_not_crash
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (2,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_brief.py::test_brief_with_partial_upstream_failure
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (3,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_analyze_listing_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (4,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_listing.py::TestStepAnalyzeCallsListingAnalyzer::test_competitor_listing_row_exists_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (5,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_analyze_qa_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (7,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_entry_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (8,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_qa.py::TestStepAnalyzeCallsQaAnalyzer::test_qa_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (9,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_analyze_reviews_called_once
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (10,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_cluster_rows_exist_in_db
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (11,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_orchestrator_review.py::TestStepAnalyzeCallsReviewAnalyzer::test_review_analyzer_failure_does_not_crash_pipeline
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (12,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_true_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (13,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_false_returns_correct_keys
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (14,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_parallel_sets_status_analyzed
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (15,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_phase1_both_fetchers_called
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (16,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_parallel_analyze.py::TestParallelAnalyze::test_vision_phase3_parallel
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/orchestrator.py:220: SAWarning: Identity map already had an identity for (<class 'pipeline.models.competitor_listing.CompetitorListing'>, (18,), None), replacing it with newly flushed object.   Are there load operations occurring inside of an event handler within the flush?
+    session.commit()
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_returns_time_series
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_empty_history
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/pipeline/layers/ranking_tracker.py:20: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+tests/test_ranking_tracker.py::TestGetRankingHistory::test_filters_by_days
+  /Users/axureboutique/Projects/auto-image-pipeline/tests/test_ranking_tracker.py:91: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    r.tracked_at = datetime.utcnow() - timedelta(days=60)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_adapters.py::TestAdapterExports::test_helium10_importable_from_adapters_package
+FAILED tests/test_adapters.py::TestAdapterExports::test_jungle_scout_importable_from_adapters_package
+FAILED tests/test_decision_log.py::TestDecisionEndpoint::test_get_decisions_endpoint_empty
+FAILED tests/test_decision_log.py::TestDecisionEndpoint::test_get_decisions_endpoint_returns_all
+FAILED tests/test_decision_log.py::TestDecisionEndpoint::test_get_decisions_sorted_by_created_at_desc
+FAILED tests/test_drl_scheduler.py::TestMarkProjectLive::test_sets_live_at - ...
+FAILED tests/test_drl_scheduler.py::TestCheckDueProjects::test_returns_project_past_14_days
+FAILED tests/test_drl_scheduler.py::TestCheckDueProjects::test_ignores_project_not_yet_14_days
+FAILED tests/test_drl_scheduler.py::TestCheckDueProjects::test_ignores_already_triggered
+FAILED tests/test_drl_scheduler.py::TestCheckDueProjects::test_ignores_project_without_live_at
+FAILED tests/test_drl_scheduler.py::TestCheckDueProjects::test_multiple_projects_mixed
+FAILED tests/test_drl_scheduler.py::TestTriggerDrlCollection::test_creates_pipeline_run
+FAILED tests/test_drl_scheduler.py::TestTriggerDrlCollection::test_sets_drl_triggered_at
+FAILED tests/test_drl_scheduler.py::TestTriggerDrlCollection::test_run_persisted_in_db
+FAILED tests/test_event_trigger.py::TestEventTrigger::test_create_project_returns_201
+FAILED tests/test_event_trigger.py::TestEventTrigger::test_create_project_spawns_thread_when_asin
+FAILED tests/test_event_trigger.py::TestEventTrigger::test_create_project_requires_name
+FAILED tests/test_hypothesis_crud.py::TestHypothesisCRUD::test_list_empty - a...
+FAILED tests/test_hypothesis_crud.py::TestHypothesisCRUD::test_create - asser...
+FAILED tests/test_hypothesis_crud.py::TestHypothesisCRUD::test_update - TypeE...
+FAILED tests/test_hypothesis_crud.py::TestHypothesisCRUD::test_delete - TypeE...
+FAILED tests/test_integration_pipeline.py::TestDecisionLogAndApi::test_decision_log_and_api
+FAILED tests/test_integration_pipeline.py::TestListingAnalysisUpdatesBrand::test_listing_analysis_updates_brand
+FAILED tests/test_tag_review_routes.py::TestTagReviewRoutes::test_list_pending
+FAILED tests/test_tag_review_routes.py::TestTagReviewRoutes::test_approve - T...
+FAILED tests/test_tag_review_routes.py::TestTagReviewRoutes::test_reject - Ty...
+FAILED tests/test_tag_review_routes.py::TestTagReviewRoutes::test_edit - Type...
+27 failed, 619 passed, 189 warnings in 24.33s

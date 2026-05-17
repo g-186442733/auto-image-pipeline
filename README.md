@@ -1,3 +1,16 @@
 # Auto Image Pipeline
 
-Automated image generation, editing, and flywheel delivery pipeline for e-commerce product listings.
+Amazon product image automation pipeline.
+
+## Setup
+
+```bash
+python -m pip install -e ".[dev]"
+cp .env.example .env
+```
+
+## Usage
+
+```bash
+python -m pipeline --help
+```

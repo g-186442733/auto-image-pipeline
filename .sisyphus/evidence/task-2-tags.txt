@@ -1,0 +1,2 @@
+QA1 PASS: All tag counts and lookup correct
+  INTENT=6 ROLE=7 SLOT=8 COLOR=6 LAYOUT=5 STYLE=6 TOTAL=30

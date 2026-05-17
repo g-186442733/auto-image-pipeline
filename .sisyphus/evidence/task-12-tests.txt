@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_qa_gate_llm.py::TestLlmQaEvaluatePass::test_returns_pass_when_score_above_70 PASSED [ 14%]
+tests/test_qa_gate_llm.py::TestLlmQaEvaluateFail::test_returns_fail_when_score_below_70 PASSED [ 28%]
+tests/test_qa_gate_llm.py::TestLlmQaEvaluateApiError::test_returns_safe_default_on_empty_api_key PASSED [ 42%]
+tests/test_qa_gate_llm.py::TestLlmQaEvaluateApiError::test_returns_safe_default_on_malformed_json PASSED [ 57%]
+tests/test_qa_gate_llm.py::TestLegacyStillCallable::test_run_qa_checks_legacy_exists_and_callable PASSED [ 71%]
+tests/test_qa_gate_llm.py::TestNewRunQaChecksReturnsQARecord::test_returns_qa_record_with_llm_qa_check_type PASSED [ 85%]
+tests/test_qa_gate_llm.py::TestStepQaRetry::test_retries_on_failure_up_to_max PASSED [100%]
+
+============================== 7 passed in 0.25s ===============================

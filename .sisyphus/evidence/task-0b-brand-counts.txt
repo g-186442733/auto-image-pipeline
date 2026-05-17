@@ -1,0 +1,7 @@
+## Wave 0b — Brand Table Data Counts
+Date: 2026-04-20
+brand_profiles table: 0 rows
+brand_profile_cards table: 0 rows
+
+CONCLUSION: Both tables are empty → Task 1a (model merge) does NOT need data migration.
+Strategy: Simply DROP brand_profiles table and remove brand.py model.

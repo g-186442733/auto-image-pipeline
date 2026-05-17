@@ -1,0 +1,6 @@
+{
+  "slot_index": 2,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Lifestyle product photography for Amazon listing. {{ subject }} shown in a natural, real-life setting. {{ composition }} composition with {{ tone }} aesthetic. The product is being used or displayed in an aspirational context that resonates with the target customer. Warm, inviting atmosphere with natural lighting.{% if constraints %} Color palette: {{ constraints }}.{% endif %}{% if environment %} Scene: {{ environment }}.{% endif %}{% if camera %} Camera angle: {{ camera }}.{% endif %} Professional editorial quality, high resolution.",
+  "negative_prompt": "text overlay, watermark, logo, artificial look, cluttered scene, low quality, blurry, distorted proportions, stock photo feel, oversaturated"
+}

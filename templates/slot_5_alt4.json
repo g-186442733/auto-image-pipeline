@@ -1,0 +1,6 @@
+{
+  "slot_index": 5,
+  "model_name": "gpt-image-1",
+  "prompt_text": "Product comparison or size reference image for Amazon listing. {{ subject }} shown alongside a common everyday object for scale reference, or in a before/after or side-by-side comparison layout. {{ composition }} arrangement with {{ tone }} styling. Clean, easy-to-understand visual comparison that helps customers gauge actual product dimensions.{% if constraints %} Background: {{ constraints }}.{% endif %}{% if environment %} Context: {{ environment }}.{% endif %}{% if camera %} Shot type: {{ camera }}.{% endif %} Clear, well-lit, professional quality.",
+  "negative_prompt": "confusing layout, unclear scale, cluttered background, text heavy, blurry, low quality, distorted proportions, misleading comparison"
+}

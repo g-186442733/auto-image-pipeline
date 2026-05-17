@@ -1,0 +1,20 @@
+Task 4b: Review Page - Evidence
+================================
+Date: 2026-04-20
+
+Routes added to app.py:
+- GET /review — lists DeliveryVersions where client_signed_at IS NULL
+- POST /review/<id>/approve — sets client_signed_at = now(UTC)
+- POST /review/<id>/reject — prepends [REJECTED] reason to change_summary
+- GET /qa-dashboard — shows QARecord stats with pass rate
+
+Template: review.html (extends base.html)
+- Table with pending versions, approve/reject buttons
+- Reject form includes reason text input
+
+Tests: 5 passed (TestReviewPage)
+- test_review_get_200
+- test_review_shows_pending_versions
+- test_review_excludes_signed_versions
+- test_review_has_approve_button
+- test_review_has_reject_button

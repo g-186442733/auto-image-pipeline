@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 3 items
+
+tests/test_db_migrate.py::test_fresh_migration_adds_all_columns PASSED   [ 33%]
+tests/test_db_migrate.py::test_migration_idempotent PASSED               [ 66%]
+tests/test_db_migrate.py::test_migration_skips_missing_table PASSED      [100%]
+
+============================== 3 passed in 0.19s ===============================

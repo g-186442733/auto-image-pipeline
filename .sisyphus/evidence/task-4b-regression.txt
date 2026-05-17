@@ -1,0 +1,8 @@
+Task 4b: Regression - Evidence
+===============================
+Date: 2026-04-20
+
+Full suite: 489 passed, 35 failed (pre-existing test_l5_migration.py)
+Baseline: 475 passed + 14 new = 489 passed. Zero regressions.
+
+Command: PYTHONPATH=. .venv/bin/pytest tests/ -q --ignore=tests/test_e2e_tws.py --ignore=tests/test_e2e_pipeline.py

@@ -1,0 +1,56 @@
+02:11:33 [INFO] aip.input_layer: Created project id=1 name=QA3 Test asin=B0TESTQA03
+02:11:33 [INFO] pipeline.layers.slot_planner: Created 8 slot plans for project 1
+02:11:33 [INFO] aip.input_layer: Created project id=2 name=QA3 Test asin=B0TESTQA03
+02:11:33 [INFO] pipeline.layers.slot_planner: Created 8 slot plans for project 1
+02:11:33 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+02:11:34 [INFO] aip.adapter.mock: Mock generate job_id=31efdb7e431a path=/var/folders/5l/y4k4qkwd1rzcgjh_16hg88400000gn/T/aip_qa3_bl0wv0uh/mock/31efdb7e431a.png
+02:11:34 [INFO] aip.qa_gate: No OpenAI API key configured; assuming no text overlay
+02:11:34 [INFO] aip.qa_gate: QA for SlotPlan 1: score=75/100, passed=True
+02:11:34 [INFO] aip.qa_gate: No OpenAI API key configured; assuming no text overlay
+02:11:34 [INFO] aip.qa_gate: QA for SlotPlan 2: score=75/100, passed=True
+02:11:34 [INFO] aip.feedback_loop: Recorded AB test id=1 for project=1 slot=1
+02:11:34 [INFO] aip.feedback_loop: Recorded delivery result for project=1 slot=1
+02:11:34 [INFO] aip.feedback_loop: Exported report for project=1 (QA3 Test)
+── T10: Slot Planner ──
+── T11: AI Adapter ──
+── T12: QA Gate ──
+── T13: Feedback Loop ──
+
+════════════════════════════════════════════════════════════
+Wave 3 QA: 35 passed, 0 failed, 35 total
+════════════════════════════════════════════════════════════
+  PASS: T10-1 generates 8 plans
+  PASS: T10-2 slot_index range 1-8
+  PASS: T10-3 intent_tag set
+  PASS: T10-4 layout_tag set
+  PASS: T10-5 first plan is HERO
+  PASS: T10-6 no benchmark raises
+  PASS: T10-7 idempotent re-run
+  PASS: T11-1 returns ImageResult
+  PASS: T11-2 has image_path
+  PASS: T11-3 file exists
+  PASS: T11-4 status completed
+  PASS: T11-5 check_status
+  PASS: T11-6 unknown adapter raises
+  PASS: T11-7 empty prompt raises
+  PASS: T11-8 unknown job raises
+  PASS: T12-1 returns 4 checks
+  PASS: T12-2 score >= 70
+  PASS: T12-3 at least 3/4 passed (L2 bg heuristic known limitation)
+  PASS: T12-4 check_resolution fails tiny
+  PASS: T12-5 aspect_ratio 1:1 pass
+  PASS: T12-6 aspect_ratio 1:1 fail
+  PASS: T12-7 resolution check failed
+  PASS: T12-8 aspect_ratio pass (100x100 is 1:1)
+  PASS: T13-1 ab.id exists
+  PASS: T13-2 ab.metric
+  PASS: T13-3 ab.winner
+  PASS: T13-4 invalid variant raises
+  PASS: T13-5 delivery recorded
+  PASS: T13-6 insights has keys
+  PASS: T13-7 project_count >= 1
+  PASS: T13-8 report has project
+  PASS: T13-9 report has slot_plans
+  PASS: T13-10 report has qa_records
+  PASS: T13-11 report has ab_tests
+  PASS: T13-12 nonexistent project raises

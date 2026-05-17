@@ -1,0 +1,21 @@
+21:36:40 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+21:36:40 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+21:36:40 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+21:36:40 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=f663e7e87570 path=data/output/mock/f663e7e87570.png
+21:36:40 [INFO] aip.orchestrator: Generated image for MAIN via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=3842331a31b3 path=data/output/mock/3842331a31b3.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT1 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=1f9d96329d2e path=data/output/mock/1f9d96329d2e.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT2 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=177511528ef6 path=data/output/mock/177511528ef6.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT3 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=a625d46a12b0 path=data/output/mock/a625d46a12b0.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT4 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=530975dc295c path=data/output/mock/530975dc295c.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT5 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=936e71819ac0 path=data/output/mock/936e71819ac0.png
+21:36:40 [INFO] aip.orchestrator: Generated image for ALT6 via mock
+21:36:40 [INFO] aip.adapter.mock: Mock generate job_id=30bda041ea93 path=data/output/mock/30bda041ea93.png
+21:36:40 [INFO] aip.orchestrator: Generated image for VIDEO_THUMB via mock
+Generated 8 images via 'mock'

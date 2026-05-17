@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}品牌画像 — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="data-toolbar">
+  <div class="page-toolbar-wrapper">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">项目列表</a>
+      <span class="sep">/</span>
+      <a href="{{ url_for('project_detail', project_id=project.id) }}">{{ project.name }}</a>
+      <span class="sep">/</span>
+      <span>品牌画像</span>
+    </div>
+    <div class="page-title-group">
+      <h1>品牌画像 — {{ project.name }}</h1>
+      {% if project.tenant %}
+      <span class="badge badge-info">{{ project.tenant.name }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="data-actions">
+    <a href="{{ url_for('project_detail', project_id=project.id) }}" class="btn btn-outline">← 返回项目</a>
+    {% if not editing %}
+    <a href="{{ url_for('brand_profile_view', project_id=project.id, edit=1) }}" class="btn btn-primary">✏️ 编辑画像</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="data-table-wrap content-panel">
+  {% if editing %}
+  <form method="POST" action="{{ url_for('brand_profile_update', project_id=project.id) }}" class="bp-edit-form">
+    <div class="bp-grid mt-0">
+      {% for dim in dimensions %}
+      <div class="bp-card bp-card--edit">
+        <label class="bp-card-label" for="field-{{ dim.key }}">
+          <span class="bp-card-icon">{{ dim.icon }}</span> {{ dim.label }}
+        </label>
+        <textarea id="field-{{ dim.key }}" name="{{ dim.key }}" placeholder="请输入{{ dim.label }}...">{{ dim.value or '' }}</textarea>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="data-actions justify-end" style="margin-top: 2rem;">
+      <a href="{{ url_for('brand_profile_view', project_id=project.id) }}" class="btn btn-outline">取消</a>
+      <button type="submit" class="btn btn-primary">保存画像</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="bp-grid mt-0">
+    {% for dim in dimensions %}
+    <div class="bp-card">
+      <div class="bp-card-label">
+        <span class="bp-card-icon">{{ dim.icon }}</span> {{ dim.label }}
+      </div>
+      <div class="bp-card-value">{% if dim.value %}{{ dim.value }}{% else %}<span class="text-muted">暂无描述</span>{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>修改决策速查表</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <h1>修改决策速查表</h1>
+    <p><a href="/">← 返回首页</a></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>关键词</th>
+          <th>动作代码</th>
+          <th>建议操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for keyword, entry in table.items() %}
+        <tr>
+          <td><code>{{ keyword }}</code></td>
+          <td><code>{{ entry.action }}</code></td>
+          <td>{{ entry.suggestion }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Fallback</h2>
+    <p>
+      若反馈文本未命中任何关键词，将返回
+      <code>manual_review</code>（需人工审核反馈内容）。
+    </p>
+  </body>
+</html>

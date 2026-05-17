@@ -1,0 +1,7 @@
+asin: B09XS7JWHH
+current_price: 348
+avg_category_price: 300.0
+price_percentile: 66.66666666666666
+price_band: premium
+price_band valid: True
+percentile in range: True

@@ -1,0 +1,95 @@
+{% extends "base.html" %} {% block title %}客户反馈 — {{ project.name }}{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <span>客户反馈</span>
+</div>
+
+<div class="page-header">
+  <h1>客户反馈 — {{ project.name }}</h1>
+  <div class="page-header-actions">
+    <a
+      href="{{ url_for('project_detail', project_id=project.id) }}"
+      class="btn btn-outline"
+      >← 返回项目</a
+    >
+  </div>
+</div>
+
+{% if summary %}
+<div class="feedback-summary">
+  <h2>反馈汇总</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>图位</th>
+        <th>状态</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for slot_name, info in summary.items() %}
+      <tr>
+        <td>{{ slot_name }}</td>
+        <td>{{ info.latest_type }}</td>
+        <td>{{ info.latest_text }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="feedback-form-section">
+  <h2>提交反馈</h2>
+  <form
+    method="POST"
+    action="{{ url_for('feedback_submit', project_id=project.id) }}"
+  >
+    <div class="form-group">
+      <label for="slot_name">图位名称</label>
+      <input
+        type="text"
+        id="slot_name"
+        name="slot_name"
+        required
+        class="form-control"
+        placeholder="如: slot_1"
+      />
+    </div>
+    <div class="form-group">
+      <label>反馈类型</label>
+      <div class="feedback-radio-group">
+        <label
+          ><input type="radio" name="feedback_type" value="approve" required />
+          ✅ 通过</label
+        >
+        <label
+          ><input type="radio" name="feedback_type" value="revise" /> ✏️
+          修改</label
+        >
+        <label
+          ><input type="radio" name="feedback_type" value="reject" /> ❌
+          拒绝</label
+        >
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="feedback_text">反馈说明</label>
+      <textarea
+        id="feedback_text"
+        name="feedback_text"
+        rows="3"
+        class="form-control"
+        placeholder="请输入反馈意见..."
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">提交反馈</button>
+  </form>
+</div>
+{% endblock %}

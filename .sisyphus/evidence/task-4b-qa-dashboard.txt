@@ -1,0 +1,16 @@
+Task 4b: QA Dashboard - Evidence
+=================================
+Date: 2026-04-20
+
+Route: GET /qa-dashboard
+- Queries all QARecord, computes total/passed/pass_rate
+- pass_rate = round(passed/total * 100)
+
+Template: qa_dashboard.html (extends base.html)
+- Summary cards: total checks, passed, pass rate %
+- Table with check_type, pass/fail badge, score, details, time
+
+Tests: 3 passed (TestQADashboard)
+- test_qa_dashboard_get_200
+- test_qa_dashboard_shows_records
+- test_qa_dashboard_shows_pass_rate

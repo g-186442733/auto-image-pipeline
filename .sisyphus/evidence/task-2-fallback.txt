@@ -1,0 +1,5 @@
+21:06:39 [WARNING] aip.amazon_data: fetch_reviews: no reviews returned for B000TEST01 – using mock
+21:06:41 [WARNING] aip.amazon_data: fetch_qa: no Q&A returned for B000TEST01 – using mock
+PASS: fallback returns >=5 items with correct keys
+reviews: 5 items, qa: 5 items
+No exceptions raised - mock fallback working correctly

@@ -1,0 +1,16 @@
+Task 5: qa_gate.py coverage ≥80%
+=================================
+Date: 2026-04-20
+
+Coverage: 99% (370 stmts, 4 missed: lines 269-270, 703-704)
+Tests added: 76 new tests in tests/test_qa_gate_coverage.py
+Total tests passing: 102 (qa_gate files only), 878 (full regression)
+
+Coverage command:
+  PYTHONPATH=. .venv/bin/pytest tests/test_qa_gate_coverage.py tests/test_qa_gate_v2.py tests/test_qa_gate_5doors.py --cov=pipeline.layers.qa_gate --cov-report=term-missing -q
+
+Regression command:
+  PYTHONPATH=. .venv/bin/pytest tests/ -q --ignore=tests/test_e2e_tws.py --ignore=tests/test_e2e_pipeline.py --ignore=tests/test_l5_migration.py
+  Result: 878 passed, 0 failed
+
+No source files modified. No new dependencies added.

@@ -1,0 +1,11 @@
+Tables created: 8
+  - ab_tests
+  - amazon_benchmarks
+  - brand_profiles
+  - projects
+  - prompt_assets
+  - qa_records
+  - slot_plans
+  - tag_assignments
+CRUD OK: Project id=2, name=TestProject
+QA2 PASSED

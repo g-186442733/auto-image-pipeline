@@ -1,0 +1,74 @@
+{% extends "base.html" %} {% block title %}一致性配置 — {{ project.name }}{%
+endblock %} {% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('index') }}">项目列表</a>
+  <span class="sep">/</span>
+  <a href="{{ url_for('project_detail', project_id=project.id) }}"
+    >{{ project.name }}</a
+  >
+  <span class="sep">/</span>
+  <span>一致性配置</span>
+</div>
+
+<div class="page-header">
+  <h1>一致性配置 — {{ project.name }}</h1>
+  <div class="page-header-actions">
+    {% if profile.locked %}
+    <span class="consistency-badge consistency-badge--locked">🔒 已锁定</span>
+    {% else %}
+    <form
+      method="POST"
+      action="{{ url_for('consistency_lock', project_id=project.id) }}"
+      style="display: inline"
+    >
+      <button type="submit" class="btn btn-outline btn-sm">🔒 锁定配置</button>
+    </form>
+    {% endif %}
+    <a
+      href="{{ url_for('project_detail', project_id=project.id) }}"
+      class="btn btn-outline"
+      >← 返回项目</a
+    >
+  </div>
+</div>
+
+{% if not valid %}
+<div class="consistency-warning">
+  ⚠️ 以下变量尚未设置：{{ missing|join(', ') }}
+</div>
+{% endif %}
+
+<form
+  method="POST"
+  action="{{ url_for('consistency_update', project_id=project.id) }}"
+  class="consistency-form"
+>
+  <div class="consistency-grid">
+    {% for var in variables %}
+    <div class="consistency-card">
+      <div class="consistency-card-icon">{{ var.icon }}</div>
+      <label class="consistency-card-label" for="field-{{ var.key }}"
+        >{{ var.label }}</label
+      >
+      {% if profile.locked %}
+      <div class="consistency-card-value">{{ var.value or '—' }}</div>
+      {% else %}
+      <input
+        type="text"
+        id="field-{{ var.key }}"
+        name="{{ var.key }}"
+        value="{{ var.value or '' }}"
+        placeholder="{{ var.placeholder }}"
+        class="consistency-input"
+      />
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if not profile.locked %}
+  <div class="consistency-actions">
+    <button type="submit" class="btn btn-primary">保存配置</button>
+  </div>
+  {% endif %}
+</form>
+{% endblock %}

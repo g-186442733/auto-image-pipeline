@@ -1,0 +1,21 @@
+Task 1 Evidence: No auth references remain in pipeline/
+Date: 2026-04-20
+
+grep -rn 'login_required|tenant_required|@login_required|@tenant_required|def login|def logout|url_for.*login' pipeline/
+(no output — zero matches)
+
+Removed:
+- login_required function definition
+- tenant_required function definition
+- _blueprint_auth_check before_request hook
+- _auth_blueprints set
+- /login route (GET+POST)
+- /logout route
+- All @login_required and @tenant_required decorator usages
+- login.html template (deleted)
+- User model import (unused after auth removal)
+- functools.wraps import (unused after auth removal)
+
+Added:
+- g.tenant_id = 1 in _make_session_permanent before_request (temporary, until Task 2+3)
+- /customers nav link in base.html

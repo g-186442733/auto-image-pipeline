@@ -1,0 +1,1 @@
+T-L3-7 Evidence: ADR-005 updated from GPT-4o Vision to Gemini 2.5 Flash Vision via 147AI. File: docs/adr/ADR-005-vision-analysis.md (renamed from ADR-005-gpt4o-vision-analysis.md). Date: 2026-04-17T19:19:14Z

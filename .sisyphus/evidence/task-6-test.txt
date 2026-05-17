@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0 -- /Users/axureboutique/Projects/auto-image-pipeline/.venv/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/axureboutique/Projects/auto-image-pipeline
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 9 items
+
+tests/test_price_analyzer.py::test_basic_case PASSED                     [ 11%]
+tests/test_price_analyzer.py::test_price_band_budget PASSED              [ 22%]
+tests/test_price_analyzer.py::test_price_band_mid PASSED                 [ 33%]
+tests/test_price_analyzer.py::test_price_band_premium PASSED             [ 44%]
+tests/test_price_analyzer.py::test_price_band_luxury PASSED              [ 55%]
+tests/test_price_analyzer.py::test_no_benchmarks PASSED                  [ 66%]
+tests/test_price_analyzer.py::test_identical_prices PASSED               [ 77%]
+tests/test_price_analyzer.py::test_avg_category_price PASSED             [ 88%]
+tests/test_price_analyzer.py::test_missing_price_key PASSED              [100%]
+
+============================== 9 passed in 0.13s ===============================

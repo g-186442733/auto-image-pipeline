@@ -1,0 +1,3 @@
+Test results: 485 passed, 38 errors (all in test_l5_migration.py, pre-existing)
+Baseline: 489 passed minus 4 parameterized tests from removed brand entry = 485
+

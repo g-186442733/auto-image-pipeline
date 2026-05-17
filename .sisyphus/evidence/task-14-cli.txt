@@ -1,0 +1,17 @@
+T14 CLI Orchestrator Evidence
+=============================
+Date: 2026-04-18
+
+Smoke test: .venv/bin/python -m pipeline --help
+Result: OK — 7 commands listed (init, analyze, plan, generate, qa, report, run)
+
+Commands verified:
+  init      - Create project from brief JSON
+  analyze   - Fetch Amazon data and analyze competitors
+  plan      - Generate slot plan
+  generate  - Generate images (--adapter flag)
+  qa        - Run QA checks
+  report    - Export project report
+  run       - Full pipeline end-to-end
+
+Files: pipeline/__main__.py (118 lines), pipeline/orchestrator.py (156 lines)

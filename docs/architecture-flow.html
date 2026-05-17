@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Image Pipeline — 服务商作业架构</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #0f1117;
+        --surface: #1a1d27;
+        --surface2: #242838;
+        --border: #2d3148;
+        --text: #e4e6f0;
+        --text-dim: #8b8fa8;
+        --text-bright: #ffffff;
+        --orange: #f97316;
+        --orange-dim: rgba(249, 115, 22, 0.12);
+        --blue: #3b82f6;
+        --blue-dim: rgba(59, 130, 246, 0.12);
+        --purple: #8b5cf6;
+        --purple-dim: rgba(139, 92, 246, 0.12);
+        --green: #10b981;
+        --green-dim: rgba(16, 185, 129, 0.12);
+        --cyan: #06b6d4;
+        --cyan-dim: rgba(6, 182, 212, 0.12);
+        --red: #ef4444;
+        --red-dim: rgba(239, 68, 68, 0.15);
+        --yellow: #eab308;
+        --yellow-dim: rgba(234, 179, 8, 0.15);
+        --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        --font:
+          "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+      html {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        min-width: 1200px;
+      }
+      body {
+        padding: 48px 56px 80px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 56px;
+        position: relative;
+      }
+      .header::before {
+        content: "";
+        position: absolute;
+        top: -48px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 300px;
+        background: radial-gradient(
+          ellipse,
+          rgba(59, 130, 246, 0.08),
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      .header h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--text-bright);
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+      .header h1 span {
+        background: linear-gradient(135deg, var(--blue), var(--purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .header p {
+        font-size: 16px;
+        color: var(--text-dim);
+        letter-spacing: 2px;
+        font-weight: 400;
+      }
+
+      /* Layout */
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 260px;
+        gap: 40px;
+        align-items: start;
+      }
+      .layers {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      /* Layer */
+      .layer-wrapper {
+        position: relative;
+      }
+      .layer {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px 32px 24px;
+        position: relative;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        box-shadow: var(--card-shadow);
+      }
+      .layer:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+
+      .layer-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .layer-num {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .layer-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-bright);
+      }
+      .layer-badge {
+        margin-left: auto;
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .badge-strong {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+      }
+      .badge-weak {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+      }
+      .badge-ok {
+        background: rgba(59, 130, 246, 0.12);
+        color: #60a5fa;
+      }
+      .task-count {
+        font-size: 13px;
+        color: var(--text-dim);
+        margin-left: 12px;
+        font-weight: 400;
+      }
+
+      .layer-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      /* Tag groups */
+      .tag-group {
+        background: var(--surface2);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .tag-group-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tag-group-label .icon {
+        font-size: 13px;
+      }
+      .label-existing {
+        color: var(--text-dim);
+      }
+      .label-gap {
+        color: var(--red);
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tag {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .tag-existing {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .tag-gap {
+        border: 1px dashed;
+        font-weight: 600;
+      }
+
+      /* Gap badge */
+      .gap-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        margin-right: 6px;
+        flex-shrink: 0;
+      }
+
+      /* Arrows */
+      .arrow-container {
+        display: flex;
+        justify-content: center;
+        padding: 6px 0;
+      }
+      .arrow {
+        width: 2px;
+        height: 28px;
+        position: relative;
+      }
+      .arrow::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 2px;
+        height: 100%;
+      }
+      .arrow::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+      }
+      .arrow-orange::before {
+        background: linear-gradient(to bottom, var(--orange), var(--blue));
+      }
+      .arrow-orange::after {
+        border-top: 8px solid var(--blue);
+      }
+      .arrow-blue::before {
+        background: linear-gradient(to bottom, var(--blue), var(--purple));
+      }
+      .arrow-blue::after {
+        border-top: 8px solid var(--purple);
+      }
+      .arrow-purple::before {
+        background: linear-gradient(to bottom, var(--purple), var(--green));
+      }
+      .arrow-purple::after {
+        border-top: 8px solid var(--green);
+      }
+      .arrow-green::before {
+        background: linear-gradient(to bottom, var(--green), var(--cyan));
+      }
+      .arrow-green::after {
+        border-top: 8px solid var(--cyan);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 48px;
+      }
+      .side-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px 20px;
+        box-shadow: var(--card-shadow);
+      }
+      .side-card h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin-bottom: 14px;
+        letter-spacing: 0.5px;
+      }
+      .api-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .api-item:last-child {
+        border-bottom: none;
+      }
+      .api-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .api-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .api-desc {
+        font-size: 11px;
+        color: var(--text-dim);
+      }
+
+      /* Stats */
+      .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 48px;
+      }
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px 24px;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+      .stat-val {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: var(--text-dim);
+        font-weight: 400;
+      }
+
+      /* Color helpers */
+      .c-orange {
+        color: var(--orange);
+      }
+      .c-blue {
+        color: var(--blue);
+      }
+      .c-purple {
+        color: var(--purple);
+      }
+      .c-green {
+        color: var(--green);
+      }
+      .c-cyan {
+        color: var(--cyan);
+      }
+      .c-red {
+        color: var(--red);
+      }
+      .c-yellow {
+        color: var(--yellow);
+      }
+      .bg-orange {
+        background: var(--orange);
+      }
+      .bg-blue {
+        background: var(--blue);
+      }
+      .bg-purple {
+        background: var(--purple);
+      }
+      .bg-green {
+        background: var(--green);
+      }
+      .bg-cyan {
+        background: var(--cyan);
+      }
+      .bg-red {
+        background: var(--red);
+      }
+      .bg-yellow {
+        background: var(--yellow);
+      }
+
+      /* Gap-specific tag colors */
+      .tag-gap-red {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--red-dim);
+      }
+      .tag-gap-yellow {
+        border-color: var(--yellow);
+        color: var(--yellow);
+        background: var(--yellow-dim);
+      }
+      .tag-gap-orange {
+        border-color: var(--orange);
+        color: var(--orange);
+        background: var(--orange-dim);
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .legend-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+      }
+      .legend-swatch-existing {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .legend-swatch-gap {
+        background: var(--red-dim);
+        border: 1px dashed var(--red);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Auto Image Pipeline — <span>服务商作业架构</span></h1>
+      <p>5层流水线 · 40个任务点 · L4规划</p>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch legend-swatch-existing"></div>
+        已实现模块
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch legend-swatch-gap"></div>
+        待填补缺口
+      </div>
+      <div class="legend-item">
+        <span style="font-size: 14px">✅</span> 最强
+      </div>
+      <div class="legend-item">
+        <span style="font-size: 14px">⚠️</span> 部分实现
+      </div>
+      <div class="legend-item">
+        <span style="font-size: 14px">❌</span> 最大空白
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="layers">
+        <div class="layer-wrapper">
+          <div class="layer" style="border-top: 3px solid var(--orange)">
+            <div class="layer-head">
+              <div class="layer-num bg-orange">1</div>
+              <div class="layer-title">客户输入层</div>
+              <span class="task-count">13 个任务</span>
+              <span class="layer-badge badge-ok">⚠️ 部分实现</span>
+            </div>
+            <div class="layer-body">
+              <div class="tag-group">
+                <div class="tag-group-label label-existing">
+                  <span class="icon">✅</span> 已实现
+                </div>
+                <div class="tags">
+                  <span class="tag tag-existing">IntakeChecklist</span>
+                  <span class="tag tag-existing">文件上传接口</span>
+                  <span class="tag tag-existing">BrandProfile 模型</span>
+                  <span class="tag tag-existing">/project/new 表单</span>
+                </div>
+              </div>
+              <div class="tag-group" style="background: var(--red-dim)">
+                <div class="tag-group-label label-gap">
+                  <span class="gap-badge bg-red">①</span> 缺口① — 客户交互
+                </div>
+                <div class="tags">
+                  <span class="tag tag-gap tag-gap-red">引导式问卷</span>
+                  <span class="tag tag-gap tag-gap-red">素材管理页</span>
+                  <span class="tag tag-gap tag-gap-red">品牌卡 UI</span>
+                  <span class="tag tag-gap tag-gap-red">平台交付规格配置</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="arrow-container">
+            <div class="arrow arrow-orange"></div>
+          </div>
+        </div>
+
+        <div class="layer-wrapper">
+          <div class="layer" style="border-top: 3px solid var(--blue)">
+            <div class="layer-head">
+              <div class="layer-num bg-blue">2</div>
+              <div class="layer-title">分析决策层</div>
+              <span class="task-count">7 个任务</span>
+              <span class="layer-badge badge-strong">✅ 最强</span>
+            </div>
+            <div class="layer-body">
+              <div class="tag-group">
+                <div class="tag-group-label label-existing">
+                  <span class="icon">✅</span> 已实现
+                </div>
+                <div class="tags">
+                  <span class="tag tag-existing">竞品分析 (Keepa)</span>
+                  <span class="tag tag-existing">评论/QA 提炼</span>
+                  <span class="tag tag-existing">Brief 生成 (Gemini)</span>
+                  <span class="tag tag-existing">SlotPlan 全自动</span>
+                </div>
+              </div>
+              <div class="tag-group" style="background: var(--yellow-dim)">
+                <div
+                  class="tag-group-label label-gap"
+                  style="color: var(--yellow)"
+                >
+                  <span class="gap-badge bg-yellow">④</span> 缺口④ — A+内容
+                </div>
+                <div class="tags">
+                  <span class="tag tag-gap tag-gap-yellow">A+ Brief 生成</span>
+                  <span class="tag tag-gap tag-gap-yellow">A+ 图片生成</span>
+                  <span class="tag tag-gap tag-gap-yellow">A+ 内容展示</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="arrow-container">
+            <div class="arrow arrow-blue"></div>
+          </div>
+        </div>
+
+        <div class="layer-wrapper">
+          <div class="layer" style="border-top: 3px solid var(--purple)">
+            <div class="layer-head">
+              <div class="layer-num bg-purple">3</div>
+              <div class="layer-title">出图生产层</div>
+              <span class="task-count">11 个任务</span>
+              <span class="layer-badge badge-weak">❌ 最大空白</span>
+            </div>
+            <div class="layer-body">
+              <div class="tag-group">
+                <div class="tag-group-label label-existing">
+                  <span class="icon">✅</span> 已实现
+                </div>
+                <div class="tags">
+                  <span class="tag tag-existing">Prompt 引擎</span>
+                  <span class="tag tag-existing"
+                    >147AI 图像生成 (gpt-image-1)</span
+                  >
+                </div>
+              </div>
+              <div class="tag-group" style="background: var(--red-dim)">
+                <div class="tag-group-label label-gap">
+                  <span class="gap-badge bg-red">②</span> 缺口② — 生产工具链
+                </div>
+                <div class="tags">
+                  <span class="tag tag-gap tag-gap-red"
+                    >Reference Pack 管理</span
+                  >
+                  <span class="tag tag-gap tag-gap-red">Prompt 可视化编辑</span>
+                  <span class="tag tag-gap tag-gap-red">设计师精修工作流</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="arrow-container">
+            <div class="arrow arrow-purple"></div>
+          </div>
+        </div>
+
+        <div class="layer-wrapper">
+          <div class="layer" style="border-top: 3px solid var(--green)">
+            <div class="layer-head">
+              <div class="layer-num bg-green">4</div>
+              <div class="layer-title">质检交付层</div>
+              <span class="task-count">9 个任务</span>
+              <span class="layer-badge badge-ok">⚠️ 部分实现</span>
+            </div>
+            <div class="layer-body">
+              <div class="tag-group">
+                <div class="tag-group-label label-existing">
+                  <span class="icon">✅</span> 已实现
+                </div>
+                <div class="tags">
+                  <span class="tag tag-existing">QA Gate (LLM 评分)</span>
+                  <span class="tag tag-existing">交付包输出 (delivery/)</span>
+                  <span class="tag tag-existing">manifest.json</span>
+                </div>
+              </div>
+              <div class="tag-group" style="background: var(--orange-dim)">
+                <div
+                  class="tag-group-label label-gap"
+                  style="color: var(--orange)"
+                >
+                  <span class="gap-badge bg-orange">③</span> 缺口③ — 反馈闭环
+                </div>
+                <div class="tags">
+                  <span class="tag tag-gap tag-gap-orange">版本管理</span>
+                  <span class="tag tag-gap tag-gap-orange">客户反馈接收</span>
+                  <span class="tag tag-gap tag-gap-orange">修改追踪</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="arrow-container">
+            <div class="arrow arrow-green"></div>
+          </div>
+        </div>
+
+        <div class="layer-wrapper">
+          <div class="layer" style="border-top: 3px solid var(--cyan)">
+            <div class="layer-head">
+              <div class="layer-num bg-cyan">5</div>
+              <div class="layer-title">数据回流层</div>
+              <span class="task-count">依赖上层</span>
+              <span class="layer-badge badge-strong">✅ 已就绪</span>
+            </div>
+            <div class="layer-body" style="grid-template-columns: 1fr">
+              <div class="tag-group">
+                <div class="tag-group-label label-existing">
+                  <span class="icon">✅</span> 已实现
+                </div>
+                <div class="tags">
+                  <span class="tag tag-existing"
+                    >ABTest / ABTestResult 模型</span
+                  >
+                  <span class="tag tag-existing">BrandProfile 自动更新</span>
+                  <span class="tag tag-existing">结论导出</span>
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                margin-top: 12px;
+                font-size: 12px;
+                color: var(--text-dim);
+                padding-left: 4px;
+              "
+            >
+              无独立缺口，数据质量依赖上层管道输出
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="side-card">
+          <h3>🔌 外部 API 依赖</h3>
+          <div class="api-item">
+            <div class="api-dot" style="background: var(--green)"></div>
+            <div>
+              <div class="api-name">Keepa API</div>
+              <div class="api-desc">竞品数据采集</div>
+            </div>
+          </div>
+          <div class="api-item">
+            <div class="api-dot" style="background: var(--blue)"></div>
+            <div>
+              <div class="api-name">Google Gemini</div>
+              <div class="api-desc">Brief 生成 · 视觉分析</div>
+            </div>
+          </div>
+          <div class="api-item">
+            <div class="api-dot" style="background: var(--purple)"></div>
+            <div>
+              <div class="api-name">147AI / gpt-image-1</div>
+              <div class="api-desc">AI 图像生成</div>
+            </div>
+          </div>
+          <div class="api-item">
+            <div class="api-dot" style="background: var(--cyan)"></div>
+            <div>
+              <div class="api-name">SQLite</div>
+              <div class="api-desc">数据持久化存储</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>🎯 L4 缺口总览</h3>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span
+                class="gap-badge bg-red"
+                style="width: 20px; height: 20px; font-size: 11px"
+                >①</span
+              >
+              <span style="font-size: 13px">客户交互</span>
+              <span
+                style="margin-left: auto; font-size: 11px; color: var(--red)"
+                >4 项</span
+              >
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span
+                class="gap-badge bg-red"
+                style="width: 20px; height: 20px; font-size: 11px"
+                >②</span
+              >
+              <span style="font-size: 13px">生产工具链</span>
+              <span
+                style="margin-left: auto; font-size: 11px; color: var(--red)"
+                >3 项</span
+              >
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span
+                class="gap-badge bg-orange"
+                style="width: 20px; height: 20px; font-size: 11px"
+                >③</span
+              >
+              <span style="font-size: 13px">反馈闭环</span>
+              <span
+                style="margin-left: auto; font-size: 11px; color: var(--orange)"
+                >3 项</span
+              >
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span
+                class="gap-badge bg-yellow"
+                style="width: 20px; height: 20px; font-size: 11px"
+                >④</span
+              >
+              <span style="font-size: 13px">A+ 内容</span>
+              <span
+                style="margin-left: auto; font-size: 11px; color: var(--yellow)"
+                >3 项</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>📊 数据流向</h3>
+          <div style="font-size: 12px; color: var(--text-dim); line-height: 2">
+            <div>客户输入 <span style="color: var(--orange)">→</span></div>
+            <div style="padding-left: 12px">
+              分析决策 <span style="color: var(--blue)">→</span>
+            </div>
+            <div style="padding-left: 24px">
+              出图生产 <span style="color: var(--purple)">→</span>
+            </div>
+            <div style="padding-left: 36px">
+              质检交付 <span style="color: var(--green)">→</span>
+            </div>
+            <div style="padding-left: 48px">
+              数据回流 <span style="color: var(--cyan)">↩</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-val c-blue">40</div>
+        <div class="stat-label">总任务数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val c-purple">7</div>
+        <div class="stat-label">新增模型</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val c-orange">11</div>
+        <div class="stat-label">新增页面</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val c-green">211</div>
+        <div class="stat-label">已通过测试</div>
+      </div>
+    </div>
+  </body>
+</html>

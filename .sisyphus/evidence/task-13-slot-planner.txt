@@ -1,0 +1,20 @@
+Task 13: Slot Planner Data-Driven Refactor
+==========================================
+Date: 2026-04-18
+Status: COMPLETE
+
+## What Changed
+- `pipeline/layers/slot_planner.py`: Added `session` param (Optional), ImageBrief lookup,
+  `_tags_from_brief()` helper. Falls back to `_SLOT_DEFAULTS` when no briefs exist.
+- `tests/test_slot_planner_v2.py`: 7 new tests (3 brief-driven, 2 fallback, 2 validation).
+
+## TDD Evidence
+- RED: 7 tests failed (TypeError: unexpected keyword argument 'session')
+- GREEN: All 7 passed after implementation
+- Full suite: 94 passed (baseline was 87), 0 failed
+
+## Key Decisions
+- `_tags_from_brief()` extracts `target_tags` dict from `brief_json`; returns None on any parse error
+- `owns_session` pattern: only close session if we created it (same as brief_generator)
+- `_SLOT_DEFAULTS` preserved as fallback, not removed
+- Per-slot brief lookup (dict keyed by slot_index), not single brief for all slots

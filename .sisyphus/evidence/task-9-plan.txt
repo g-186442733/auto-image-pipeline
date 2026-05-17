@@ -1,0 +1,7 @@
+21:36:35 [INFO] aip.adapter.registry: Registered adapter 'mock' -> MockImageAdapter
+21:36:35 [INFO] aip.adapter.registry: Registered adapter 'gpt_image' -> GptImageAdapter
+21:36:35 [INFO] aip.adapter.registry: Registered adapter 'gemini_image' -> GeminiImageAdapter
+21:36:35 [INFO] aip.adapter.registry: Registered adapter 'gemini_vision' -> GeminiVisionAdapter
+21:36:35 [INFO] pipeline.layers.slot_planner: Created 8 slot plans for project 7
+21:36:35 [INFO] aip.orchestrator: Slot plan generated for project 7: 8 slots
+Slot plan generated: 8 slots
