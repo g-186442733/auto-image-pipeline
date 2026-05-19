@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "auto-image-pipeline"
@@ -18,6 +18,9 @@ dependencies = [
 
 [project.scripts]
 aip = "pipeline.__main__:cli"
+
+[tool.setuptools.packages.find]
+include = ["pipeline*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
