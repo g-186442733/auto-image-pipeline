@@ -15,6 +15,7 @@ from pipeline.models.slot_plan import SlotPlan
 from pipeline.utils.logger import setup_logger
 
 __all__ = [
+    "refine_prompt_with_qa",
     "run_qa_checks",
     "run_qa_checks_legacy",
     "run_qa_gate",
@@ -197,6 +198,30 @@ def _call_gemini(prompt: str, image_path: str | None = None) -> str:
     except Exception as exc:
         logger.warning("Gemini call failed: %s", exc)
         return ""
+
+
+def refine_prompt_with_qa(
+    prompt_text: str,
+    issues: list[str],
+    dim_scores: dict,
+    prompt_asset_id: int | None = None,
+) -> str:
+    """根据 QA 结果生成一个保守的 prompt 改写版本。"""
+    issue_lines = [str(issue).strip() for issue in issues if str(issue).strip()]
+    if not issue_lines and not dim_scores:
+        return prompt_text
+
+    corrections = [
+        "QA CORRECTION INSTRUCTIONS:",
+        "- Keep the original product, layout intent, and factual claims unchanged.",
+        "- Fix the quality issues listed below before regenerating the image.",
+    ]
+    corrections.extend(f"- {issue}" for issue in issue_lines)
+    if dim_scores:
+        score_text = ", ".join(f"{key}={value}" for key, value in dim_scores.items())
+        corrections.append(f"- Dimension scores to improve: {score_text}.")
+    return f"{prompt_text.rstrip()}\n\n" + "\n".join(corrections)
+
 
 
 def check_brand_consistency(
