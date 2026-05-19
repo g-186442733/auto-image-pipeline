@@ -15,6 +15,7 @@ from pipeline.models.slot_plan import SlotPlan
 from pipeline.utils.logger import setup_logger
 
 __all__ = [
+    "evaluate_set_intent_structure",
     "refine_prompt_with_qa",
     "run_qa_checks",
     "run_qa_checks_legacy",
@@ -198,6 +199,43 @@ def _call_gemini(prompt: str, image_path: str | None = None) -> str:
     except Exception as exc:
         logger.warning("Gemini call failed: %s", exc)
         return ""
+
+
+_REQUIRED_SET_INTENTS = {
+    "INT_HERO": "缺少主图图位",
+    "INT_LIFESTYLE": "缺少生活方式图位",
+    "INT_DETAIL": "缺少细节图位",
+    "INT_INFOGRAPHIC": "缺少信息图位",
+    "INT_PACKAGING": "缺少包装/配件图位",
+}
+
+
+
+def evaluate_set_intent_structure(slot_summaries: list[dict]) -> dict:
+    intents = [str(slot.get("intent") or "") for slot in slot_summaries]
+    intent_counts = {intent: intents.count(intent) for intent in set(intents)}
+    issues = [
+        message
+        for intent, message in _REQUIRED_SET_INTENTS.items()
+        if intent_counts.get(intent, 0) == 0
+    ]
+
+    if intent_counts.get("INT_PACKAGING", 0) > 1:
+        issues.append("包装/配件图位过多，配件内容可能污染套图")
+    if intent_counts.get("INT_HERO", 0) > 2:
+        issues.append("主图/封面图位过多，套图叙事重复")
+    if (
+        intent_counts.get("INT_LIFESTYLE", 0) > 2
+        and intent_counts.get("INT_DETAIL", 0) == 0
+    ):
+        issues.append("生活方式图重复但缺少细节图位")
+
+    return {
+        "passed": not issues,
+        "issues": issues,
+        "intent_counts": intent_counts,
+    }
+
 
 
 def refine_prompt_with_qa(
