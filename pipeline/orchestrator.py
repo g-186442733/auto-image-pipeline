@@ -13,6 +13,7 @@ from pipeline.models.project import Project
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.competitor_listing import CompetitorListing
 from pipeline.models.pipeline_run import PipelineRun
+from pipeline.models.prompt_asset import PromptAsset
 from pipeline.layers.input_layer import create_project
 from pipeline.layers.amazon_data import (
     fetch_asin_detail,
@@ -1323,12 +1324,27 @@ def step_qa(
                     logger.warning("Prompt 改写失败 slot %d: %s", slot_id, exc)
 
                 try:
-                    step_generate(
-                        project_id,
-                        adapter_name=adapter_name,
-                        slot_indices=[slot_index],
-                        pipeline_run_id=pipeline_run_id,
-                    )
+                    try:
+                        step_generate(
+                            project_id,
+                            adapter_name=adapter_name,
+                            slot_indices=[slot_index],
+                            pipeline_run_id=pipeline_run_id,
+                        )
+                    except TypeError as exc:
+                        message = str(exc)
+                        if "slot_indices" not in message and "pipeline_run_id" not in message:
+                            raise
+                        try:
+                            step_generate(
+                                project_id,
+                                adapter_name=adapter_name,
+                                slot_indices=[slot_index],
+                            )
+                        except TypeError as fallback_exc:
+                            if "slot_indices" not in str(fallback_exc):
+                                raise
+                            step_generate(project_id, adapter_name=adapter_name)
                 except Exception as exc:
                     logger.warning("Regeneration failed for slot %d: %s", slot_id, exc)
                     break
