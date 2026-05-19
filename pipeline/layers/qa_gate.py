@@ -15,6 +15,7 @@ from pipeline.models.slot_plan import SlotPlan
 from pipeline.utils.logger import setup_logger
 
 __all__ = [
+    "refine_prompt_with_qa",
     "run_qa_checks",
     "run_qa_checks_legacy",
     "run_qa_gate",
@@ -358,8 +359,20 @@ def refine_prompt_with_qa(
 
     refined = _call_gemini(refine_prompt, json_mode=False)
     if not (refined and len(refined.strip()) > 20):
-        logger.warning("QA prompt refinement 失败或返回为空，使用原 prompt")
-        return prompt_text
+        logger.warning("QA prompt refinement 失败或返回为空，使用保守本地 fallback")
+        issue_lines = [str(issue).strip() for issue in issues if str(issue).strip()]
+        if not issue_lines and not dim_scores:
+            return prompt_text
+        corrections = [
+            "QA CORRECTION INSTRUCTIONS:",
+            "- Keep the original product, layout intent, and factual claims unchanged.",
+            "- Fix the quality issues listed below before regenerating the image.",
+        ]
+        corrections.extend(f"- {issue}" for issue in issue_lines)
+        if dim_scores:
+            score_text = ", ".join(f"{key}={value}" for key, value in dim_scores.items())
+            corrections.append(f"- Dimension scores to improve: {score_text}.")
+        refined = f"{prompt_text.rstrip()}\n\n" + "\n".join(corrections)
 
     refined_text = refined.strip()
     logger.info("QA prompt refinement 成功，改写长度 %d 字符", len(refined_text))

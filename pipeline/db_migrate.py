@@ -125,6 +125,16 @@ DROP_COLUMNS = [
 ]
 
 POSTGRES_CREATE_TABLES = [
+    """CREATE TABLE IF NOT EXISTS pipeline_runs (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER NOT NULL,
+        status VARCHAR(32) NOT NULL DEFAULT 'pending',
+        started_at TIMESTAMP DEFAULT NOW(),
+        finished_at TIMESTAMP DEFAULT NULL,
+        error_message TEXT,
+        auto_triggered BOOLEAN DEFAULT FALSE,
+        trigger_source VARCHAR(128)
+    )""",
     """CREATE TABLE IF NOT EXISTS customer_profiles (
         id SERIAL PRIMARY KEY,
         tenant_id INTEGER NOT NULL,
@@ -203,6 +213,16 @@ POSTGRES_CREATE_TABLES = [
 ]
 
 SQLITE_CREATE_TABLES = [
+    """CREATE TABLE IF NOT EXISTS pipeline_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        status VARCHAR(32) NOT NULL DEFAULT 'pending',
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        finished_at TIMESTAMP DEFAULT NULL,
+        error_message TEXT,
+        auto_triggered BOOLEAN DEFAULT FALSE,
+        trigger_source VARCHAR(128)
+    )""",
     """CREATE TABLE IF NOT EXISTS customer_profiles (
         id INTEGER PRIMARY KEY,
         tenant_id INTEGER NOT NULL,
