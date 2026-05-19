@@ -360,14 +360,35 @@ def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
             brand_profile=brand_profile,
         )
 
+        details = {"issues": llm_result["issues"], "reasoning": llm_result["reasoning"]}
+        if getattr(slot_plan, "intent_tag", None) == "INT_HERO":
+            from pipeline.layers.safe_frame import (
+                SAFE_FRAME_MIN_MARGIN_RATIO,
+                measure_white_bg_foreground_margins,
+                safe_frame_failed,
+            )
+
+            safe_frame = measure_white_bg_foreground_margins(image_path)
+            details["safe_frame"] = safe_frame
+            details["safe_frame_failed"] = safe_frame_failed(safe_frame)
+            if details["safe_frame_failed"]:
+                min_margin = float(safe_frame.get("min_margin_ratio") or 0.0)
+                issue = (
+                    "Listing INT_HERO safe-frame failure: white-background product is too close to canvas edge; "
+                    f"minimum margin {min_margin * 100:.1f}% is below "
+                    f"{SAFE_FRAME_MIN_MARGIN_RATIO * 100:.0f}% requirement"
+                )
+                llm_result["issues"] = list(llm_result.get("issues", [])) + [issue]
+                details["issues"] = llm_result["issues"]
+                llm_result["score"] = min(float(llm_result["score"]), 59.0)
+                llm_result["pass"] = False
+
         rec = QARecord(
             prompt_asset_id=asset.id,
             check_type="llm_qa",
             passed=1 if llm_result["pass"] else 0,
             score=float(llm_result["score"]),
-            details=json.dumps(
-                {"issues": llm_result["issues"], "reasoning": llm_result["reasoning"]}
-            ),
+            details=json.dumps(details),
         )
         session.add(rec)
         session.commit()

@@ -14,6 +14,17 @@ def _make_png(tmp_path, width=2000, height=2000):
     return str(p)
 
 
+def _make_white_bg_product(tmp_path, box, filename="white_product.png"):
+    from PIL import Image, ImageDraw
+
+    p = tmp_path / filename
+    img = Image.new("RGB", (2000, 2000), color=(255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle(box, fill=(80, 80, 80))
+    img.save(str(p), "PNG")
+    return str(p)
+
+
 def _setup_mock_genai(response_text: str):
     mock_genai = MagicMock()
     mock_model = MagicMock()
@@ -159,6 +170,54 @@ class TestNewRunQaChecksReturnsQARecord:
         assert call_kwargs["check_type"] == "llm_qa"
         assert call_kwargs["passed"] == 1
         assert call_kwargs["score"] == 90.0
+
+    def test_listing_int_hero_safe_frame_failure_caps_score(self, tmp_path):
+        from pipeline.layers.qa_gate import run_qa_checks
+
+        image_path = _make_white_bg_product(
+            tmp_path,
+            (400, 160, 1600, 1985),
+            filename="edge_hero.png",
+        )
+        response = json.dumps(
+            {"pass": True, "score": 95, "issues": [], "reasoning": "Great"}
+        )
+        mock_genai = _setup_mock_genai(response)
+
+        mock_session = MagicMock()
+        mock_slot_plan = MagicMock()
+        mock_slot_plan.project_id = 1
+        mock_slot_plan.slot_index = 0
+        mock_slot_plan.intent_tag = "INT_HERO"
+
+        mock_asset = MagicMock()
+        mock_asset.id = 10
+        mock_asset.image_path = image_path
+        mock_session.query.return_value.filter_by.return_value.filter.return_value.order_by.return_value.first.return_value = mock_asset
+
+        mock_brief = MagicMock()
+        mock_brief.brief_json = '{"goal": "hero"}'
+        mock_session.query.return_value.filter_by.return_value.first.return_value = (
+            mock_brief
+        )
+
+        mock_project = MagicMock()
+        mock_project.notes = None
+        mock_session.get.side_effect = [mock_slot_plan, mock_project]
+
+        with (
+            patch("pipeline.layers.qa_gate.get_session", return_value=mock_session),
+            patch.dict(os.environ, {"GOOGLE_API_KEY": "fake-key"}),
+            patch("pipeline.layers.qa_gate._get_genai", return_value=mock_genai),
+        ):
+            records = run_qa_checks(1)
+
+        assert records[0].passed == 0
+        assert records[0].score == 59.0
+        details = json.loads(records[0].details)
+        assert details["safe_frame_failed"] is True
+        assert details["safe_frame"]["min_margin_ratio"] < 0.05
+        assert any("safe-frame failure" in issue for issue in details["issues"])
 
 
 class TestStepQaRetry:
