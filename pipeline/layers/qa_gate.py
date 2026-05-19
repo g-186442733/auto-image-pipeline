@@ -1139,6 +1139,27 @@ def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
             computed_score = min(computed_score, 59.0)
             llm_result["issues"] = list(llm_result.get("issues", [])) + [_consistency_issue]
 
+        safe_frame = None
+        safe_frame_failed_flag = False
+        if slot_intent_tag == "INT_HERO":
+            from pipeline.layers.safe_frame import (
+                SAFE_FRAME_MIN_MARGIN_RATIO,
+                measure_white_bg_foreground_margins,
+                safe_frame_failed,
+            )
+
+            safe_frame = measure_white_bg_foreground_margins(image_path)
+            safe_frame_failed_flag = safe_frame_failed(safe_frame)
+            if safe_frame_failed_flag:
+                min_margin = float(safe_frame.get("min_margin_ratio") or 0.0)
+                issue = (
+                    "Listing INT_HERO safe-frame failure: white-background product is too close to canvas edge; "
+                    f"minimum margin {min_margin * 100:.1f}% is below "
+                    f"{SAFE_FRAME_MIN_MARGIN_RATIO * 100:.0f}% requirement"
+                )
+                computed_score = min(computed_score, 59.0)
+                llm_result["issues"] = list(llm_result.get("issues", [])) + [issue]
+
         _quality = _calibrate_single_image_quality_score(
             delivery_score=computed_score,
             group_scores=group_scores,
@@ -1167,6 +1188,8 @@ def run_qa_checks(slot_plan_id: int) -> list[QARecord]:
             "reasoning": llm_result["reasoning"],
             "contains_cjk_text": bool(llm_result.get("contains_cjk_text", False)),
             "reference_identity_mode": reference_identity_mode,
+            "safe_frame": safe_frame,
+            "safe_frame_failed": safe_frame_failed_flag,
         }
         if _consistency_repair:
             _qa_details["consistency_repair"] = _consistency_repair
