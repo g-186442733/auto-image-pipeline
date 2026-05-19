@@ -35,8 +35,14 @@ from pipeline.models.pipeline_run import PipelineRun
 from pipeline.models.trend_forecast import TrendForecast
 from pipeline.models.user import User
 from pipeline.models.human_image_score import HumanImageScore
-from pipeline.models.flywheel_example import FlywheelExample
-from pipeline.models.flywheel_observation import FlywheelObservation
+try:
+    from pipeline.models.flywheel_example import FlywheelExample
+except ModuleNotFoundError:
+    FlywheelExample = None
+try:
+    from pipeline.models.flywheel_observation import FlywheelObservation
+except ModuleNotFoundError:
+    FlywheelObservation = None
 from pipeline.models.human_aplus_score import HumanAPlusScore
 
 __all__ = [

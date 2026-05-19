@@ -25,7 +25,17 @@ from pipeline.layers.vision_analyzer import analyze_competitor_listing
 from pipeline.layers.slot_planner import generate_slot_plan
 from pipeline.layers.prompt_engine import generate_slot_prompts
 from pipeline.layers.qa_gate import run_qa_checks
-from pipeline.layers.confidence_routing import ConfidenceRouter
+
+
+class _FallbackConfidenceRouter:
+    def route(self, score: float) -> str:
+        return "human_review" if score < 50 else "retry"
+
+
+try:
+    from pipeline.layers.confidence_routing import ConfidenceRouter
+except ModuleNotFoundError:
+    ConfidenceRouter = _FallbackConfidenceRouter
 
 _confidence_router = ConfidenceRouter()
 
@@ -1526,8 +1536,12 @@ _PRIOR_PSEUDO_COUNT = 20  # 业界默认值（Amazon/Zalando），N=1 时 confid
 
 
 def _try_update_category_priors(proj, brand, project_id: int, session) -> None:
-    from pipeline.layers.brand_constraints import ELASTIC_FIELDS
-    from pipeline.layers.cold_start import update_category_priors
+    try:
+        from pipeline.layers.brand_constraints import ELASTIC_FIELDS
+        from pipeline.layers.cold_start import update_category_priors
+    except ModuleNotFoundError as exc:
+        logger.warning("category priors update unavailable: %s", exc)
+        return
     from pipeline.models.brand_profile import BrandProfile
     from pipeline.models.product_profile import ProductProfile
     from pipeline.models.prompt_asset import PromptAsset

@@ -5,6 +5,7 @@ from __future__ import annotations
 from jinja2 import Environment, BaseLoader, TemplateSyntaxError
 
 import json
+import re
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -19,7 +20,10 @@ from pipeline.layers.brand_profiler import get_brand_hierarchy
 from pipeline.models.image_brief import ImageBrief
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
-from pipeline.models.flywheel_example import FlywheelExample
+try:
+    from pipeline.models.flywheel_example import FlywheelExample
+except ModuleNotFoundError:
+    FlywheelExample = None
 from pipeline.utils.logger import setup_logger
 
 logger = setup_logger("aip.prompt_engine")
@@ -32,7 +36,43 @@ _TEXT_ALLOWED_INTENTS = {"INT_INFOGRAPHIC", "INT_COMPARISON", "INT_PACKAGING"}
 _MARKETPLACE_LANGUAGE_POLICY = (
     "MARKETPLACE LANGUAGE POLICY: Amazon US. "
     "All visible text, if this intent allows text, must be English only. "
-    "Never render Chinese characters, CJK characters, non-English labels, or translated Chinese text in the image."
+    "Never render Chinese characters, CJK characters, non-English labels, or translated Chinese text in the image. "
+    "Chinese user requirements are internal product facts only; translate them into concise English labels before rendering."
+)
+
+_CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+_CJK_PROMPT_TRANSLATIONS: tuple[tuple[str, str], ...] = (
+    ("高端商务科技风", "premium business technology style"),
+    ("克制", "restrained"),
+    ("干净", "clean"),
+    ("可信赖", "trustworthy"),
+    ("严格保持真实上传白底图和角度图中的耳机外观、比例、颜色、耳罩形状和 BOSE 标识位置", "strictly preserve the headphone appearance, proportions, color, earcup shape, and BOSE logo placement from uploaded references"),
+    ("Hero 主图不得展示保护盒、线材、配件全家福", "Hero image must not show carrying case, cables, or accessory bundle"),
+    ("Packaging/In-box 图位才展示保护盒、USB-C 线、音频线、安全说明", "Only the Packaging/In-box slot may show carrying case, USB-C cable, audio cable, and safety guide"),
+    ("Detail 图位聚焦接口、按钮、耳罩材质", "Detail slot focuses on ports, buttons, and ear cushion material"),
+    ("生成构图参考图只能用于 layout，不得当作真实产品照片", "Generated composition references are for layout only, not product fact photos"),
+    ("小时续航信息", "battery life information in hours"),
+    ("续航", "battery life"),
+    ("黑色主款", "black main product variant"),
+    ("柔软耳罩材质", "soft ear cushion material"),
+    ("USB-C接口", "USB-C port"),
+    ("USB-C 接口", "USB-C port"),
+    ("保护盒和全部配件", "carrying case and complete accessory bundle"),
+    ("Hero主图出现保护盒或线材", "carrying case or cables appearing in the Hero image"),
+    ("不存在的颜色", "nonexistent color variants"),
+    ("虚构配件", "invented accessories"),
+    ("儿童场景", "children scenes"),
+    ("宠物场景", "pet scenes"),
+    ("竞品品牌名", "competitor brand names"),
+    ("电竞灯效", "gaming RGB lighting effects"),
+    ("保护盒", "carrying case"),
+    ("线材", "cables"),
+    ("配件", "accessories"),
+    ("耳罩", "ear cushions"),
+    ("接口", "ports"),
+    ("按钮", "buttons"),
+    ("主图", "Hero image"),
+    ("图位", "image slot"),
 )
 
 _INTENT_NEGATIVE_CONSTRAINTS: dict[str, str] = {
@@ -40,6 +80,25 @@ _INTENT_NEGATIVE_CONSTRAINTS: dict[str, str] = {
     "INT_LIFESTYLE": "no flat-lay accessory bundle, no static packaging spread, show the product in actual use",
     "INT_DETAIL": "no full accessory spread, no packaging bundle, focus on one product material, port, button, seam, or craftsmanship detail",
     "INT_COMPARISON": "no packaging bundle, no accessory spread unless the comparison explicitly concerns package contents",
+}
+
+_INTENT_COMPOSITION_LOCKS: dict[str, str] = {
+    "INT_LIFESTYLE": (
+        "ANGLE-SPECIFIC COMPOSITION LOCK: lifestyle use scene only; show the headphones being worn "
+        "by a visible person in a real indoor environment, with head/shoulders and room context in frame; "
+        "use a true side-profile or over-shoulder 70-90 degree wearing view; never output a product-only image, "
+        "never use a pure white studio product background, and never use an isolated 3/4 product render."
+    ),
+    "INT_INFOGRAPHIC": (
+        "ANGLE-SPECIFIC COMPOSITION LOCK: orthographic front-facing product diagram only; "
+        "use a flat front elevation or clean exploded-callout composition; never use a 3/4 camera, "
+        "diagonal perspective, lifestyle view, or medium product glamor shot."
+    ),
+    "INT_DETAIL": (
+        "ANGLE-SPECIFIC COMPOSITION LOCK: true macro close-up only; show a tight partial crop of one earcup, "
+        "port edge, button cluster, seam, hinge, or cushion texture; never show the full headphone, "
+        "never use a medium shot, and never use a 3/4 product view."
+    ),
 }
 
 
@@ -54,8 +113,49 @@ def _text_constraint(intent_tag: str | None) -> str:
     - 其他（主图/场景图/细节图）：严格禁止文字、水印、标注
     """
     if intent_tag and intent_tag in _TEXT_ALLOWED_INTENTS:
-        return "Ensure all text in the image is correctly spelled, legible, and English only."
+        return (
+            "VISIBLE TEXT RULE: Any visible words, labels, callouts, numbers, or badges must be "
+            "English only, correctly spelled, and mobile-readable. Do not copy Chinese source text "
+            "from user requirements. Translate concepts such as battery life, USB-C port, comfort, "
+            "and premium build into short English callouts."
+        )
     return "Do not include any text, letters, numbers, words, labels, or watermarks in the image."
+
+
+
+def _translate_known_cjk_terms(prompt: str) -> str:
+    translated = prompt or ""
+    for source, target in _CJK_PROMPT_TRANSLATIONS:
+        translated = translated.replace(source, target)
+    return translated
+
+
+
+def _normalize_prompt_punctuation(prompt: str) -> str:
+    normalized = (
+        (prompt or "")
+        .replace("；", "; ")
+        .replace("。", ". ")
+        .replace("，", ", ")
+        .replace("、", ", ")
+    )
+    normalized = re.sub(r"\s+([,.;:])", r"\1", normalized)
+    normalized = re.sub(r"[ \t]{2,}", " ", normalized)
+    normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+    return normalized.strip()
+
+
+
+def _sanitize_cjk_for_image_prompt(prompt: str) -> str:
+    """Remove CJK leakage from system-generated image prompts."""
+    sanitized = _normalize_prompt_punctuation(_translate_known_cjk_terms(prompt))
+    sanitized = _CJK_RE.sub("", sanitized)
+    return _normalize_prompt_punctuation(sanitized)
+
+
+
+def _intent_composition_lock(intent_tag: str | None) -> str:
+    return _INTENT_COMPOSITION_LOCKS.get(intent_tag or "", "")
 
 
 REQUIRED_VARIABLE_KEYS = frozenset(
@@ -773,7 +873,14 @@ def generate_slot_prompts(
             if _neg_parts:
                 _prompt_core += f"\n--no {', '.join(_neg_parts)}"
 
+            _constraint_blocks = [
+                _intent_composition_lock(plan.intent_tag),
+                _intent_negative_constraints(plan.intent_tag),
+                _MARKETPLACE_LANGUAGE_POLICY,
+            ]
+            _prompt_core = "\n".join(block for block in _constraint_blocks if block) + "\n" + _prompt_core
             _prompt_core += f"\n{_text_constraint(plan.intent_tag)}"
+            _prompt_core = _sanitize_cjk_for_image_prompt(_prompt_core)
 
             _custom = getattr(plan, "custom_prompt", None)
             if _custom and _custom.strip():
