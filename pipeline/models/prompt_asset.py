@@ -10,6 +10,7 @@ from sqlalchemy import (
     func,
 )
 from pipeline.models.base import Base
+from pipeline.models.pipeline_run import PipelineRun  # noqa: F401
 
 
 class PromptAsset(Base):
@@ -26,3 +27,6 @@ class PromptAsset(Base):
     created_at = Column(DateTime, server_default=func.now())
     performance_score = Column(Float, nullable=True)
     is_recommended = Column(Boolean, default=False)
+    pipeline_run_id = Column(
+        Integer, ForeignKey("pipeline_runs.id"), nullable=True, index=True
+    )

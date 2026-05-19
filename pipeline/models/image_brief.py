@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, func
 from pipeline.models.base import Base
+from pipeline.models.pipeline_run import PipelineRun  # noqa: F401 — 确保 pipeline_runs 表先创建
 
 
 class ImageBrief(Base):
@@ -11,3 +12,6 @@ class ImageBrief(Base):
     brief_json = Column(Text)
     source_analysis_ids = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
+    pipeline_run_id = Column(
+        Integer, ForeignKey("pipeline_runs.id"), nullable=True, index=True
+    )
