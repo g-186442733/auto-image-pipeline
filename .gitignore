@@ -12,4 +12,20 @@ venv/
 *.log
 .DS_Store
 data/*.db
-.venv/
+
+# Test/runtime artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+browser-outputs/
+
+# Generated pipeline assets
+data/images/
+data/output/
+output/*/delivery/
+output/*/versions/
+uploads/
+brief.json
+
+# Local Sisyphus run evidence
+.sisyphus/evidence/

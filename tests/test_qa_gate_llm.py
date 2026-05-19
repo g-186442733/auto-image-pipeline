@@ -23,6 +23,17 @@ def _make_mock_httpx_response(response_text: str):
     return mock_resp
 
 
+def _make_white_bg_product(tmp_path, box, filename="white_product.png"):
+    from PIL import Image, ImageDraw
+
+    p = tmp_path / filename
+    img = Image.new("RGB", (2000, 2000), color=(255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle(box, fill=(80, 80, 80))
+    img.save(str(p), "PNG")
+    return str(p)
+
+
 def _dimensions_for_score(score: int) -> dict:
     maxima = {
         "A1": 10,
@@ -167,6 +178,9 @@ class TestNewRunQaChecksReturnsQARecord:
         mock_asset = MagicMock()
         mock_asset.id = 10
         mock_asset.image_path = image_path
+        mock_asset.model_name = "gpt_image"
+        mock_asset.visual_tags = None
+        mock_asset.status = None
         mock_session.query.return_value.filter_by.return_value.filter.return_value.order_by.return_value.first.return_value = mock_asset
 
         mock_brief = MagicMock()
@@ -199,6 +213,55 @@ class TestNewRunQaChecksReturnsQARecord:
         assert call_kwargs["check_type"] == "llm_qa"
         assert call_kwargs["passed"] == 1
         assert call_kwargs["score"] == 90.0
+
+    def test_listing_int_hero_safe_frame_failure_caps_score(self, tmp_path):
+        from pipeline.layers.qa_gate import run_qa_checks
+
+        image_path = _make_white_bg_product(
+            tmp_path,
+            (400, 160, 1600, 1985),
+            filename="edge_hero.png",
+        )
+        response = _llm_response(passed=True, score=95, reasoning="Great")
+        mock_resp = _make_mock_httpx_response(response)
+
+        mock_session = MagicMock()
+        mock_slot_plan = MagicMock()
+        mock_slot_plan.id = 1
+        mock_slot_plan.project_id = 1
+        mock_slot_plan.slot_index = 0
+        mock_slot_plan.intent_tag = "INT_HERO"
+        mock_slot_plan.tenant_id = None
+
+        mock_asset = MagicMock()
+        mock_asset.id = 10
+        mock_asset.image_path = image_path
+        mock_session.query.return_value.filter_by.return_value.filter.return_value.order_by.return_value.first.return_value = mock_asset
+
+        mock_brief = MagicMock()
+        mock_brief.brief_json = '{"goal": "hero"}'
+        mock_session.query.return_value.filter_by.return_value.first.return_value = (
+            mock_brief
+        )
+
+        mock_project = MagicMock()
+        mock_project.notes = None
+        mock_project.customer_brief = "{}"
+        mock_session.get.side_effect = [mock_slot_plan, mock_project]
+
+        with (
+            patch("pipeline.layers.qa_gate.get_session", return_value=mock_session),
+            patch.object(config, "api_key", "fake-key"),
+            patch("pipeline.layers.qa_gate.httpx.post", return_value=mock_resp),
+        ):
+            records = run_qa_checks(1)
+
+        assert records[0].passed == 0
+        assert records[0].score == 59.0
+        details = json.loads(records[0].details)
+        assert details["safe_frame_failed"] is True
+        assert details["safe_frame"]["min_margin_ratio"] < 0.05
+        assert any("safe-frame failure" in issue for issue in details["issues"])
 
 
 class TestRunQaChecksDeliveryStatus:
