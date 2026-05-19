@@ -1,6 +1,8 @@
 from pipeline.models.base import Base, get_engine, get_session, create_all
 from pipeline.models.project import Project
 from pipeline.models.brand_profile import BrandProfile
+from pipeline.models.customer_profile import CustomerProfile
+from pipeline.models.product_profile import ProductProfile
 from pipeline.models.benchmark import AmazonBenchmark
 from pipeline.models.prompt_asset import PromptAsset
 from pipeline.models.slot_plan import SlotPlan
@@ -26,6 +28,8 @@ __all__ = [
     "create_all",
     "Project",
     "BrandProfile",
+    "CustomerProfile",
+    "ProductProfile",
     "AmazonBenchmark",
     "PromptAsset",
     "SlotPlan",
